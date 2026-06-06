@@ -24,6 +24,10 @@ upstream model (provider, or a mock in tests)
       │
       ▼
 telemetry → Grafana Alloy → Mimir (metrics) / Loki (logs) / Tempo (traces) → Grafana
+
+human access (dashboards/console):
+  browser → Higress → oauth2-proxy (Google SSO, domain-restricted)
+          → injects the identity tuple → Grafana
 ```
 
 ## Components
@@ -44,13 +48,16 @@ telemetry → Grafana Alloy → Mimir (metrics) / Loki (logs) / Tempo (traces) �
   Redis operator; standalone or HA).
 - **Observability (LGTM)** — Grafana + Loki + Mimir + Tempo with **Grafana
   Alloy** collecting metrics and logs from the gateway.
+- **oauth2-proxy** — brokers Google Workspace SSO in front of Grafana,
+  enforces the company domain, and injects the identity tuple downstream. Runs
+  in-cluster; no proprietary component.
 
 ## Identity
 
 Every limit, budget, metric and key is keyed by the full identity tuple
-**`{org, project, group, user}`**. Today the group/user come from request
-headers (`x-dev-group` / `x-dev-user`); once SSO lands, Google Workspace
-populates the same identity — nothing downstream changes.
+**`{org, project, group, user}`**. The group/user arrive as request headers
+(`x-dev-group` / `x-dev-user`); with SSO enabled, Google Workspace populates the
+exact same headers — only the *source* of identity changes, nothing downstream.
 
 ## Multi-tenancy direction
 

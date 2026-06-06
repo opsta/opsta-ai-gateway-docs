@@ -14,7 +14,10 @@ The gateway is built milestone by milestone; each is fully green
 | **M3** Model allow-list | ✅ done | per-group allowed-model enforcement (403) |
 | **M4** Observability | ✅ done | Grafana LGTM + Alloy dashboards |
 | **M5** Guardrails | ✅ done | PII masking + prompt-injection blocking (no cloud dependency) |
-| **M6** SSO | ⏳ next | Google Workspace OIDC, domain-restricted, feeding identity |
+| **M6** SSO | ✅ done | Google Workspace OIDC, domain-restricted, feeding identity |
+
+**Phase 0 (single-tenant engine) is complete.** Next is Phase 1 — the
+multi-tenant control plane.
 
 > **USD budget enforcement** (dollar caps per group/user) lands after SSO (M9,
 > hierarchical budgets), once authenticated-consumer identity exists.

@@ -1,6 +1,6 @@
 # Features
 
-What the gateway does today (delivered milestones M0–M5).
+What the gateway does today (delivered milestones M0–M6 — Phase 0 complete).
 
 ## Work-type → model routing (M1)
 
@@ -57,6 +57,16 @@ reachable at its own hostname. The LGTM stores sit behind a basic-auth proxy
 Storage is host-mounted local disk for dev (no NFS) with an object-storage
 (S3 / SeaweedFS) path for HA.
 
+## Single sign-on (M6)
+
+Human access to dashboards (and the future admin console) is gated by **Google
+Workspace SSO**, restricted to your company domain (`hd` / email-domain enforced
+server-side — outside accounts are denied). Unauthenticated visitors are
+redirected to Google; on login, the user's identity and **group** flow through as
+the same identity tuple the gateway's limits and guardrails already use, so SSO
+simply becomes the source of identity. Built on **oauth2-proxy** (no proprietary
+component), it runs entirely in your cluster.
+
 ## In-cluster TLS + remote access (M0.5)
 
 TLS is terminated **in-cluster** by Higress using a **Let's Encrypt**
@@ -66,5 +76,5 @@ certificate serves clients directly — zero manifest change.
 
 ## Coming next
 
-See the [Roadmap](./roadmap) — Google SSO (M6), then the multi-tenant control
-plane and USD budgets.
+See the [Roadmap](./roadmap) — Phase 0 (the single-tenant engine) is complete;
+next is the multi-tenant control plane, USD budgets, and API keys.
