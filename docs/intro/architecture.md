@@ -58,9 +58,14 @@ flowchart LR
   Redis operator; standalone or HA).
 - **Observability (LGTM)** — Grafana + Loki + Mimir + Tempo with **Grafana
   Alloy** collecting metrics and logs from the gateway.
-- **oauth2-proxy** — brokers Google Workspace SSO in front of Grafana,
-  enforces the company domain, and injects the identity tuple downstream. Runs
-  in-cluster; no proprietary component.
+- **oauth2-proxy** — brokers Google Workspace SSO in front of Grafana and the
+  console, enforces the company domain, and injects the identity tuple
+  downstream. Runs in-cluster; no proprietary component.
+- **Web console** — a Next.js app on `console.<baseDomain>`, SSO-gated, where a
+  user logs in with their organization email to see their API key, token/USD
+  usage and remaining budget, and allowed models; admins get a read-only view of
+  every consumer. Reads live usage from Mimir and config from the same values the
+  gateway uses.
 
 ## Identity
 
@@ -118,9 +123,22 @@ flowchart LR
 
 Key toggles in `values.yaml`: `global.highAvailability` (standalone ↔ HA),
 `global.registry` / `imagePullSecrets` (any OCI registry), `global.baseDomain`
-+ `subdomains` (one wildcard cert for `*.<baseDomain>`), `tls.mode`
-(`letsencrypt` | `provided` | `selfsigned`), `ingress.tunnel.enabled`
-(optional Cloudflare Tunnel), and `global.namespacePrefix`.
++ `subdomains`, `tls.mode` (`letsencrypt` | `provided` | `selfsigned`),
+`ingress.tunnel.enabled` (optional Cloudflare Tunnel), and
+`global.namespacePrefix`.
+
+**Subdomain scheme (`global.subdomainSeparator`).** Hosts are composed as
+`<service><sep><baseDomain>`:
+
+- `"."` → `api.ai-gateway.opsta.dev` — a clean second-level wildcard
+  (`*.ai-gateway.opsta.dev`). Behind Cloudflare this needs an edge cert that
+  covers that depth (Advanced Certificate Manager / Total TLS), since free
+  Universal SSL only covers `example.com` + `*.example.com`.
+- `"-"` → `api-ai-gateway.opsta.dev` — a single-level name under the registrable
+  domain, covered by free Cloudflare Universal SSL `*.opsta.dev`. No extra cert
+  product. (When fronting via a Cloudflare Tunnel, set the origin to
+  `https://…:443` with **No TLS Verify** on, since the in-cluster cert won't match
+  the dash host.)
 
 ## Multi-tenancy direction
 
