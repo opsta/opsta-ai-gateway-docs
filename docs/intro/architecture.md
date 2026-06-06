@@ -69,6 +69,59 @@ Every limit, budget, metric and key is keyed by the full identity tuple
 (`x-dev-group` / `x-dev-user`); with SSO enabled, Google Workspace populates the
 exact same headers — only the *source* of identity changes, nothing downstream.
 
+## Deployment & configuration
+
+The whole product ships as **one Helm chart** (`opsta-ai-gateway`). A `helmfile`
+installs it next to the third-party releases it depends on (Higress,
+cert-manager, the Redis operator, and the LGTM stack), and pins every version in
+one place. You configure everything through values files — there are no
+hand-applied manifests and no per-environment scripts.
+
+```mermaid
+flowchart TB
+  task["Taskfile (entrypoint)"]
+  ver["version.yaml<br/>pinned versions · registry · image tags"]
+  hf["helmfile<br/>releases + install-order DAG"]
+  task --> hf
+  ver -. feeds .-> hf
+
+  subgraph tp["third-party releases"]
+    hig["higress"]
+    cm["cert-manager"]
+    ro["redis-operator"]
+    lgtm["loki · tempo · grafana · alloy"]
+  end
+
+  subgraph our["product chart: opsta-ai-gateway"]
+    chart["chart"]
+    v1["values.yaml — defaults"]
+    v2["values-dev.yaml — k3d profile"]
+    v3["secrets-values.yaml — secrets (git-ignored)"]
+    v1 --> chart
+    v2 --> chart
+    v3 --> chart
+  end
+
+  hf --> hig & cm & ro & lgtm & chart
+```
+
+**One config surface, layered.** `values.yaml` holds deploy-anywhere defaults;
+an environment overrides only what differs (registry, TLS mode, HA on/off,
+domain); secrets live in a separate git-ignored file. To deploy elsewhere you
+write a small overlay, not a fork.
+
+```mermaid
+flowchart LR
+  b["values.yaml<br/>base defaults"] --> d["values-&lt;env&gt;.yaml<br/>registry · TLS mode · HA · domain"] --> s["secrets-values.yaml<br/>credentials"]
+  s --> chart["one chart, any cluster"]
+```
+
+Key toggles in `values.yaml`: `global.highAvailability` (standalone ↔ HA),
+`global.registry` / `imagePullSecrets` (any OCI registry), `global.baseDomain`
++ `subdomains` (one wildcard cert for `*.<baseDomain>`), `tls.mode`
+(`letsencrypt` | `provided` | `selfsigned`), `ingress.tunnel.enabled`
+(optional Cloudflare Tunnel), and `global.namespacePrefix`.
+
 ## Multi-tenancy direction
 
 The gateway is heading toward a multi-tenant product: a control plane stores a
