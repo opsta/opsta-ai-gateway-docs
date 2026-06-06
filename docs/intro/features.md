@@ -1,6 +1,6 @@
 # Features
 
-What the gateway does today (delivered milestones M0–M6 — Phase 0 complete).
+What the gateway does today (delivered milestones M0–M6 + M2.5 — Phase 0 complete).
 
 ## Work-type → model routing (M1)
 
@@ -18,9 +18,15 @@ Token-per-minute rate limits are enforced by the built-in **ai-statistics** +
 and namespaced by `{org, project}`. Over the limit → **HTTP 429**. Redis is
 managed by the Opstree operator (standalone for dev, HA + Sentinel available).
 
-> **USD budgets** (dollar caps, not just tokens) are planned for after SSO —
-> per-token prices differ ~36× across providers, so a dollar cap needs the
-> authenticated-consumer identity that SSO/API-keys provide.
+## API-key authentication + USD budgets (M2.5)
+
+The machine API (`/v1`) is authenticated with **API keys** (`Authorization:
+Bearer …`, OpenAI-compatible): each key maps to a **consumer** (`project.user`)
+that every policy keys on. On top of token limits, each consumer gets a real
+**dollar budget**: a controller continuously reads token usage, prices it with a
+per-model USD price table, and cuts the consumer off once they exceed their
+budget → **HTTP 403**. It's all in-cluster (no proprietary component), and the
+budget/price config lives in the Project spec.
 
 ## Per-group model allow-list (M3)
 

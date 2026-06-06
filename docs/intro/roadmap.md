@@ -11,6 +11,7 @@ The gateway is built milestone by milestone; each is fully green
 | **M0.5** Remote access + in-cluster TLS | ✅ done | Let's Encrypt TLS in-cluster, Cloudflare Tunnel dev ingress |
 | **M1** Work-type → model routing | ✅ done | header/tag routing to logical model routes + fallback |
 | **M2** Per-group/user token limits | ✅ done | built-in token rate limits, Redis-backed, identity-keyed |
+| **M2.5** API keys + USD budgets | ✅ done | key-auth consumers, per-consumer dollar caps via a budget controller |
 | **M3** Model allow-list | ✅ done | per-group allowed-model enforcement (403) |
 | **M4** Observability | ✅ done | Grafana LGTM + Alloy dashboards |
 | **M5** Guardrails | ✅ done | PII masking + prompt-injection blocking (no cloud dependency) |

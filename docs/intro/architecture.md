@@ -12,12 +12,14 @@ flowchart TD
   cf["Cloudflare edge → cloudflared tunnel<br/>(dev front door; removed in prod)"]
   subgraph gw["Higress gateway — in-cluster TLS (Let's Encrypt via cert-manager)"]
     direction TB
+    p0["key-auth → API key → consumer (401 if missing/invalid)"]
     p1["ai-data-masking → mask PII in request + response (local)"]
     p2["prompt-guard → 403 on prompt-injection attempts"]
     p3["model-allowlist → 403 if model not allowed for the group"]
-    p4["ai-statistics → parse usage → token metrics"]
+    p4["ai-statistics → usage → per-consumer token metrics"]
+    pq["ai-quota → 403 if over USD budget (token balance, Redis)"]
     p5["ai-token-ratelimit → 429 if over tokens/min (Redis)"]
-    p1 --> p2 --> p3 --> p4 --> p5
+    p0 --> p1 --> p2 --> p3 --> p4 --> pq --> p5
   end
   model["upstream model (provider, or a mock in tests)"]
   obs["Grafana Alloy → Mimir (metrics) / Loki (logs) / Tempo (traces) → Grafana"]
@@ -42,12 +44,16 @@ flowchart LR
   Cloudflare) so **TLS is terminated in-cluster**, not at the edge. The same
   certificate serves dev (behind a Cloudflare Tunnel) and production (direct) —
   no manifest change between them.
-- **Built-in AI plugins** — `ai-statistics` (token accounting),
-  `ai-token-ratelimit` (Redis-backed token limits), and `ai-data-masking`
-  (local PII masking), mirrored into your own registry (no runtime pull from a
-  public cloud registry).
+- **Built-in AI plugins** — `key-auth` (API-key → consumer), `ai-statistics`
+  (token accounting), `ai-token-ratelimit` (Redis token limits), `ai-quota`
+  (Redis per-consumer USD-budget balance), and `ai-data-masking` (local PII
+  masking), mirrored into your own registry (no runtime pull from a public cloud
+  registry).
 - **Custom plugins** — small Wasm guards written only where no built-in fits:
   the per-group **model-allowlist** and the **prompt-guard** injection blocker.
+- **budget-controller** — a small in-cluster CronJob: reads per-consumer token
+  usage, prices it with a per-model USD table, and enforces each consumer's
+  dollar budget via ai-quota. The dollar "brain"; the gateway is the cutoff.
 - **Redis** — backing store for rate-limit counters (managed by the Opstree
   Redis operator; standalone or HA).
 - **Observability (LGTM)** — Grafana + Loki + Mimir + Tempo with **Grafana
