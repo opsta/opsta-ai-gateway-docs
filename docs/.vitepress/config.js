@@ -1,7 +1,9 @@
 import { defineConfig } from "vitepress";
+import { withMermaid } from "vitepress-plugin-mermaid";
 
 // https://vitepress.dev/reference/site-config
-export default defineConfig({
+// withMermaid enables ```mermaid fenced diagrams.
+export default withMermaid(defineConfig({
   title: "Opsta AI Gateway",
   description:
     "A single, self-hosted AI gateway on Kubernetes (Higress) — routing, " +
@@ -39,4 +41,5 @@ export default defineConfig({
       copyright: "Copyright © 2026 Opsta (Thailand). All rights reserved.",
     },
   },
-});
+  mermaid: {},
+}));

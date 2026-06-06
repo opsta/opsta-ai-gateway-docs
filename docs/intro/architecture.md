@@ -6,28 +6,32 @@ of plugins; everything is rendered from code.
 
 ## Request flow
 
+```mermaid
+flowchart TD
+  client["client / app (OpenAI-compatible HTTP)"]
+  cf["Cloudflare edge → cloudflared tunnel<br/>(dev front door; removed in prod)"]
+  subgraph gw["Higress gateway — in-cluster TLS (Let's Encrypt via cert-manager)"]
+    direction TB
+    p1["ai-data-masking → mask PII in request + response (local)"]
+    p2["prompt-guard → 403 on prompt-injection attempts"]
+    p3["model-allowlist → 403 if model not allowed for the group"]
+    p4["ai-statistics → parse usage → token metrics"]
+    p5["ai-token-ratelimit → 429 if over tokens/min (Redis)"]
+    p1 --> p2 --> p3 --> p4 --> p5
+  end
+  model["upstream model (provider, or a mock in tests)"]
+  obs["Grafana Alloy → Mimir (metrics) / Loki (logs) / Tempo (traces) → Grafana"]
+  client -->|"POST /v1/chat/completions"| cf --> gw --> model
+  p5 -.->|telemetry| obs
 ```
-client / app (OpenAI-compatible HTTP)
-      │  POST /v1/chat/completions
-      ▼
-[ Cloudflare edge → cloudflared tunnel ]   (dev front door; removed in prod)
-      ▼
-Higress gateway  (in-cluster TLS: Let's Encrypt via cert-manager)
-      │   plugin chain (scoped per Project):
-      │     ai-data-masking   → mask PII in request + response (local)
-      │     model-allowlist   → 403 if model not allowed for the group
-      │     prompt-guard      → 403 on prompt-injection attempts
-      │     ai-statistics     → parse usage → token metrics
-      │     ai-token-ratelimit→ 429 if over tokens/min (Redis)
-      ▼
-upstream model (provider, or a mock in tests)
-      │
-      ▼
-telemetry → Grafana Alloy → Mimir (metrics) / Loki (logs) / Tempo (traces) → Grafana
 
-human access (dashboards/console):
-  browser → Higress → oauth2-proxy (Google SSO, domain-restricted)
-          → injects the identity tuple → Grafana
+Human access (dashboards / console):
+
+```mermaid
+flowchart LR
+  browser["browser"] --> higress["Higress"]
+  higress --> op["oauth2-proxy<br/>(Google SSO, domain-restricted)"]
+  op -->|"injects the identity tuple"| grafana["Grafana"]
 ```
 
 ## Components
