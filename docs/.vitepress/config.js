@@ -1,0 +1,42 @@
+import { defineConfig } from "vitepress";
+
+// https://vitepress.dev/reference/site-config
+export default defineConfig({
+  title: "Opsta AI Gateway",
+  description:
+    "A single, self-hosted AI gateway on Kubernetes (Higress) — routing, " +
+    "per-group/user limits, model allow-lists, observability, guardrails, SSO.",
+  lang: "en-US",
+  appearance: { theme: "light", toggle: true },
+  ignoreDeadLinks: true,
+  cleanUrls: true,
+  themeConfig: {
+    search: { provider: "local" },
+    nav: [
+      { text: "Introduction", link: "/intro/what-is", activeMatch: "^/intro/" },
+      {
+        text: "GitHub",
+        link: "https://github.com/opsta/opsta-ai-gateway",
+      },
+    ],
+    sidebar: {
+      "/intro/": [
+        {
+          text: "Introduction",
+          items: [
+            { text: "What is Opsta AI Gateway", link: "/intro/what-is" },
+            { text: "Architecture", link: "/intro/architecture" },
+            { text: "Getting started", link: "/intro/getting-started" },
+            { text: "Features", link: "/intro/features" },
+            { text: "Roadmap", link: "/intro/roadmap" },
+          ],
+        },
+      ],
+    },
+    footer: {
+      message:
+        "Self-hosted AI gateway on Higress — Infrastructure-as-Code, on-prem, no cloud lock-in.",
+      copyright: "Copyright © 2026 Opsta (Thailand). All rights reserved.",
+    },
+  },
+});

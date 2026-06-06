@@ -1,0 +1,14 @@
+{
+  "name": "opsta-ai-gateway-docs",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "vitepress dev docs",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
+  },
+  "devDependencies": {
+    "vitepress": "~1.5.0"
+  }
+}
