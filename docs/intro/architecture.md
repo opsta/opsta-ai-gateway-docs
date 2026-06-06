@@ -14,7 +14,9 @@ client / app (OpenAI-compatible HTTP)
       ▼
 Higress gateway  (in-cluster TLS: Let's Encrypt via cert-manager)
       │   plugin chain (scoped per Project):
+      │     ai-data-masking   → mask PII in request + response (local)
       │     model-allowlist   → 403 if model not allowed for the group
+      │     prompt-guard      → 403 on prompt-injection attempts
       │     ai-statistics     → parse usage → token metrics
       │     ai-token-ratelimit→ 429 if over tokens/min (Redis)
       ▼
@@ -32,11 +34,12 @@ telemetry → Grafana Alloy → Mimir (metrics) / Loki (logs) / Tempo (traces) �
   Cloudflare) so **TLS is terminated in-cluster**, not at the edge. The same
   certificate serves dev (behind a Cloudflare Tunnel) and production (direct) —
   no manifest change between them.
-- **Built-in AI plugins** — `ai-statistics` (token accounting) and
-  `ai-token-ratelimit` (Redis-backed token limits), mirrored into your own
-  registry (no runtime pull from a public cloud registry).
-- **Custom plugins** — small Wasm guards written only where no built-in fits,
-  e.g. the per-group **model-allowlist**.
+- **Built-in AI plugins** — `ai-statistics` (token accounting),
+  `ai-token-ratelimit` (Redis-backed token limits), and `ai-data-masking`
+  (local PII masking), mirrored into your own registry (no runtime pull from a
+  public cloud registry).
+- **Custom plugins** — small Wasm guards written only where no built-in fits:
+  the per-group **model-allowlist** and the **prompt-guard** injection blocker.
 - **Redis** — backing store for rate-limit counters (managed by the Opstree
   Redis operator; standalone or HA).
 - **Observability (LGTM)** — Grafana + Loki + Mimir + Tempo with **Grafana

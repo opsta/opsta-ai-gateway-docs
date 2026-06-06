@@ -1,6 +1,6 @@
 # Features
 
-What the gateway does today (delivered milestones M0–M4).
+What the gateway does today (delivered milestones M0–M5).
 
 ## Work-type → model routing (M1)
 
@@ -29,6 +29,22 @@ caller's **group allow-list** → **HTTP 403**. The allow-list is data in the
 Project spec, scoped per Project, and on-prem self-contained (no cloud
 dependency). Non-LLM requests pass through untouched.
 
+## Guardrails — PII masking + prompt-injection (M5)
+
+Two guards screen every prompt **before** the model sees it:
+
+- **PII masking** uses the built-in **ai-data-masking** plugin to mask sensitive
+  data (emails, phone numbers, IPs, API keys) in both the request and the model's
+  response. It runs entirely in-cluster with local rules — **no data leaves the
+  cluster** — and the masking rules are data in the Project spec, toggleable per
+  Project.
+- **Prompt-injection blocking** is a small custom Wasm guard that rejects known
+  jailbreak / instruction-override prompts (e.g. "ignore previous instructions",
+  "reveal your system prompt") → **HTTP 403**, with a configurable pattern list.
+
+Both are on-prem and self-contained — no third-party cloud call — meeting the
+privacy requirement.
+
 ## Observability (M4)
 
 A full **Grafana LGTM** stack — **Loki** (logs), **Mimir** (metrics), **Tempo**
@@ -50,5 +66,5 @@ certificate serves clients directly — zero manifest change.
 
 ## Coming next
 
-See the [Roadmap](./roadmap) — guardrails (M5), Google SSO (M6), then the
-multi-tenant control plane.
+See the [Roadmap](./roadmap) — Google SSO (M6), then the multi-tenant control
+plane and USD budgets.

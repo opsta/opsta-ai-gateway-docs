@@ -13,8 +13,8 @@ The gateway is built milestone by milestone; each is fully green
 | **M2** Per-group/user token limits | ✅ done | built-in token rate limits, Redis-backed, identity-keyed |
 | **M3** Model allow-list | ✅ done | per-group allowed-model enforcement (403) |
 | **M4** Observability | ✅ done | Grafana LGTM + Alloy dashboards |
-| **M5** Guardrails | ⏳ next | PII masking + content/prompt-injection (no cloud dependency) |
-| **M6** SSO | ⏳ planned | Google Workspace OIDC, domain-restricted, feeding identity |
+| **M5** Guardrails | ✅ done | PII masking + prompt-injection blocking (no cloud dependency) |
+| **M6** SSO | ⏳ next | Google Workspace OIDC, domain-restricted, feeding identity |
 
 > **USD budget enforcement** (dollar caps per group/user) lands after SSO (M9,
 > hierarchical budgets), once authenticated-consumer identity exists.
