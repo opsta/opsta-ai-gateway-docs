@@ -23,10 +23,13 @@ managed by the Opstree operator (standalone for dev, HA + Sentinel available).
 The machine API (`/v1`) is authenticated with **API keys** (`Authorization:
 Bearer …`, OpenAI-compatible): each key maps to a **consumer** (`project.user`)
 that every policy keys on. On top of token limits, each consumer gets a real
-**dollar budget**: a controller continuously reads token usage, prices it with a
-per-model USD price table, and cuts the consumer off once they exceed their
-budget → **HTTP 403**. It's all in-cluster (no proprietary component), and the
-budget/price config lives in the Project spec.
+**monthly dollar budget**: a controller continuously reads each consumer's
+month-to-date token usage, prices it with a per-model USD price table, and cuts the
+consumer off once they exceed their budget for the month → **HTTP 403**. The budget
+resets at the start of each calendar month. Historical token + USD usage is **retained
+for reporting** (default 1 year, configurable) — the monthly reset only affects
+enforcement, never the stored history. It's all in-cluster (no proprietary
+component), and the budget/price config lives in the Project spec.
 
 ## Per-group model allow-list (M3)
 
