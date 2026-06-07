@@ -127,6 +127,14 @@ Key toggles in `values.yaml`: `global.highAvailability` (standalone ↔ HA),
 `ingress.tunnel.enabled` (optional Cloudflare Tunnel), and
 `global.namespacePrefix`.
 
+**Reuse existing operators (BYO).** Clusters often already run cert-manager (and
+sometimes the Redis or CloudNativePG operators); installing a second copy
+collides on CRDs and webhooks. Set `certManager.enabled`, `redisOperator.enabled`,
+or `cnpg.enabled` to `false` to **reuse** an operator already present — the chart
+then deploys only the resources that operator manages (certificates, Redis, the
+Postgres cluster) against the existing controller. Defaults are `true` (turnkey
+install). Reuse assumes a compatible operator version.
+
 **Subdomain scheme (`global.subdomainSeparator`).** Hosts are composed as
 `<service><sep><baseDomain>`:
 

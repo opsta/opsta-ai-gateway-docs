@@ -63,15 +63,29 @@ reachable at its own hostname. The LGTM stores sit behind a basic-auth proxy
 Storage is host-mounted local disk for dev (no NFS) with an object-storage
 (S3 / SeaweedFS) path for HA.
 
-## Single sign-on (M6)
+## Enterprise identity & SSO (M9)
 
-Human access to dashboards (and the future admin console) is gated by **Google
-Workspace SSO**, restricted to your company domain (`hd` / email-domain enforced
-server-side — outside accounts are denied). Unauthenticated visitors are
-redirected to Google; on login, the user's identity and **group** flow through as
-the same identity tuple the gateway's limits and guardrails already use, so SSO
-simply becomes the source of identity. Built on **oauth2-proxy** (no proprietary
-component), it runs entirely in your cluster.
+Human access (console + dashboards) is gated by **Keycloak** running **in your
+cluster** as the identity broker — an open-source IAM (Apache-2.0), no SaaS, no
+per-seat fees. It supports every common login method, and they can **coexist**:
+
+- **Local users in a database** (default) — usernames + passwords managed in the
+  product, ideal when you don't have a corporate IdP.
+- **Active Directory / LDAP**, and **Google / Microsoft Entra / any OIDC or SAML**
+  identity provider — connect your existing directory.
+- **Per-scheme group mapping** (external groups/claims → product groups) — the same
+  GitLab/Grafana-style model — so each login method maps cleanly onto the gateway's
+  group-based limits, budgets, and admin rights.
+
+Admins configure the common cases **right inside the product console** — a built-in
+**Identity & authentication** screen to add a login method (Google, Microsoft Entra, or
+any OIDC by discovery URL), create groups, and create local users — without ever opening
+Keycloak. Advanced setups (AD/LDAP, SAML, per-provider claim mappers) link out to the full
+Keycloak admin console; whichever path you use, the change is preserved across upgrades.
+The product realm itself is shipped as code. On login, identity + group flow through
+as the tuple the gateway's policies already use, and a member of the admin group gets
+admin in both the console and Grafana — no separate password. Built on
+Keycloak + oauth2-proxy (no proprietary components).
 
 ## In-cluster TLS + remote access (M0.5)
 
