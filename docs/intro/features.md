@@ -45,11 +45,13 @@ Two guards screen every prompt **before** the model sees it:
 - **PII masking** uses the built-in **ai-data-masking** plugin to mask sensitive
   data (emails, phone numbers, IPs, API keys) in both the request and the model's
   response. It runs entirely in-cluster with local rules — **no data leaves the
-  cluster** — and the masking rules are data in the Project spec, toggleable per
-  Project.
+  cluster** — as an always-on, **organisation-wide PII floor** that protects every
+  project. (We keep the community-maintained plugin rather than re-implement it.)
 - **Prompt-injection blocking** is a small custom Wasm guard that rejects known
   jailbreak / instruction-override prompts (e.g. "ignore previous instructions",
-  "reveal your system prompt") → **HTTP 403**, with a configurable pattern list.
+  "reveal your system prompt") → **HTTP 403**. Its pattern list is **per-project**
+  (M11): each project keeps the shared baseline and can add its own patterns,
+  managed via the console / control-plane API.
 
 Both are on-prem and self-contained — no third-party cloud call — meeting the
 privacy requirement.
