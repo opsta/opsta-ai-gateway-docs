@@ -68,6 +68,22 @@ reachable at its own hostname. The LGTM stores sit behind a basic-auth proxy
 Storage is host-mounted local disk for dev (no NFS) with an object-storage
 (S3 / SeaweedFS) path for HA.
 
+## Per-organization observability isolation (M12)
+
+In the multi-tenant product each **organization is its own observability tenant**.
+Alloy derives the org from the request identity and ships each org's metrics to its
+own tenant (`X-Scope-OrgID`); a credential-aware proxy in front of Mimir/Loki/Tempo
+**pins every credential to its tenant**, so one org's token can read only that org's
+data — a cross-tenant read is refused. The network path to the stores is locked down
+so the proxy is the only way in.
+
+End users never touch Grafana. They read their own usage — tokens, USD spent and
+remaining budget, per model — in the **SSO-gated console**, scoped server-side to the
+caller's organization. **Grafana is a platform-operator tool only**: login is
+restricted to the platform admin group, so a regular user can't reach cross-tenant
+data there. The per-tenant split also enables per-org retention and limits, and clean
+per-org data deletion when an organization is offboarded.
+
 ## Enterprise identity & SSO (M9)
 
 Human access (console + dashboards) is gated by **Keycloak** running **in your

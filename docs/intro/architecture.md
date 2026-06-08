@@ -57,7 +57,11 @@ flowchart LR
 - **Redis** — backing store for rate-limit counters (managed by the Opstree
   Redis operator; standalone or HA).
 - **Observability (LGTM)** — Grafana + Loki + Mimir + Tempo with **Grafana
-  Alloy** collecting metrics and logs from the gateway.
+  Alloy** collecting metrics and logs from the gateway. **Each organization is its
+  own tenant** (`X-Scope-OrgID`): Alloy fans out a per-org metrics stream, and a
+  credential-aware proxy in front of the stores pins every credential to its tenant
+  so reads can't cross organizations. Grafana is a platform-operator tool (login
+  limited to platform admins); end users read their own org's usage in the console.
 - **oauth2-proxy** — brokers Google Workspace SSO in front of Grafana and the
   console, enforces the company domain, and injects the identity tuple
   downstream. Runs in-cluster; no proprietary component.
@@ -148,10 +152,12 @@ install). Reuse assumes a compatible operator version.
   `https://…:443` with **No TLS Verify** on, since the in-cluster cert won't match
   the dash host.)
 
-## Multi-tenancy direction
+## Multi-tenancy
 
-The gateway is heading toward a multi-tenant product: a control plane stores a
-per-**Project** spec and reconciles it into Higress config, with per-tenant
-budgets, guardrails, API keys and dashboards. The single-tenant setup today is
-built to be forward-compatible with that — adding a tenant means adding scoped
+The gateway is a multi-tenant product: a control plane (Postgres source of truth)
+reconciles per-**Organization** and per-**Project** config into Higress —
+providers, model routing, guardrails, API keys, budgets — and into the
+observability layer. Organizations are isolated end to end: cross-org admin and
+config writes are refused, and **each org is its own observability tenant** so one
+organization can never read another's telemetry. Adding a tenant means adding scoped
 config, never rewriting the core.
