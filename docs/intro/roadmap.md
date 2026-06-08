@@ -32,9 +32,12 @@ per-tenant budgets / guardrails / API keys, usage dashboards, and FinOps.
 - **Control plane** — tenancy model + reconcile loop, project-scoped routing API.
 - **Per-tenant governance** — hierarchical budgets/limits, API keys, multi-tenant
   usage attribution, project-scoped guardrails.
-- **Enterprise access** — multi-org SSO + SCIM + RBAC, web UI.
-- **Enterprise-grade** — FinOps + audit, semantic cache, canary/A-B model
-  rollout, per-org BYOK provider vault, approval workflows, and more.
+- **Enterprise access** — per-org IdP brokering (each org connects its own
+  Google/Entra/SAML, users land in the right org/group/role on login) + an audit
+  log of admin actions, web UI.
+- **Enterprise-grade** — SCIM auto-provisioning, FinOps + audit deep-dive,
+  semantic cache, canary/A-B model rollout, per-org BYOK provider vault, approval
+  workflows, and more.
 
 Everything is designed so today's single-tenant setup is a lift-and-shift into
 the multi-tenant product — identity is always the `{org, project, group, user}`
