@@ -31,6 +31,18 @@ for reporting** (default 1 year, configurable) — the monthly reset only affect
 enforcement, never the stored history. It's all in-cluster (no proprietary
 component), and the budget/price config lives in the Project spec.
 
+## Hierarchical budgets & limits (M13)
+
+Budgets and token/min limits are set at **three levels — project, group, and
+user** — and an admin manages them per project right in the console. Enforcement
+takes the **tightest** constraint across the chain: a USD budget is an aggregate
+of everyone under it, so a group or project running out blocks a member who still
+has personal room left; and an individual's own cap blocks them even when the
+project has budget to spare. Token/min limits work the same way as a per-member
+ceiling (the minimum of the levels that apply). Spend is priced from the current
+per-model price each cycle and the controller re-derives the truth every run, so
+budgets are self-healing and a price change just moves the next refresh.
+
 ## Per-group model allow-list (M3)
 
 A small custom Wasm guard rejects any request whose `model` isn't in the
