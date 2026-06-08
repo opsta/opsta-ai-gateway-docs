@@ -160,6 +160,31 @@ Provider client secrets live in your cluster's Kubernetes Secrets, never in the 
 or in git. Downstream nothing changes — brokered users carry the same `{org, project,
 group, user}` identity tuple every policy already uses.
 
+## Audit log (M16)
+
+Every **mutating admin or console action** is recorded to an append-only **audit
+log** — who did it (the signed-in admin and their groups), what they did (create an
+org, set a budget, link an IdP, issue or revoke an API key…), and the outcome.
+**Denied attempts are recorded too**, so a cross-organization probe shows up in the
+trail rather than vanishing. The log never stores request bodies or credentials, so
+secrets can't leak into it.
+
+Admins read the trail in the **SSO-gated console** on a dedicated **Audit** screen,
+scoped server-side: an org admin sees only their own organization's history (filter by
+actor, action, or time range), while the platform admin can read across organizations.
+Entries are retained for a configurable window (default one year) and pruned
+automatically — sensible for a long-running on-prem deployment. Because the
+organization is stored by name, an organization's history **survives even after it is
+offboarded**, which is exactly what an auditor needs.
+
+The same milestone rounds out the console: members see a **per-model token and cost
+breakdown** of their own usage natively (no Grafana access required), admins get
+**provider presets** and a **prompt-injection pattern library** to configure projects
+faster, and a read-only **effective-configuration** view shows the merged, resolved
+settings the gateway actually enforces. The console also ships standard **security
+headers** (CSP, HSTS, clickjacking protection) and the admin API enforces request-size
+and rate limits.
+
 ## In-cluster TLS + remote access (M0.5)
 
 TLS is terminated **in-cluster** by Higress using a **Let's Encrypt**
