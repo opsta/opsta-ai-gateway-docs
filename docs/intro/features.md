@@ -85,7 +85,9 @@ per-seat fees. It supports every common login method, and they can **coexist**:
 Admins configure the common cases **right inside the product console** — a built-in
 **Identity & authentication** screen to add a login method (Google, Microsoft Entra, or
 any OIDC by discovery URL), create groups, and create local users — without ever opening
-Keycloak. Advanced setups (AD/LDAP, SAML, per-provider claim mappers) link out to the full
+Keycloak. Org admins also get a **Projects** screen to manage each project's LLM
+providers, model routing and prompt-injection patterns directly, with changes applied to
+the gateway within about a second. Advanced setups (AD/LDAP, SAML, per-provider claim mappers) link out to the full
 Keycloak admin console; whichever path you use, the change is preserved across upgrades.
 The product realm itself is shipped as code. On login, identity + group flow through
 as the tuple the gateway's policies already use, and a member of the admin group gets
