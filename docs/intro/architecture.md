@@ -131,6 +131,12 @@ Key toggles in `values.yaml`: `global.highAvailability` (standalone ↔ HA),
 `ingress.tunnel.enabled` (optional Cloudflare Tunnel), and
 `global.namespacePrefix`.
 
+**Air-gap mirror.** `global.imageMirror` points every image (ours, the AI plugins,
+and all third-party sub-charts) at one in-house registry, so an offline cluster pulls
+nothing from the public internet. Set `global.imageMirrorFlatten: true` to land them all
+under a **single project** as `<mirror>/<image>:<tag>` instead of preserving each source
+path — handy for Harbor (one project) or AWS ECR (no need to pre-create dozens of repos).
+
 **Reuse existing operators (BYO).** Clusters often already run cert-manager (and
 sometimes the Redis or CloudNativePG operators); installing a second copy
 collides on CRDs and webhooks. Set `certManager.enabled`, `redisOperator.enabled`,
