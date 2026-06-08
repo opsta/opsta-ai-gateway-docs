@@ -141,6 +141,25 @@ as the tuple the gateway's policies already use, and a member of the admin group
 admin in both the console and Grafana — no separate password. Built on
 Keycloak + oauth2-proxy (no proprietary components).
 
+## Per-organization IdP brokering (M15)
+
+Each **organization connects its own identity provider** — its corporate Google
+Workspace, Microsoft Entra, Okta, or any OIDC/SAML — and its people are brokered into
+the **right org, group, and role on first login**, with no per-user setup by a platform
+admin. An org admin does this from the console's **Identity providers** screen: point at
+the IdP (OIDC discovery URL / SAML metadata), list the org's **verified email domains**,
+and add **claim → group/role mappings** (e.g. the IdP's `groups: eng` claim → the
+`/acme/platform-eng` group as a member).
+
+The control plane provisions this into Keycloak automatically using **Keycloak
+Organizations**: it creates the organization, links the brokered IdP, and creates the
+claim mappers and target groups — so a federated user who logs in is **just-in-time
+created** and placed correctly. **Email domains are globally unique**, which is the
+cross-tenant isolation guarantee: one org's IdP can never drop a user into another org.
+Provider client secrets live in your cluster's Kubernetes Secrets, never in the database
+or in git. Downstream nothing changes — brokered users carry the same `{org, project,
+group, user}` identity tuple every policy already uses.
+
 ## In-cluster TLS + remote access (M0.5)
 
 TLS is terminated **in-cluster** by Higress using a **Let's Encrypt**
