@@ -31,6 +31,25 @@ for reporting** (default 1 year, configurable) — the monthly reset only affect
 enforcement, never the stored history. It's all in-cluster (no proprietary
 component), and the budget/price config lives in the Project spec.
 
+## Self-service onboarding & key lifecycle (M14)
+
+Members get themselves connected without filing a ticket. In the **SSO-gated console**
+a member opens the **API keys** page and **issues their own key** for the consumer they
+own — the fresh `sk-…` is shown **once**, to copy immediately. An **Onboarding** page then
+renders the exact, copy-paste client config (gateway base URL + key) for **opencode** and
+**Crush**, so the first request works in seconds. Keys can be issued **with an optional
+expiry**, and the list shows each key's computed **status** — *active*, *expired*, or
+*revoked*.
+
+The full lifecycle is enforced at the gateway: a **revoked** or **expired** key stops
+working within about one reconcile cycle (revoke takes effect in ~1s; an expiry that
+lapses while live is picked up by the next periodic pass, ≤30s). Access is **scoped** — a
+member manages only their own keys, an org admin manages their org's, and cross-org or
+non-owner attempts are refused. Because usage is measured **per consumer** (not per
+individual key — a person may run several), the keys page shows an honest, clearly-labelled
+*"active this month / no activity this month"* signal across all of a member's keys rather
+than a misleading per-key "last used".
+
 ## Hierarchical budgets & limits (M13)
 
 Budgets and token/min limits are set at **three levels — project, group, and
