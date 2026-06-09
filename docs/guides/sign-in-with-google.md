@@ -34,14 +34,19 @@ user and applies the org/group/role mappings.
 
 ## One out-of-repo step
 
-In your Google Cloud OAuth client, register the broker redirect URI:
+In your Google Cloud OAuth client, register the broker redirect URI. The broker
+alias is **`<org>-<connectionId>`** (org-namespaced), so for org `opsta` with a
+connection id `google` it is `opsta-google`:
 
 ```
-https://auth.<your-domain>/realms/opsta/broker/google/endpoint
+https://auth.<your-domain>/realms/<realm>/broker/<org>-<connectionId>/endpoint
+# e.g. https://auth.ai-gateway.example/realms/opsta/broker/opsta-google/endpoint
 ```
 
-(Same idea for any other OIDC/SAML provider — register the org's broker endpoint
-with that provider.)
+That is the **only** redirect URI Google needs — logins flow through Keycloak, so
+Google only ever redirects back to the Keycloak broker endpoint (never to the
+console or Grafana directly). (Same idea for any other OIDC/SAML provider — register
+the org's broker endpoint with that provider.)
 
 ## Why there's no separate "platform login"
 
