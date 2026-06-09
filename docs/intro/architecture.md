@@ -1,14 +1,14 @@
-# Architecture
+# How it works
 
-Opsta AI Gateway is **Higress as the data plane** with a thin, declarative
-control surface around it. Every request flows through one gateway and a chain
-of plugins; everything is rendered from code.
+Opsta AI Gateway is **Higress as the data plane** with a control plane
+(Postgres + reconcile loop + API) and a web console on top. Every request flows
+through one gateway and a chain of plugins; all configuration is declarative.
 
 ## Request flow
 
 ```mermaid
 flowchart TD
-  client["client / app (OpenAI-compatible HTTP)"]
+  client["agent / app (OpenAI-compatible HTTP)"]
   cf["Cloudflare edge → cloudflared tunnel<br/>(dev front door; removed in prod)"]
   subgraph gw["Higress gateway — in-cluster TLS (Let's Encrypt via cert-manager)"]
     direction TB
@@ -21,154 +21,82 @@ flowchart TD
     p5["ai-token-ratelimit → 429 if over tokens/min (Redis)"]
     p0 --> p1 --> p2 --> p3 --> p4 --> pq --> p5
   end
-  model["upstream model (provider, or a mock in tests)"]
-  obs["Grafana Alloy → Mimir (metrics) / Loki (logs) / Tempo (traces) → Grafana"]
+  model["upstream model (AI provider)"]
+  obs["Grafana Alloy → Mimir/Loki/Tempo → Grafana<br/>(platform operator only; end users read usage in the console)"]
   client -->|"POST /v1/chat/completions"| cf --> gw --> model
   p5 -.->|telemetry| obs
 ```
 
-Human access (dashboards / console):
+## Human access
 
 ```mermaid
 flowchart LR
-  browser["browser"] --> higress["Higress"]
-  higress --> op["oauth2-proxy<br/>(Google SSO, domain-restricted)"]
-  op -->|"injects the identity tuple"| grafana["Grafana"]
+  browser["browser"] --> hg["Higress<br/>(console / grafana / auth hosts)"]
+  hg --> op["console oauth2-proxy"]
+  hg --> graf["Grafana (native OIDC)"]
+  op -->|OIDC| kc["Keycloak (identity broker)"]
+  graf -->|OIDC| kc
+  kc -->|"local users / AD-LDAP / Google·Entra·OIDC·SAML"| idp["configured login methods"]
+  app["Web console<br/>(Next.js, SSO-gated)"]
+  cp["Control plane<br/>(Postgres + reconcile + API)"]
+  op -->|"injects identity"| app
+  app -->|reads/writes| cp
+  cp -->|"reconciles into Higress<br/>(~1s)"| hg
 ```
 
-## Components
+## Key components
 
-- **Higress** — the gateway (Envoy data plane + controller). Handles routing,
-  TLS termination, and runs the AI plugins.
-- **cert-manager** — issues Let's Encrypt certificates (ACME DNS-01 via
-  Cloudflare) so **TLS is terminated in-cluster**, not at the edge. The same
-  certificate serves dev (behind a Cloudflare Tunnel) and production (direct) —
-  no manifest change between them.
-- **Built-in AI plugins** — `key-auth` (API-key → consumer), `ai-statistics`
-  (token accounting), `ai-token-ratelimit` (Redis token limits), `ai-quota`
-  (Redis per-consumer USD-budget balance), and `ai-data-masking` (local PII
-  masking), mirrored into your own registry (no runtime pull from a public cloud
-  registry).
-- **Custom plugins** — small Wasm guards written only where no built-in fits:
-  the per-group **model-allowlist** and the **prompt-guard** injection blocker.
-- **budget-controller** — a small in-cluster CronJob: reads each consumer's
-  durable month-to-date token usage (from the usage ledger), prices it with a
-  per-model USD table, and enforces each consumer's dollar budget via ai-quota.
-  The dollar "brain"; the gateway is the cutoff.
-- **Usage ledger** — the control plane samples the gateway's per-consumer token
-  counters on a short interval and accumulates a durable, reset-safe month-to-date
-  total in Postgres. The console and budgets read this ledger, so usage and spend
-  stay accurate even for a single request and across gateway restarts / month boundaries.
-- **Redis** — backing store for rate-limit counters (managed by the Opstree
-  Redis operator; standalone or HA).
-- **Observability (LGTM)** — Grafana + Loki + Mimir + Tempo with **Grafana
-  Alloy** collecting metrics and logs from the gateway. **Each organization is its
-  own tenant** (`X-Scope-OrgID`): Alloy fans out a per-org metrics stream, and a
-  credential-aware proxy in front of the stores pins every credential to its tenant
-  so reads can't cross organizations. Grafana is a platform-operator tool (login
-  limited to platform admins); end users read their own org's usage in the console.
-- **oauth2-proxy** — brokers Google Workspace SSO in front of Grafana and the
-  console, enforces the company domain, and injects the identity tuple
-  downstream. Runs in-cluster; no proprietary component.
-- **Web console** — a Next.js app on `console.<baseDomain>`, SSO-gated, where a
-  user logs in with their organization email to see their API key, token/USD
-  usage and remaining budget, and allowed models; admins get a read-only view of
-  every consumer. Reads live month-to-date usage from the durable usage ledger
-  (control plane) and config from the same values the gateway uses.
+- **Higress** — the gateway (Envoy + controller). Routes requests, terminates
+  TLS, and runs the plugin chain.
+- **Built-in plugins** — key-auth (API key → consumer), ai-statistics (token
+  accounting), ai-token-ratelimit (token rate limits), ai-quota (USD budget
+  enforcement), and ai-data-masking (PII masking). All mirrored into your own
+  registry — no runtime pull from a public cloud registry.
+- **Custom plugins** — model-allowlist (per-group model enforcement) and
+  prompt-guard (injection blocking), written as small Wasm modules (Go).
+- **Control plane** — Postgres database is the source of truth for tenant data
+  (orgs, projects, members, API keys, budgets, prices, guardrail patterns,
+  provider config). A reconcile loop projects it onto the live gateway
+  WasmPlugins within ~1 second of any change. A write API serves the console.
+- **Web console** — a Next.js app, SSO-gated, where users see their usage and
+  budgets, issue API keys, and connect their tools. Admins manage orgs, members,
+  projects, providers, pricing, identity providers, and the audit log.
+- **Budget controller** — a periodic job that reads each consumer's month-to-date
+  token usage from the durable ledger, prices it, and enforces USD budgets.
+- **Usage ledger** — the control plane samples per-consumer token counters and
+  accumulates durable month-to-date totals in Postgres. The console and budgets
+  read this ledger, so usage stays accurate across gateway restarts and month
+  boundaries.
+- **Redis** — backing store for rate-limit counters.
+- **Keycloak** — identity broker (Apache-2.0) that fronts local users,
+  AD/LDAP, Google, Microsoft Entra, any OIDC or SAML provider — all coexist,
+  all with per-scheme group mapping. Console and Grafana authenticate through it.
+- **Grafana LGTM** — Loki (logs), Mimir (metrics), Tempo (traces), Alloy
+  (collector). Grafana is a platform-operator tool only; end users read their
+  usage in the console.
 
 ## Identity
 
 Every limit, budget, metric and key is keyed by the full identity tuple
-**`{org, project, group, user}`**. The group/user arrive as request headers
-(`x-dev-group` / `x-dev-user`); with SSO enabled, Google Workspace populates the
-exact same headers — only the *source* of identity changes, nothing downstream.
-
-## Deployment & configuration
-
-The whole product ships as **one Helm chart** (`opsta-ai-gateway`). A `helmfile`
-installs it next to the third-party releases it depends on (Higress,
-cert-manager, the Redis operator, and the LGTM stack), and pins every version in
-one place. You configure everything through values files — there are no
-hand-applied manifests and no per-environment scripts.
-
-```mermaid
-flowchart TB
-  task["Taskfile (entrypoint)"]
-  ver["version.yaml<br/>pinned versions · registry · image tags"]
-  hf["helmfile<br/>releases + install-order DAG"]
-  task --> hf
-  ver -. feeds .-> hf
-
-  subgraph tp["third-party releases"]
-    hig["higress"]
-    cm["cert-manager"]
-    ro["redis-operator"]
-    lgtm["loki · tempo · grafana · alloy"]
-  end
-
-  subgraph our["product chart: opsta-ai-gateway"]
-    chart["chart"]
-    v1["values.yaml — defaults"]
-    v2["values-dev.yaml — k3d profile"]
-    v3["secrets-values.yaml — secrets (git-ignored)"]
-    v1 --> chart
-    v2 --> chart
-    v3 --> chart
-  end
-
-  hf --> hig & cm & ro & lgtm & chart
-```
-
-**One config surface, layered.** `values.yaml` holds deploy-anywhere defaults;
-an environment overrides only what differs (registry, TLS mode, HA on/off,
-domain); secrets live in a separate git-ignored file. To deploy elsewhere you
-write a small overlay, not a fork.
-
-```mermaid
-flowchart LR
-  b["values.yaml<br/>base defaults"] --> d["values-&lt;env&gt;.yaml<br/>registry · TLS mode · HA · domain"] --> s["secrets-values.yaml<br/>credentials"]
-  s --> chart["one chart, any cluster"]
-```
-
-Key toggles in `values.yaml`: `global.highAvailability` (standalone ↔ HA),
-`global.registry` / `imagePullSecrets` (any OCI registry), `global.baseDomain`
-+ `subdomains`, `tls.mode` (`letsencrypt` | `provided` | `selfsigned`),
-`ingress.tunnel.enabled` (optional Cloudflare Tunnel), and
-`global.namespacePrefix`.
-
-**Air-gap mirror.** `global.imageMirror` points every image (ours, the AI plugins,
-and all third-party sub-charts) at one in-house registry, so an offline cluster pulls
-nothing from the public internet. Set `global.imageMirrorFlatten: true` to land them all
-under a **single project** as `<mirror>/<image>:<tag>` instead of preserving each source
-path — handy for Harbor (one project) or AWS ECR (no need to pre-create dozens of repos).
-
-**Reuse existing operators (BYO).** Clusters often already run cert-manager (and
-sometimes the Redis or CloudNativePG operators); installing a second copy
-collides on CRDs and webhooks. Set `certManager.enabled`, `redisOperator.enabled`,
-or `cnpg.enabled` to `false` to **reuse** an operator already present — the chart
-then deploys only the resources that operator manages (certificates, Redis, the
-Postgres cluster) against the existing controller. Defaults are `true` (turnkey
-install). Reuse assumes a compatible operator version.
-
-**Subdomain scheme (`global.subdomainSeparator`).** Hosts are composed as
-`<service><sep><baseDomain>`:
-
-- `"."` → `api.ai-gateway.opsta.dev` — a clean second-level wildcard
-  (`*.ai-gateway.opsta.dev`). Behind Cloudflare this needs an edge cert that
-  covers that depth (Advanced Certificate Manager / Total TLS), since free
-  Universal SSL only covers `example.com` + `*.example.com`.
-- `"-"` → `api-ai-gateway.opsta.dev` — a single-level name under the registrable
-  domain, covered by free Cloudflare Universal SSL `*.opsta.dev`. No extra cert
-  product. (When fronting via a Cloudflare Tunnel, set the origin to
-  `https://…:443` with **No TLS Verify** on, since the in-cluster cert won't match
-  the dash host.)
+**`{org, project, group, user}`**. Whether identity arrives from SSO claims,
+a corporate IdP, or a dev header, the shape is the same — downstream
+enforcement never needs to change.
 
 ## Multi-tenancy
 
-The gateway is a multi-tenant product: a control plane (Postgres source of truth)
-reconciles per-**Organization** and per-**Project** config into Higress —
-providers, model routing, guardrails, API keys, budgets — and into the
-observability layer. Organizations are isolated end to end: cross-org admin and
-config writes are refused, and **each org is its own observability tenant** so one
-organization can never read another's telemetry. Adding a tenant means adding scoped
-config, never rewriting the core.
+The gateway is a multi-tenant product. Organisations are isolated end to end:
+
+- Cross-org admin and config writes are refused by the control plane.
+- Each org is its own observability tenant — one org can never read another's
+  telemetry.
+- Members see only their own org's usage in the console.
+- Adding a tenant means adding scoped config, never rewriting the core.
+
+## Deployment
+
+The whole product ships as **one Helm chart**. A single configuration surface
+(`values.yaml`) holds deploy-anywhere defaults; environment-specific overrides
+go in a small overlay file. Secrets live in a separate git-ignored file. The
+same chart deploys to a local development cluster or production with a few
+value changes — there are no hand-applied manifests and no per-environment
+scripts.
