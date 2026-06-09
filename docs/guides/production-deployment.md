@@ -19,7 +19,7 @@ dev branch  →  merge to main  →  tag vX.Y.Z  →  production deploy workflow
    the same digest is promoted. UAT exists as a promotion lane only (no UAT cluster).
 
 3. **Cut a release tag** — tag `vX.Y.Z` on `main`. The `release` workflow runs:
-   - `crane copy` retagges every built image from `:uat` to `:vX.Y.Z` on GHCR (no
+   - `crane copy` retags every built image from `:uat` to `:vX.Y.Z` on GHCR (no
      rebuild — the binary that ships is bit-for-bit what was tested).
    - AI plugins are mirrored (idempotently) to `ghcr.io/opsta/ai-gateway-plugins`.
    - The Helm chart is packaged at version `X.Y.Z` and published as an OCI chart to
@@ -59,10 +59,11 @@ Some require out-of-repo manual actions.
 - Confirm the `opsta.co.th` DNS zone is managed in Cloudflare (adding a public hostname
   auto-creates its DNS record).
 - Create a **Cloudflare DNS API token** scoped to `Zone:DNS:Edit` for the `opsta.co.th`
-  zone. This token is needed by cert-manager for ACME DNS-01 challenge. Paste it into
-  `secrets-values-prod.yaml` under `secrets.values.cloudflareApiToken`.
-- Paste the tunnel token into `secrets-values-prod.yaml` under
-  `secrets.values.cloudflareTunnelToken`.
+  zone. This token is needed by cert-manager for ACME DNS-01 challenge. Capture it now
+  (you'll paste it into `secrets-values-prod.yaml` under
+  `secrets.values.cloudflareApiToken` in the gen-secrets step, step 5).
+- Capture the tunnel token too (you'll paste it into `secrets-values-prod.yaml` under
+  `secrets.values.cloudflareTunnelToken` in the gen-secrets step, step 5).
 
 ### 2. Google OAuth client (prod)
 
@@ -71,8 +72,9 @@ Some require out-of-repo manual actions.
   - `https://auth-ai-gateway.opsta.co.th/realms/opsta/broker/google/endpoint`
   - `https://console-ai-gateway.opsta.co.th/oauth2/callback`
   - `https://grafana-ai-gateway.opsta.co.th/login/generic_oauth`
-- Paste the client ID and client secret into `secrets-values-prod.yaml` under
-  `secrets.values.googleOidc.clientId` and `secrets.values.googleOidc.clientSecret`.
+- Capture the client ID and client secret (you'll paste them into
+  `secrets-values-prod.yaml` under `secrets.values.googleOidc.clientId` and
+  `secrets.values.googleOidc.clientSecret` in the gen-secrets step, step 5).
 - Choose the platform-admin Google Group (whose members get admin access to the console).
   Set `console.adminGroups` in `charts/opsta-ai-gateway/values-prod.yaml` to that group
   name.
@@ -81,17 +83,23 @@ Some require out-of-repo manual actions.
   > (requires a group-claim mapper or the Google Directory API). This is a prerequisite
   > for the `adminGroups` check to function.
 
-### 3. GHCR pull secret
+### 3. GHCR credentials
 
 Prod pulls private container images from GHCR. Create a GitHub personal access token
-(or fine-grained token) with `read:packages` scope, then run:
+(or fine-grained token) with `read:packages` scope, then export it in the shell you will
+run `task prod:up` from:
 
 ```bash
-GHCR_USER=<github-username> GHCR_TOKEN=<pat> task prod:pull-secret
+export GHCR_USER=<github-username>
+export GHCR_TOKEN=<pat>
 ```
 
-This creates the `ghcr-pull` imagePullSecret in every prod namespace. The secret is not
-stored in the repo — re-run if the cluster is ever recreated.
+`task prod:up` creates the `ghcr-pull` imagePullSecret in every prod namespace
+**automatically** (after the cluster and namespaces exist) — it reads `GHCR_USER` /
+`GHCR_TOKEN` from the environment, so make sure both are exported when you run it. Do
+**not** run `task prod:pull-secret` standalone here: it targets cluster namespaces that
+do not exist yet. (To refresh the secret after a token rotation on an already-running
+cluster, see Ongoing operations below.)
 
 ### 4. GitHub Environment + runner
 
@@ -122,6 +130,9 @@ in the four external `REPLACE` values (Cloudflare tokens, Google OAuth creds) by
 > must match those already written to the PVC data.
 
 ### 6. Create the prod cluster + first install
+
+Make sure `GHCR_USER` / `GHCR_TOKEN` (from step 3) are exported in this shell — `task
+prod:up` consumes them to create the `ghcr-pull` imagePullSecret automatically.
 
 ```bash
 PRODUCT_VERSION=v1.0.0 task prod:up
@@ -230,8 +241,9 @@ kubectl --context k3d-opsta-ai-gateway-prod delete pod admin-bootstrap -n defaul
   enter the version, approve the Environment gate. That is the only supported prod-update
   path — no manual `kubectl apply`, no `task reset`.
 - **Check status:** `task prod:status` shows pod and route status across prod namespaces.
-- **Refresh the GHCR pull secret:** `GHCR_USER=<u> GHCR_TOKEN=<t> task prod:pull-secret`
-  (re-run if the token expires or the cluster is recreated).
+- **Refresh the GHCR pull secret:** `GHCR_USER=<u> GHCR_TOKEN=<t> task prod:pull-secret`.
+  Run this standalone only to refresh the `ghcr-pull` secret after a token rotation, on a
+  cluster that already exists (first install does this automatically via `task prod:up`).
 - **Rotate component passwords:** edit `secrets-values-prod.yaml` with new values, then
   deploy. Because passwords are file-based (not in etcd), a Helm upgrade picks up changes
   without a cluster rebuild.
