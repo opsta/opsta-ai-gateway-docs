@@ -6,7 +6,12 @@ common guardrail is the **prompt-injection filter**, which blocks attempts to ov
 the model's instructions (e.g. “ignore previous instructions…”, “reveal your system
 prompt”, jailbreak phrasings).
 
-You don't have to guess what happened — the console shows it.
+The guardrail only inspects **your own messages** — not the system prompt your tool
+(e.g. opencode, Cursor) sends on your behalf. So a normal request like `test` is never
+blocked just because your coding assistant's hidden instructions mention a flagged phrase.
+
+You don't have to guess what happened — the 403 response tells you to rephrase and links
+straight to the console, which shows the full detail.
 
 ## See why you were blocked
 
