@@ -16,6 +16,7 @@ export default withMermaid(defineConfig({
     search: { provider: "local" },
     nav: [
       { text: "Introduction", link: "/intro/what-is", activeMatch: "^/intro/" },
+      { text: "Guides", link: "/guides/connect-a-provider", activeMatch: "^/guides/" },
       {
         text: "GitHub",
         link: "https://github.com/opsta/opsta-ai-gateway",
@@ -31,6 +32,16 @@ export default withMermaid(defineConfig({
             { text: "Getting started", link: "/intro/getting-started" },
             { text: "Features", link: "/intro/features" },
             { text: "Roadmap", link: "/intro/roadmap" },
+          ],
+        },
+      ],
+      "/guides/": [
+        {
+          text: "Guides",
+          items: [
+            { text: "Connect an AI provider", link: "/guides/connect-a-provider" },
+            { text: "Use it from opencode", link: "/guides/use-from-opencode" },
+            { text: "Sign in with Google", link: "/guides/sign-in-with-google" },
           ],
         },
       ],

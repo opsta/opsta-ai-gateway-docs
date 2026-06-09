@@ -23,18 +23,24 @@ multi-tenant control plane.
 > **USD budget enforcement** (dollar caps per group/user) lands after SSO (M9,
 > hierarchical budgets), once authenticated-consumer identity exists.
 
-## Beyond — multi-tenant product
+## Multi-tenant product — delivered
 
-A control plane stores a per-**Project** spec and reconciles it into Higress
-config; **Higress stays the data plane**. On top: enterprise SSO + RBAC,
-per-tenant budgets / guardrails / API keys, usage dashboards, and FinOps.
+A control plane stores per-**Project** config in Postgres and reconciles it into
+Higress; **Higress stays the data plane**. The following are built and live:
 
-- **Control plane** — tenancy model + reconcile loop, project-scoped routing API.
-- **Per-tenant governance** — hierarchical budgets/limits, API keys, multi-tenant
-  usage attribution, project-scoped guardrails.
-- **Enterprise access** — per-org IdP brokering (each org connects its own
-  Google/Entra/SAML, users land in the right org/group/role on login) + an audit
-  log of admin actions, web UI.
+- **Control plane** ✅ — tenancy model + reconcile loop, project-scoped routing API.
+- **Per-tenant governance** ✅ — hierarchical budgets/limits, per-user API keys,
+  multi-tenant usage attribution, project-scoped guardrails.
+- **Enterprise access** ✅ — per-org IdP brokering (each org connects its own
+  Google/Entra/SAML in the console; users land in the right org/group/role on
+  login) + an audit log of admin actions + a web console.
+- **Real provider egress** ✅ — connect any AI provider to a project in the
+  console; the reconcile wires the egress route, rewrites the logical alias to the
+  real model, and injects the project's key — proven end-to-end against DeepSeek.
+  See the [guides](/guides/connect-a-provider).
+
+### Next
+
 - **Enterprise-grade** — SCIM auto-provisioning, FinOps + audit deep-dive,
   semantic cache, canary/A-B model rollout, per-org BYOK provider vault, approval
   workflows, and more.
