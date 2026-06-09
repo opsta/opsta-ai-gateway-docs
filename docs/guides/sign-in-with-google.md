@@ -8,7 +8,7 @@ every org, including the operator's own.
 
 ## How an org admin connects Google
 
-1. In the console, go to **Admin → Identity providers**.
+1. In the console, go to **Admin → Organization SSO**.
 2. Add a connection:
    - **Type** — OIDC
    - **Discovery URL** — `https://accounts.google.com/.well-known/openid-configuration`
@@ -47,6 +47,14 @@ That is the **only** redirect URI Google needs — logins flow through Keycloak,
 Google only ever redirects back to the Keycloak broker endpoint (never to the
 console or Grafana directly). (Same idea for any other OIDC/SAML provider — register
 the org's broker endpoint with that provider.)
+
+## Users whose domain isn't connected
+
+If someone signs in but their email domain isn't claimed by any organization's IdP,
+the console enrolls them into the seeded **default** organization as a regular member
+on first load — so they always land somewhere they can use the gateway, rather than an
+empty console. A platform admin can move them to the right org afterwards. Users on a
+connected domain are never affected: they're routed to their own org by brokering (above).
 
 ## Why there's no separate "platform login"
 

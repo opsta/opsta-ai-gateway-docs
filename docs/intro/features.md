@@ -130,7 +130,7 @@ per-seat fees. It supports every common login method, and they can **coexist**:
   group-based limits, budgets, and admin rights.
 
 Admins configure the common cases **right inside the product console** — a built-in
-**Identity & authentication** screen to add a login method (Google, Microsoft Entra, or
+**Platform Login Methods** screen to add a login method (Google, Microsoft Entra, or
 any OIDC by discovery URL), create groups, and create local users — without ever opening
 Keycloak. Org admins also get a **Projects** screen to manage each project's LLM
 providers, model routing and prompt-injection patterns directly, with changes applied to
@@ -146,7 +146,7 @@ Keycloak + oauth2-proxy (no proprietary components).
 Each **organization connects its own identity provider** — its corporate Google
 Workspace, Microsoft Entra, Okta, or any OIDC/SAML — and its people are brokered into
 the **right org, group, and role on first login**, with no per-user setup by a platform
-admin. An org admin does this from the console's **Identity providers** screen: point at
+admin. An org admin does this from the console's **Organization SSO** screen: point at
 the IdP (OIDC discovery URL / SAML metadata), list the org's **verified email domains**,
 and add **claim → group/role mappings** (e.g. the IdP's `groups: eng` claim → the
 `/acme/platform-eng` group as a member).
