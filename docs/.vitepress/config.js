@@ -45,6 +45,12 @@ export default withMermaid(defineConfig({
             { text: "When a request is blocked", link: "/guides/when-a-request-is-blocked" },
           ],
         },
+        {
+          text: "Operator",
+          items: [
+            { text: "Production deployment", link: "/guides/production-deployment" },
+          ],
+        },
       ],
     },
     footer: {
