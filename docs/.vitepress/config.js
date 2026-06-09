@@ -42,6 +42,7 @@ export default withMermaid(defineConfig({
             { text: "Connect an AI provider", link: "/guides/connect-a-provider" },
             { text: "Use it from opencode", link: "/guides/use-from-opencode" },
             { text: "Sign in with Google", link: "/guides/sign-in-with-google" },
+            { text: "When a request is blocked", link: "/guides/when-a-request-is-blocked" },
           ],
         },
       ],
