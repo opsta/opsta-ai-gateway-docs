@@ -31,7 +31,7 @@ export default withMermaid(defineConfig({
             { text: "Architecture", link: "/intro/architecture" },
             { text: "Getting started", link: "/intro/getting-started" },
             { text: "Features", link: "/intro/features" },
-            { text: "Roadmap", link: "/intro/roadmap" },
+            { text: "What's next", link: "/intro/whats-next" },
           ],
         },
       ],
