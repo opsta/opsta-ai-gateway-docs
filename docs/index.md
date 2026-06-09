@@ -22,7 +22,7 @@ features:
     details: Header/tag-based routing to logical model routes (coding-default, bulk) with fallback — configure provider and model per route, no client changes needed.
     link: /intro/features
   - title: USD budgets & token limits
-    details: Monthly dollar budgets per user, group, or project, with per-minute token rate limits — all enforced at the gateway. Hierarchical: tightest cap wins.
+    details: "Monthly dollar budgets per user, group, or project, with per-minute token rate limits — all enforced at the gateway. Hierarchical: tightest cap wins."
     link: /intro/features
   - title: Guardrails
     details: PII masking and prompt-injection blocking screen every request before it reaches the model. Runs in-cluster — no data leaves your network.
