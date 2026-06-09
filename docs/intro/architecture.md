@@ -51,9 +51,14 @@ flowchart LR
   registry).
 - **Custom plugins** — small Wasm guards written only where no built-in fits:
   the per-group **model-allowlist** and the **prompt-guard** injection blocker.
-- **budget-controller** — a small in-cluster CronJob: reads per-consumer token
-  usage, prices it with a per-model USD table, and enforces each consumer's
-  dollar budget via ai-quota. The dollar "brain"; the gateway is the cutoff.
+- **budget-controller** — a small in-cluster CronJob: reads each consumer's
+  durable month-to-date token usage (from the usage ledger), prices it with a
+  per-model USD table, and enforces each consumer's dollar budget via ai-quota.
+  The dollar "brain"; the gateway is the cutoff.
+- **Usage ledger** — the control plane samples the gateway's per-consumer token
+  counters on a short interval and accumulates a durable, reset-safe month-to-date
+  total in Postgres. The console and budgets read this ledger, so usage and spend
+  stay accurate even for a single request and across gateway restarts / month boundaries.
 - **Redis** — backing store for rate-limit counters (managed by the Opstree
   Redis operator; standalone or HA).
 - **Observability (LGTM)** — Grafana + Loki + Mimir + Tempo with **Grafana
@@ -68,8 +73,8 @@ flowchart LR
 - **Web console** — a Next.js app on `console.<baseDomain>`, SSO-gated, where a
   user logs in with their organization email to see their API key, token/USD
   usage and remaining budget, and allowed models; admins get a read-only view of
-  every consumer. Reads live usage from Mimir and config from the same values the
-  gateway uses.
+  every consumer. Reads live month-to-date usage from the durable usage ledger
+  (control plane) and config from the same values the gateway uses.
 
 ## Identity
 
