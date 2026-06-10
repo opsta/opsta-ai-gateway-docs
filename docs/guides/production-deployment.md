@@ -109,8 +109,12 @@ cluster, see Ongoing operations below.)
   - docker + k3d + helm + helmfile installed (same machine as dev).
   - A prod kubeconfig reachable at `~/.kube/config` or via `k3d kubeconfig write
     opsta-ai-gateway-prod` (the Taskfile `prod:deploy` target handles this).
-  - The git-ignored `charts/opsta-ai-gateway/secrets-values-prod.yaml` already on
-    disk in the repo checkout directory (never committed — provisioned once below).
+- Add the prod secrets as an **Environment secret** named `SECRETS_VALUES_PROD` on the
+  `production` Environment, holding the full contents of
+  `charts/opsta-ai-gateway/secrets-values-prod.yaml` (generated in step 5). The deploy
+  workflow writes it into the checkout *after* `actions/checkout` (which would otherwise
+  wipe the git-ignored file); it is never committed. Update the secret whenever you
+  rotate any prod credential.
 
 ### 5. Generate component passwords
 
