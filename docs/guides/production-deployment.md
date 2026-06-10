@@ -161,16 +161,7 @@ reconcile the control-plane seeds the organisation **and** a local **bootstrap a
 account in Keycloak, so an operator can log in to the console immediately. Two onboarding
 modes share this path; pick the one that matches the customer.
 
-### Step 1 — set the operator email before deploying
-
-`controlPlane.bootstrapAdmin.email` (in `values-prod.yaml`) is the email that becomes the
-first platform admin. It is appended to the admin allow-list automatically, so first login
-lands with full admin rights. Set it to the operator's real email before the first deploy.
-The bootstrap password is generated into the `control-plane-internal` Secret by
-`scripts/gen-secrets.sh` (key `controlPlane.bootstrapAdminPassword`) — it is created once
-and never reset on redeploy.
-
-### Step 2 — retrieve the generated bootstrap credential
+### Step 1 — retrieve the generated bootstrap credential
 
 After the deploy completes, read the generated password from the cluster:
 
@@ -180,18 +171,18 @@ kubectl --context k3d-opsta-ai-gateway-prod \
   -o jsonpath='{.data.bootstrap-admin-password}' | base64 -d; echo
 ```
 
-The username **is** `controlPlane.bootstrapAdmin.email` (the account lives in the
+The username **is** `controlPlane.bootstrapAdmin.email` (pre-set in `values-prod.yaml`; the account lives in the
 `opsta-admins` group). Log in at `https://console-ai-gateway.opsta.co.th` with these
 credentials.
 
-### Step 3a — local users only (no external SSO)
+### Step 2a — local users only (no external SSO)
 
 If the customer does not use Google/OIDC/SAML, you are done after first login. Manage all
 users in-product: **Admin → Identity → Local users** lets a platform admin create accounts,
 reset passwords, and enable/disable users (backed by Keycloak). The bootstrap admin stays as
 the permanent break-glass account — rotate its password periodically (see below).
 
-### Step 3b — external SSO (e.g. Google for `opsta.co.th`)
+### Step 2b — external SSO (e.g. Google for `opsta.co.th`)
 
 If the customer logs in via an external IdP, configure the broker from the console after
 first login: **Admin → Identity → Login methods → Add login method** → choose Google (or
