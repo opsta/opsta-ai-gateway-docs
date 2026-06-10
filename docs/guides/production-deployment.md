@@ -1,8 +1,8 @@
 # Production deployment runbook
 
 This page is for operators deploying the Opsta AI Gateway to the production environment
-(`opsta.co.th`). It covers the one-time setup checklist, the release flow, and the manual
-first-admin bootstrap.
+(`opsta.co.th`). It covers the one-time setup checklist, the release flow, and first-deploy
+onboarding (which is automatic as of v1.1.0 — no manual REST bootstrap).
 
 ## Release flow overview
 
@@ -150,90 +150,59 @@ After this completes, the control-plane migrates the database automatically on s
 All subsequent updates use `task prod:deploy` (via the production workflow) — `task prod:up`
 is never run again.
 
-## Manual first-admin bootstrap (one-time, deferred)
+## First-deploy onboarding (automatic)
 
-> This step is currently manual. A one-time bootstrap script is planned once prod is
-> stood up. Until then, follow this runbook.
+As of **v1.1.0** the first deploy onboards itself — no manual REST calls. On first
+reconcile the control-plane seeds the organisation **and** a local **bootstrap admin**
+account in Keycloak, so an operator can log in to the console immediately. Two onboarding
+modes share this path; pick the one that matches the customer.
 
-The production Keycloak realm starts empty: no organisations, no users, no IdP brokers.
-A platform admin must bootstrap the `opsta` organisation and register the Google IdP
-broker before anyone can log in via Google.
+### Step 1 — set the operator email before deploying
 
-The control-plane is ClusterIP-only. Drive it from an in-cluster curl pod with the
-platform-admin header, exactly as `scripts/setup-dev.sh` does for dev.
+`controlPlane.bootstrapAdmin.email` (in `values-prod.yaml`) is the email that becomes the
+first platform admin. It is appended to the admin allow-list automatically, so first login
+lands with full admin rights. Set it to the operator's real email before the first deploy.
+The bootstrap password is generated into the `control-plane-internal` Secret by
+`scripts/gen-secrets.sh` (key `controlPlane.bootstrapAdminPassword`) — it is created once
+and never reset on redeploy.
 
-### Start a driver pod
+### Step 2 — retrieve the generated bootstrap credential
+
+After the deploy completes, read the generated password from the cluster:
 
 ```bash
 kubectl --context k3d-opsta-ai-gateway-prod \
-  run admin-bootstrap -n default --restart=Never \
-  --image=curlimages/curl:8.16.0 --command -- sleep 600
-kubectl --context k3d-opsta-ai-gateway-prod \
-  wait --for=condition=Ready pod/admin-bootstrap -n default --timeout=60s
+  get secret control-plane-internal -n opsta-ai-gateway \
+  -o jsonpath='{.data.bootstrap-admin-password}' | base64 -d; echo
 ```
 
-Set a shell alias for the control-plane base URL and the platform-admin header:
+The username **is** `controlPlane.bootstrapAdmin.email` (the account lives in the
+`opsta-admins` group). Log in at `https://console-ai-gateway.opsta.co.th` with these
+credentials.
 
-```bash
-CP=http://control-plane.opsta-ai-gateway.svc.cluster.local:8080
-PLAT="X-Opsta-Admin-Groups: opsta-admins"
+### Step 3a — local users only (no external SSO)
 
-kexec() {
-  kubectl --context k3d-opsta-ai-gateway-prod exec -n default admin-bootstrap -- \
-    sh -c "curl -s -o /dev/null -w '%{http_code}' $*"
-}
-```
+If the customer does not use Google/OIDC/SAML, you are done after first login. Manage all
+users in-product: **Admin → Identity → Local users** lets a platform admin create accounts,
+reset passwords, and enable/disable users (backed by Keycloak). The bootstrap admin stays as
+the permanent break-glass account — rotate its password periodically (see below).
 
-### Create the `opsta` organisation
+### Step 3b — external SSO (e.g. Google for `opsta.co.th`)
 
-```bash
-kexec "-X POST -H '${PLAT}' -H 'Content-Type: application/json' \
-  -d '{\"slug\":\"opsta\",\"name\":\"Opsta\"}' ${CP}/api/orgs"
-# Expected: 201
-```
+If the customer logs in via an external IdP, configure the broker from the console after
+first login: **Admin → Identity → Login methods → Add login method** → choose Google (or
+generic OIDC), paste the client ID/secret and the allowed email domain(s). Keycloak's
+Organizations feature then routes any matching login to that broker and JIT-creates the user
+on first login. Once a real SSO admin has logged in successfully, **retire the bootstrap
+admin**: Admin → Identity → Local users → **Disable** on the bootstrap account. This is the
+break-glass retirement — re-enable it only if SSO is ever unavailable.
 
-### Register the Google IdP broker for `opsta.co.th`
+### Rotating the bootstrap admin password
 
-Replace `<CLIENT_ID>` and `<CLIENT_SECRET>` with the prod Google OAuth credentials:
-
-```bash
-kexec "-X POST -H '${PLAT}' -H 'Content-Type: application/json' \
-  -d '{
-    \"id\": \"google\",
-    \"type\": \"oidc\",
-    \"displayName\": \"Google\",
-    \"discoveryUrl\": \"https://accounts.google.com/.well-known/openid-configuration\",
-    \"clientId\": \"<CLIENT_ID>\",
-    \"clientSecret\": \"<CLIENT_SECRET>\",
-    \"domains\": [\"opsta.co.th\"]
-  }' ${CP}/api/orgs/opsta/idp"
-# Expected: 201
-```
-
-This registers Google as the per-org identity provider for the `opsta.co.th` domain.
-Keycloak's Organizations feature will route any `@opsta.co.th` login to this broker
-and JIT-create the user on first login.
-
-### Add the first platform admin
-
-The first admin must be added via the API since no one can log in to the console yet.
-Replace `<EMAIL>` with the Google email of the first platform admin:
-
-```bash
-kexec "-X POST -H '${PLAT}' -H 'Content-Type: application/json' \
-  -d '{\"email\": \"<EMAIL>\", \"role\": \"org_admin\"}' \
-  ${CP}/api/orgs/opsta/memberships"
-# Expected: 201
-```
-
-After this, the admin can log in at `https://console-ai-gateway.opsta.co.th` with their
-Google account and manage the organisation through the console UI.
-
-### Clean up the driver pod
-
-```bash
-kubectl --context k3d-opsta-ai-gateway-prod delete pod admin-bootstrap -n default
-```
+The bootstrap password is permanent by design (it is not reset on redeploy). To rotate it,
+use **Admin → Identity → Local users → Reset password** on the bootstrap account from any
+platform-admin session. (Editing the Secret key does **not** re-push the password — the seed
+only sets it on account creation.)
 
 ## Ongoing operations
 
