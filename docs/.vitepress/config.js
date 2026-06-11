@@ -49,6 +49,7 @@ export default withMermaid(defineConfig({
           text: "Operator",
           items: [
             { text: "Production deployment", link: "/guides/production-deployment" },
+            { text: "How it's tested", link: "/guides/automated-testing" },
           ],
         },
       ],
