@@ -78,9 +78,16 @@ flowchart LR
 ## Identity
 
 Every limit, budget, metric and key is keyed by the full identity tuple
-**`{org, project, group, user}`**. Whether identity arrives from SSO claims,
-a corporate IdP, or a dev header, the shape is the same — downstream
-enforcement never needs to change.
+**`{org, project, group, user}`**. Whether identity arrives from local
+Keycloak accounts, a corporate IdP, or Google — the shape is the same and
+downstream enforcement never needs to change.
+
+**Console → control-plane security.** The console forwards the signed
+Keycloak JWT it already holds (via oauth2-proxy) to every control-plane API
+call. The control plane verifies the JWT signature against the realm JWKS
+before trusting any identity claim — no forwarded-header trust. Alongside the
+JWT, an internal shared secret (`X-Internal-Auth`) gates all control-plane
+endpoints, ensuring only in-cluster callers can reach the API.
 
 ## Multi-tenancy
 
