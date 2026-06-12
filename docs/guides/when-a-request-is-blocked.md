@@ -6,6 +6,11 @@ common guardrail is the **prompt-injection filter**, which blocks attempts to ov
 the model's instructions (e.g. “ignore previous instructions…”, “reveal your system
 prompt”, jailbreak phrasings).
 
+Some projects also enable the **semantic guard**, which blocks prompts that are
+*similar in meaning* to example attacks an admin defined — not just exact phrases. If
+this catches you, simply rephrasing the same intent may still be blocked, because it
+matches on meaning rather than wording.
+
 The guardrail only inspects **your own messages** — not the system prompt your tool
 (e.g. opencode, Cursor) sends on your behalf. So a normal request like `test` is never
 blocked just because your coding assistant's hidden instructions mention a flagged phrase.
@@ -38,3 +43,8 @@ Go to **Guardrail blocks** (Admin menu) to see every blocked request in your org
 ones users flagged marked **Reported**. To loosen or fix an over-broad rule, open the
 **Guardrails editor** on the project (Admin → Projects → Guardrails) and adjust the
 prompt-injection patterns. Changes apply to the gateway within about a second.
+
+To tune the **semantic guard**, open the project's **Semantic Guard** tab: toggle it on,
+set the similarity threshold, and edit the **deny** example prompts (and optional
+**allow** exceptions). The gateway re-embeds the examples on save and starts enforcing the
+new set within about a second.

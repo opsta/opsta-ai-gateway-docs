@@ -80,8 +80,16 @@ Two guards screen every prompt **before** the model sees it:
   prompts (e.g. "ignore previous instructions", "reveal your system prompt")
   → **HTTP 403**. Each project keeps the shared baseline and can add its own
   patterns, managed via the console.
+- **Semantic guard** (optional, per project) goes beyond fixed patterns: an
+  admin supplies a few **example** deny prompts (and optional allow exceptions),
+  the gateway embeds them locally, and any incoming prompt that is *semantically
+  similar* to a deny example is blocked → **HTTP 403** — catching paraphrased or
+  novel injections the pattern list would miss. Embeddings and similarity search
+  run entirely in-cluster (local model + vector store); allow examples act as
+  exceptions to deny, never as a whitelist, so ordinary prompts are never blocked
+  for failing to match one.
 
-Both are on-prem and self-contained — no third-party cloud call.
+All three are on-prem and self-contained — no third-party cloud call.
 
 ## Connect any AI provider
 
