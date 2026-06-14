@@ -1,3 +1,123 @@
 # Install
 
-> This page is being written. See the [documentation overview](/overview/what-is).
+The whole platform is **one Helm chart** with **one values file**. You set a base domain, choose a TLS mode,
+pick a few high-level toggles, and install. The chart brings up the gateway, control plane, database, identity,
+observability, and console together.
+
+::: info Prerequisite
+Make sure your cluster meets the [Requirements](/operate/requirements) first — Kubernetes ≥ 1.28, a default
+StorageClass, a base domain, and a way to issue a wildcard certificate.
+:::
+
+## Deployment topology
+
+```mermaid
+flowchart TB
+  subgraph edge["Edge"]
+    DNS["Wildcard DNS · *.your-domain"]
+  end
+  subgraph cluster["Your Kubernetes cluster"]
+    direction TB
+    GW["Gateway · data plane"]
+    CON["Web console"]
+    CP["Control plane · API"]
+    DB[("PostgreSQL")]
+    KC["Keycloak · identity"]
+    RD[("Redis")]
+    OBS["Observability · LGTM"]
+    CON --> CP
+    CP --> DB
+    CP -. reconcile .-> GW
+    GW --> RD
+    GW --> OBS
+    CON --> KC
+  end
+  DNS --> GW
+  DNS --> CON
+  DNS --> KC
+  DNS --> OBS
+```
+
+## 1. Add the chart repository
+
+The chart is published as an OCI artifact. Authenticate to the registry if required, then you can install
+directly from the OCI reference.
+
+```bash
+helm registry login ghcr.io   # if your registry requires auth
+```
+
+## 2. Write your values file
+
+Create a `values.yaml` that captures the decisions for this environment. The minimum is your domain, a TLS mode,
+identity, and a bootstrap admin:
+
+```yaml
+global:
+  baseDomain: ai-gateway.example.com
+  subdomainSeparator: "."        # "." for two-level names, "-" for single-level under a parent wildcard
+  highAvailability: false        # true for production multi-replica
+
+tls:
+  mode: letsencrypt              # letsencrypt | provided | selfsigned
+  letsencrypt:
+    email: platform@example.com
+    dns01:
+      provider: cloudflare
+      dnsZone: example.com
+
+sso:
+  mode: google                   # google | mock (mock is dev/test only)
+  emailDomain: example.com
+
+controlPlane:
+  enabled: true
+  bootstrapAdmin:
+    enabled: true
+    email: admin@example.com     # the first person who can sign in and configure everything
+postgres:
+  enabled: true                  # control plane needs its database
+```
+
+Secrets (provider keys, OIDC client secret, database passwords) live in a **separate, git-ignored** values file
+or in pre-existing Kubernetes Secrets — never in the file you commit. See
+[Configuration](/operate/configuration#secrets) and [Hardening](/security/hardening).
+
+::: warning Keep secrets out of git
+Set `secrets.createFromValues: true` and supply a local secrets file, **or** set it to `false` and reference
+existing Secrets managed by Vault/sealed-secrets. Do not put credentials in your main `values.yaml`.
+:::
+
+## 3. Install
+
+```bash
+helm install opsta-ai-gateway oci://ghcr.io/opsta/charts/opsta-ai-gateway \
+  --namespace opsta-ai-gateway --create-namespace \
+  -f values.yaml -f secrets-values.yaml
+```
+
+The chart installs the required operators (cert-manager, CloudNativePG, Redis operator) unless you tell it to
+[reuse existing ones](/operate/byo-operators).
+
+## 4. Wait for readiness
+
+The control plane runs database migrations and a first reconcile before it reports ready — this guarantees the
+gateway is never half-configured.
+
+```bash
+kubectl -n opsta-ai-gateway rollout status deploy/control-plane
+kubectl -n opsta-ai-gateway get pods
+```
+
+> 📸 **Screenshot:** a healthy `kubectl get pods` across the platform namespaces — _placeholder; real capture pending._
+
+## 5. Point DNS and sign in
+
+Create a wildcard DNS record for `*.your-domain` pointing at the gateway's ingress (or configure the Cloudflare
+Tunnel). Then open `https://console.your-domain` and sign in as the bootstrap admin.
+
+## Next steps
+
+- [Configuration](/operate/configuration) — the full config surface, grouped by concern.
+- [TLS & domains](/operate/tls-and-domains) — certificates and subdomains in detail.
+- [High availability](/operate/high-availability) — turn on multi-replica production mode.
