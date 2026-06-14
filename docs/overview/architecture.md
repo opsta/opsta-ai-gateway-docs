@@ -5,10 +5,10 @@ projects it onto a data plane you run. Both live in your Kubernetes cluster.
 
 ```mermaid
 flowchart LR
-  subgraph clients[Your teams & AI agents]
+  subgraph clients["Your teams & AI agents"]
     A[Apps · IDEs · agents]
   end
-  subgraph cluster[Your Kubernetes cluster]
+  subgraph cluster["Your Kubernetes cluster"]
     direction TB
     GW[Data plane · Gateway]
     CP[Control plane · API]
@@ -20,7 +20,7 @@ flowchart LR
     CP -. reconcile .-> GW
     GW --> OBS
   end
-  subgraph upstreams[Your providers & MCP servers]
+  subgraph upstreams["Your providers & MCP servers"]
     P[LLM providers]
     M[MCP servers]
   end

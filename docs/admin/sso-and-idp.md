@@ -14,7 +14,7 @@ configure global login methods.
 flowchart LR
   U[User] -->|corporate login| IDP[Your IdP · OIDC/SAML]
   IDP --> KC[Identity broker]
-  KC -->|claims → org · group · role| GW[Console & gateway access]
+  KC -->|claims → org · group · role| GW["Console & gateway access"]
 ```
 
 The broker reads the claims your identity provider sends (email, name, groups) and maps them to the right
