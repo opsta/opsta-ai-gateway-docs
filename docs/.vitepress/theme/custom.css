@@ -24,3 +24,25 @@ h1, h2, h3, h4,
 }
 .VPNavBar .title { font-weight: 700; }
 .custom-block.tip { border-color: var(--vp-c-brand-2); }
+
+/* Responsive: keep wide Mermaid diagrams from breaking the layout on small
+   screens — scale to fit, and allow horizontal scroll if a diagram is wider
+   than the viewport rather than forcing the page wider. */
+.vp-doc .mermaid {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.vp-doc .mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Responsive: wide reference tables scroll within the content column instead
+   of overflowing on phones/tablets. */
+.vp-doc div[class*="language-"] { max-width: 100%; }
+.vp-doc table { display: block; overflow-x: auto; }
+
+@media (max-width: 640px) {
+  .VPHero .name,
+  .VPHero .text { letter-spacing: -0.02em; }
+}
