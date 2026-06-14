@@ -16,7 +16,7 @@ console (or directly in Grafana if your platform exposes it).
 - **MCP activity** — tool-call volume per project (when MCP is in use).
 - **Request health** — throughput and error/blocked rates.
 
-> 📸 **Screenshot:** an org usage/cost Grafana dashboard — _placeholder; real capture pending._
+![The self-hosted observability dashboard — token throughput by model and by route](/images/grafana-overview.png)
 
 ## Per-organization isolation
 
