@@ -9,6 +9,7 @@ const nav = [
   { text: "Security", link: "/security/overview", activeMatch: "^/security/" },
   { text: "Reference", link: "/reference/rest-api", activeMatch: "^/reference/" },
   { text: "Releases", link: "/releases/" },
+  { text: "Website", link: "https://ai-gateway.opsta.co.th" },
 ];
 
 const sidebar = {
@@ -28,23 +29,29 @@ const sidebar = {
     { text: "Usage & budget", link: "/user/usage-and-budget" },
     { text: "Blocked requests", link: "/user/blocked-requests" },
   ]}],
-  "/admin/": [{ text: "Administrator Guide", items: [
-    { text: "Console tour", link: "/admin/console-tour" },
-    { text: "Organizations & members", link: "/admin/organizations-and-members" },
-    { text: "Projects", link: "/admin/projects" },
-    { text: "Providers", link: "/admin/providers" },
-    { text: "Routing", link: "/admin/routing" },
-    { text: "Budgets & limits", link: "/admin/budgets-and-limits" },
-    { text: "Guardrails", link: "/admin/guardrails" },
-    { text: "Semantic cache", link: "/admin/semantic-cache" },
-    { text: "Semantic guard", link: "/admin/semantic-guard" },
-    { text: "Prompt management", link: "/admin/prompt-management" },
-    { text: "MCP servers", link: "/admin/mcp-servers" },
-    { text: "SSO & IdP brokering", link: "/admin/sso-and-idp" },
-    { text: "Observability", link: "/admin/observability" },
-    { text: "Pricing", link: "/admin/pricing" },
-    { text: "Audit log", link: "/admin/audit-log" },
-  ]}],
+  "/admin/": [
+    { text: "Console & access", collapsed: false, items: [
+      { text: "Console tour", link: "/admin/console-tour" },
+      { text: "Organizations & members", link: "/admin/organizations-and-members" },
+    ]},
+    { text: "Project configuration", collapsed: false, items: [
+      { text: "Projects", link: "/admin/projects" },
+      { text: "Providers", link: "/admin/providers" },
+      { text: "Routing", link: "/admin/routing" },
+      { text: "Budgets & limits", link: "/admin/budgets-and-limits" },
+      { text: "Guardrails", link: "/admin/guardrails" },
+      { text: "Semantic cache", link: "/admin/semantic-cache" },
+      { text: "Semantic guard", link: "/admin/semantic-guard" },
+      { text: "Prompt management", link: "/admin/prompt-management" },
+      { text: "MCP servers", link: "/admin/mcp-servers" },
+    ]},
+    { text: "Platform", collapsed: false, items: [
+      { text: "SSO & IdP brokering", link: "/admin/sso-and-idp" },
+      { text: "Observability", link: "/admin/observability" },
+      { text: "Pricing", link: "/admin/pricing" },
+      { text: "Audit log", link: "/admin/audit-log" },
+    ]},
+  ],
   "/operate/": [{ text: "Deploy & Operate", items: [
     { text: "Requirements", link: "/operate/requirements" },
     { text: "Install", link: "/operate/install" },
@@ -76,7 +83,7 @@ const sidebar = {
 
 const thNav = nav.map((n) => ({
   ...n,
-  link: "/th" + n.link,
+  link: n.link.startsWith("http") ? n.link : "/th" + n.link,
   activeMatch: n.activeMatch ? "^/th" + n.activeMatch.slice(1) : undefined,
 }));
 
@@ -100,6 +107,7 @@ export default withMermaid(defineConfig({
   ],
   themeConfig: {
     logo: { light: "/logo.svg", dark: "/logo-dark.svg", alt: "Opsta AI Gateway" },
+    siteTitle: "AI Gateway",
     search: { provider: "local" },
     footer: {
       message: "Enterprise AI governance, on infrastructure you own.",
