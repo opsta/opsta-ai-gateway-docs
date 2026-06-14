@@ -1,36 +1,31 @@
 ---
-# https://vitepress.dev/reference/default-theme-home-page
 layout: home
-
 hero:
   name: "Opsta AI Gateway"
-  text: "One self-hosted gateway for all your LLM traffic"
-  tagline: Route work-type to the right model, cap tokens and spend per team, enforce guardrails and model allow-lists, and give every user a personal portal — built on Higress, fully reproducible from code, on-premise, no cloud lock-in.
+  text: "Take control of enterprise AI"
+  tagline: "Govern cost, access, and risk for every LLM and AI-agent request — self-hosted, on infrastructure you own. Your data never leaves your environment."
+  image: { src: /favicon.svg, alt: Opsta }
   actions:
-    - theme: brand
-      text: What is it? ->
-      link: /intro/what-is
-    - theme: alt
-      text: All features
-      link: /intro/features
-
+    - { theme: brand, text: "What is it?", link: /overview/what-is }
+    - { theme: alt, text: "Administer it", link: /admin/console-tour }
+    - { theme: alt, text: "Deploy & operate", link: /operate/requirements }
 features:
-  - title: Web console
-    details: Every user logs into an SSO-gated portal — view usage and budget, issue API keys, connect your tools. Admins manage orgs, members, projects, pricing, and audit from the same UI.
-    link: /intro/features
-  - title: Work-type → model routing
-    details: Header/tag-based routing to logical model routes (coding-default, bulk) with fallback — configure provider and model per route, no client changes needed.
-    link: /intro/features
-  - title: USD budgets & token limits
-    details: "Monthly dollar budgets per user, group, or project, with per-minute token rate limits — all enforced at the gateway. Hierarchical: tightest cap wins."
-    link: /intro/features
-  - title: Guardrails
-    details: PII masking and prompt-injection blocking screen every request before it reaches the model. Runs in-cluster — no data leaves your network.
-    link: /intro/features
-  - title: Enterprise SSO
-    details: Each org connects its own Google, Microsoft Entra, or any OIDC/SAML provider. Users land in the right org and group on first login — no per-user setup.
-    link: /intro/features
-  - title: Connect any provider
-    details: Add AI providers per project from the console — DeepSeek, OpenAI-compatible, Anthropic, or generic. No kubectl, no redeploy.
-    link: /guides/connect-a-provider
+  - title: "Use it"
+    details: "Developers: connect your tools, manage API keys, pick models, use MCP servers, track your spend."
+    link: /user/get-access
+  - title: "Administer it"
+    details: "Org & platform admins: orgs, projects, providers, budgets, guardrails, MCP, SSO, audit — all from the console."
+    link: /admin/console-tour
+  - title: "Deploy & operate it"
+    details: "Platform engineers: install on Kubernetes, configure, secure, scale, air-gap, upgrade, and back up."
+    link: /operate/requirements
+  - title: "Control the cost"
+    details: "Hierarchical USD budgets (org → project → group → user), token limits, and semantic caching."
+    link: /admin/budgets-and-limits
+  - title: "Govern access & safety"
+    details: "API-key auth, RBAC, PII masking, prompt-injection guardrails, full audit log, SSO/IdP brokering."
+    link: /admin/guardrails
+  - title: "Keep it yours"
+    details: "Self-hosted, air-gappable, multi-tenant. The data plane runs entirely in your cluster."
+    link: /security/data-sovereignty
 ---

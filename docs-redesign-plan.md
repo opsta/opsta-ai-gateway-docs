@@ -360,9 +360,14 @@ mk releases/index.md "Release notes"
 - [ ] **Step 2: Gate.** `bun run docs:build` → clean; every nav link resolves to a page (no 404 in `docs:dev`).
 - [ ] **Step 3: Commit.** `git add docs/overview docs/user docs/admin docs/operate docs/security docs/reference docs/releases && git commit -m "docs: stub all IA pages (skeleton live)"`
 
-## Task 0.6: Thai locale stub + redirects for old URLs
+## Task 0.6: Thai locale stub  (redirects DEFERRED — see note)
 
-**Files:** create `docs/th/index.md`; create redirect stubs under `docs/public/intro/` and `docs/public/guides/`.
+**Files:** create `docs/th/index.md`.
+> **Build-spike correction:** redirect stubs in `docs/public/intro/*.html` would **collide** with the still-present
+> `docs/intro/*.md` (both emit `dist/intro/*.html`). So **redirects are created in the content phases, paired with
+> deleting each old page** (e.g. when Phase 1 deletes `docs/intro/*.md`, it adds the matching
+> `docs/public/intro/*.html` redirect). Phase 0 only adds the Thai home stub; old `/intro` & `/guides` pages stay
+> live (orphaned from the new nav) until their replacement lands.
 
 - [ ] **Step 1: Thai home stub** (so the `ไทย` switcher isn't a dead link until Phase 6/Gemini):
 ```bash
