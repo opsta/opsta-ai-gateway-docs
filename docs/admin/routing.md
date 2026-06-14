@@ -16,7 +16,7 @@ without changing any client code.
 4. Choose the **provider** ([added here](/admin/providers)) and the **upstream model** that provider serves.
 5. Save. Requests for that logical model now flow to the chosen provider and model.
 
-> 📸 **Screenshot:** the Routing tab with the route table and add-route form — _placeholder; real capture pending._
+![The Routing tab — logical model names mapped to providers](/images/routing.png)
 
 ## How it's enforced
 

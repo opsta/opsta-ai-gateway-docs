@@ -17,7 +17,7 @@ attacks that pattern rules miss.
 4. Optionally add **allow prompts** — examples of legitimate requests that should always pass.
 5. Save.
 
-> 📸 **Screenshot:** the Semantic Guard tab (threshold, deny/allow text areas) — _placeholder; real capture pending._
+![The Semantic Guard tab](/images/semantic-guard.png)
 
 ## How it differs from pattern guardrails
 

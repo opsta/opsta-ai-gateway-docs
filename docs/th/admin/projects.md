@@ -27,7 +27,7 @@ through a **tabbed configuration editor**:
 | **Review** | Read-only view of the effective merged config | below |
 | **Settings** | Rename, describe, or delete the project | below |
 
-> 📸 **Screenshot:** the project editor with its tab bar — _placeholder; real capture pending._
+![The project editor and its tab bar](/images/project-tabs.png)
 
 ## Review the effective configuration
 

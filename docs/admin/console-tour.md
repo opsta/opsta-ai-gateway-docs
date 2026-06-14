@@ -17,7 +17,7 @@ The left navigation is grouped by scope:
 - **Organization** (org & platform admins) — Organization, Projects, Usage, Guardrail blocks, Audit log.
 - **Platform** (platform admins only) — Organizations, Users & access, Pricing.
 
-> 📸 **Screenshot:** the console with the role-based left navigation — _placeholder; real capture pending._
+![The console with its role-based left navigation](/images/console-overview.png)
 
 ## First-time setup
 

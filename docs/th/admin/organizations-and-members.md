@@ -16,7 +16,7 @@ groups within their own organization.
 2. Click **Create organization** and give it a name and slug.
 3. Appoint one or more **org admins** by email — they receive admin rights scoped to this organization.
 
-> 📸 **Screenshot:** the Organizations list with the create form — _placeholder; real capture pending._
+![The Organizations list with the create-organization form](/images/orgs-list.png)
 
 ## Manage members (org admin)
 
@@ -28,7 +28,7 @@ On **Organization → Members** you can:
 
 Members are global identities; a person can belong to more than one organization, each with its own role.
 
-> 📸 **Screenshot:** the Members tab with invite form and role dropdowns — _placeholder; real capture pending._
+![An organization's Members tab](/images/members.png)
 
 ## Roles
 

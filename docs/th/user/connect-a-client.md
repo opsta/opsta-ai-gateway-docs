@@ -20,7 +20,7 @@ settings: the **base URL** and your **API key**.
 
 The console's **Connect a client** page shows your exact base URL, your allowed models, and copy-paste snippets.
 
-> 📸 **Screenshot:** the Connect-a-client page (base URL, model list, copy-paste snippets) — _placeholder; real capture pending._
+![The Connect-a-client page — generated config for your client](/images/connect-a-client.png)
 
 ## curl
 

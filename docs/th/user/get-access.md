@@ -32,7 +32,7 @@ Once signed in, the **Overview** is your dashboard. From the portal you can:
   OpenAI-compatible SDK).
 - Review your **[blocked requests](/th/user/blocked-requests)** if a guardrail rejected something.
 
-> 📸 **Screenshot:** the Profile page (identity, group, allowed models) — _placeholder; real capture pending._
+![The Profile page](/images/profile.png)
 
 ## Next steps
 

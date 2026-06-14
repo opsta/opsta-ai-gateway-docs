@@ -16,7 +16,7 @@ skipping the model call entirely and saving the full token spend. It's per-proje
 4. Choose the **key strategy** — whether to match on the last question or the full conversation.
 5. Save.
 
-> 📸 **Screenshot:** the Semantic Cache tab (enable toggle, TTL, threshold, strategy) — _placeholder; real capture pending._
+![The Semantic Cache tab](/images/semantic-cache.png)
 
 ## How it helps
 

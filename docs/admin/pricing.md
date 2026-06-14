@@ -13,7 +13,7 @@ Every USD figure — budgets, remaining balance, per-model cost breakdowns — i
 include input, output, and (where the provider supports it) **cache-read** and **cache-write** rates, so
 cache-aware costs are accurate.
 
-> 📸 **Screenshot:** the Pricing table with input/output/cache rates and override action — _placeholder; real capture pending._
+![The platform Pricing table with input, output, and cache rates](/images/pricing.png)
 
 ## Override a price
 

@@ -111,7 +111,17 @@ kubectl -n opsta-ai-gateway rollout status deploy/control-plane
 kubectl -n opsta-ai-gateway get pods
 ```
 
-> 📸 **Screenshot:** a healthy `kubectl get pods` across the platform namespaces — _placeholder; real capture pending._
+```bash
+$ kubectl -n opsta-ai-gateway get pods
+NAME                                    READY   STATUS    RESTARTS   AGE
+console-7c9b8c476f-9q4md                1/1     Running   0          12m
+console-oauth2-proxy-6b746965fd-2xk8p   1/1     Running   0          12m
+control-plane-5d5bf75cc8-hg82g          1/1     Running   0          12m
+gateway-higress-7d8c9b6f54-p7w2n        1/1     Running   0          14m
+keycloak-0                              1/1     Running   0          13m
+opsta-pg-1                              1/1     Running   0          13m
+redis-0                                 1/1     Running   0          13m
+```
 
 ## 5. Point DNS and sign in
 

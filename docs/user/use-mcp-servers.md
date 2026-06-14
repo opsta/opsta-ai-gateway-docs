@@ -22,7 +22,7 @@ Point your MCP-capable agent or IDE at that URL (over **Streamable HTTP**) and a
 **API key** — the same key you use for the chat API. The gateway authenticates the connection, enforces that
 you can only reach **your own project's** servers, and records the activity.
 
-> 📸 **Screenshot:** the MCP servers catalog with a server's connect URL — _placeholder; real capture pending._
+![The MCP Servers tab and connect URL](/images/mcp-servers.png)
 
 ::: tip One key for chat and tools
 You don't manage a separate credential for tools. Your project API key works for both the LLM chat API and your

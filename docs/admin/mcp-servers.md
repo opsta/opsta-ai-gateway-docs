@@ -31,7 +31,7 @@ A request must carry a valid **project API key** (key-auth) and may only reach *
 4. Share the generated **connect URL** with your developers:
    `https://mcp.<your-domain>/<organization>.<project>/<server-name>`.
 
-> 📸 **Screenshot:** the MCP Servers tab (server list, add form, connect URL) — _placeholder; real capture pending._
+![The MCP Servers tab](/images/mcp-servers.png)
 
 ## What's governed (Stage 1)
 

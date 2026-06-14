@@ -18,7 +18,7 @@ secrets** — never in plaintext config and never exposed back through the API.
 4. Click **Test connection** to verify the credentials before saving.
 5. Save. The provider is now available to [routing](/th/admin/routing).
 
-> 📸 **Screenshot:** the Providers tab with the add-provider form and Test connection — _placeholder; real capture pending._
+![The LLM Providers tab — add-provider form](/images/providers.png)
 
 ::: tip Credentials are secrets
 Provider API keys are written to a per-organization Kubernetes Secret by the control plane. They are never

@@ -26,7 +26,7 @@ flowchart LR
 3. Optionally set a **per-minute token limit (TPM)** at the same level.
 4. Save. The control plane reconciles the limits to the gateway within seconds.
 
-> 📸 **Screenshot:** the Budgets & Limits tab with budget and TPM fields — _placeholder; real capture pending._
+![The Budgets & Limits tab — project ceiling, group defaults, and per-user overrides](/images/budgets.png)
 
 ## What happens at the cap
 

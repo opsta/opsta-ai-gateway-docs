@@ -28,7 +28,7 @@ Ask your platform engineer to enable it where required — see [Hardening](/th/s
 2. Click **Add pattern** — choose one from the curated **library**, or enter a **custom** regular expression.
 3. Save. The control plane validates the pattern (rejecting unsafe ones) and reconciles it to the gateway.
 
-> 📸 **Screenshot:** the Guardrails tab with the pattern library and add form — _placeholder; real capture pending._
+![The Guardrails tab — per-project prompt-injection patterns](/images/guardrails.png)
 
 ::: tip Safe patterns only
 The control plane rejects regular expressions that could be unsafe (e.g. catastrophic backtracking) so a bad

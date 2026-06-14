@@ -20,7 +20,7 @@ Each entry captures the **actor** (email and groups), the **organization**, the 
 2. Filter by **actor** (email), **action** prefix (e.g. `org.`, `key.`, `limit.`), and **date range**.
 3. Page through results.
 
-> 📸 **Screenshot:** the Audit log with filters and the actor/action/outcome columns — _placeholder; real capture pending._
+![The audit log — filterable by actor, action, and date; every action with its outcome and status](/images/audit-log.png)
 
 ## Retention
 

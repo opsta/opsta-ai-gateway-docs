@@ -30,7 +30,7 @@ manual account creation.
 5. Optionally restrict to verified **email domains**.
 6. Save and test. Your users can now sign in with their corporate account.
 
-> 📸 **Screenshot:** the Organization SSO configuration (connection + claim mappings) — _placeholder; real capture pending._
+![The organization SSO configuration — connection and claim mappings](/images/org-sso.png)
 
 ::: tip One mechanism for all login
 All brokered login flows through this per-organization path, so you manage identity in one place and users get a
