@@ -1,3 +1,53 @@
 # What is Opsta AI Gateway
 
-> This page is being written. See the [documentation overview](/overview/what-is).
+**Opsta AI Gateway is an enterprise control point for all of your organization's AI traffic.** Every large
+language model (LLM) request and every AI-agent (MCP) tool call passes through one governed gateway that runs
+**entirely in your own environment** — so you control the cost, the access, and the risk, and your data never
+leaves your infrastructure.
+
+## Why a gateway
+
+As teams adopt AI, two problems appear at once:
+
+- **AI becomes a budget line.** Every team calls LLMs directly, with no caps and no attribution. The monthly
+  bill is a surprise, and no one owns it.
+- **AI becomes a risk surface.** There's no control over who uses which model, no masking of sensitive data, no
+  guardrails against prompt injection, and no audit trail of what was sent — often through a third-party cloud
+  you don't control.
+
+Opsta AI Gateway puts a single, governed control point in front of all of it.
+
+## What it gives you
+
+- **Control the cost** — hierarchical USD budgets (organization → project → group → user), per-minute token
+  limits, and semantic caching that cuts spend. See [Budgets & limits](/admin/budgets-and-limits).
+- **Govern access & safety** — API-key authentication, role-based access control, PII masking,
+  prompt-injection [guardrails](/admin/guardrails), and a full [audit log](/admin/audit-log).
+- **Govern AI agents** — register and govern remote [MCP servers](/admin/mcp-servers) so your agents' tool
+  traffic is authenticated, isolated per project, and observed — the same controls as your LLM traffic.
+- **Keep it yours** — self-hosted and air-gap installable. The data plane runs in your cluster; sensitive
+  prompts and data never leave your environment. See [Data sovereignty](/security/data-sovereignty).
+- **Built for many teams** — true [multi-tenancy](/overview/multi-tenancy): one platform serves many
+  organizations, projects, groups, and users, each with isolated config, budgets, and dashboards.
+
+## Who it's for
+
+- **Developers** consume the gateway like any OpenAI-compatible endpoint — see the [User Guide](/user/get-access).
+- **Organization & platform administrators** configure providers, budgets, guardrails, MCP, and SSO from the web
+  console — see the [Administrator Guide](/admin/console-tour).
+- **Platform engineers** install, secure, scale, and operate it on Kubernetes — see [Deploy &
+  Operate](/operate/requirements).
+
+It fits internal AI platforms, multi–business-unit enterprises, and organizations with strict data-sovereignty
+or regulatory requirements.
+
+## Self-managed or fully managed
+
+Run Opsta AI Gateway yourself, or have Opsta deploy, run, and support it for you as a managed service with
+24×7 monitoring and a banking-grade SLA.
+
+## Next steps
+
+- [Key concepts & glossary](/overview/concepts) — the vocabulary used throughout these docs.
+- [Architecture](/overview/architecture) — how the pieces fit together.
+- [Request lifecycle](/overview/request-lifecycle) — what happens to a request as it passes through.
