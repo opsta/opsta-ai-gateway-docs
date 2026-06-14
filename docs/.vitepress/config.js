@@ -1,63 +1,117 @@
 import { defineConfig } from "vitepress";
 import { withMermaid } from "vitepress-plugin-mermaid";
 
-// https://vitepress.dev/reference/site-config
-// withMermaid enables ```mermaid fenced diagrams.
+const nav = [
+  { text: "Overview", link: "/overview/what-is", activeMatch: "^/overview/" },
+  { text: "User Guide", link: "/user/get-access", activeMatch: "^/user/" },
+  { text: "Admin Guide", link: "/admin/console-tour", activeMatch: "^/admin/" },
+  { text: "Deploy", link: "/operate/requirements", activeMatch: "^/operate/" },
+  { text: "Security", link: "/security/overview", activeMatch: "^/security/" },
+  { text: "Reference", link: "/reference/rest-api", activeMatch: "^/reference/" },
+  { text: "Releases", link: "/releases/" },
+];
+
+const sidebar = {
+  "/overview/": [{ text: "Overview", items: [
+    { text: "What is Opsta AI Gateway", link: "/overview/what-is" },
+    { text: "Key concepts & glossary", link: "/overview/concepts" },
+    { text: "Architecture", link: "/overview/architecture" },
+    { text: "Request lifecycle", link: "/overview/request-lifecycle" },
+    { text: "Multi-tenancy model", link: "/overview/multi-tenancy" },
+  ]}],
+  "/user/": [{ text: "User Guide", items: [
+    { text: "Get access", link: "/user/get-access" },
+    { text: "Connect a client", link: "/user/connect-a-client" },
+    { text: "Manage API keys", link: "/user/api-keys" },
+    { text: "Models & routing", link: "/user/models-and-routing" },
+    { text: "Use MCP servers", link: "/user/use-mcp-servers" },
+    { text: "Usage & budget", link: "/user/usage-and-budget" },
+    { text: "Blocked requests", link: "/user/blocked-requests" },
+  ]}],
+  "/admin/": [{ text: "Administrator Guide", items: [
+    { text: "Console tour", link: "/admin/console-tour" },
+    { text: "Organizations & members", link: "/admin/organizations-and-members" },
+    { text: "Projects", link: "/admin/projects" },
+    { text: "Providers", link: "/admin/providers" },
+    { text: "Routing", link: "/admin/routing" },
+    { text: "Budgets & limits", link: "/admin/budgets-and-limits" },
+    { text: "Guardrails", link: "/admin/guardrails" },
+    { text: "Semantic cache", link: "/admin/semantic-cache" },
+    { text: "Semantic guard", link: "/admin/semantic-guard" },
+    { text: "MCP servers", link: "/admin/mcp-servers" },
+    { text: "SSO & IdP brokering", link: "/admin/sso-and-idp" },
+    { text: "Observability", link: "/admin/observability" },
+    { text: "Pricing", link: "/admin/pricing" },
+    { text: "Audit log", link: "/admin/audit-log" },
+  ]}],
+  "/operate/": [{ text: "Deploy & Operate", items: [
+    { text: "Requirements", link: "/operate/requirements" },
+    { text: "Install", link: "/operate/install" },
+    { text: "Configuration", link: "/operate/configuration" },
+    { text: "TLS & domains", link: "/operate/tls-and-domains" },
+    { text: "High availability", link: "/operate/high-availability" },
+    { text: "Air-gapped install", link: "/operate/air-gap" },
+    { text: "Reuse existing operators", link: "/operate/byo-operators" },
+    { text: "Upgrades", link: "/operate/upgrades" },
+    { text: "Backup & DR", link: "/operate/backup-and-dr" },
+    { text: "Platform observability", link: "/operate/observability-platform" },
+    { text: "Troubleshooting", link: "/operate/troubleshooting" },
+  ]}],
+  "/security/": [{ text: "Security & Compliance", items: [
+    { text: "Overview", link: "/security/overview" },
+    { text: "Data sovereignty", link: "/security/data-sovereignty" },
+    { text: "RBAC model", link: "/security/rbac" },
+    { text: "Audit & compliance", link: "/security/audit-and-compliance" },
+    { text: "Hardening", link: "/security/hardening" },
+  ]}],
+  "/reference/": [{ text: "Reference", items: [
+    { text: "REST API", link: "/reference/rest-api" },
+    { text: "Configuration values", link: "/reference/configuration" },
+    { text: "Supported providers", link: "/reference/supported-providers" },
+    { text: "Glossary", link: "/reference/glossary" },
+  ]}],
+  "/releases/": [{ text: "Release notes", items: [{ text: "Changelog", link: "/releases/" }]}],
+};
+
+const thNav = nav.map((n) => ({
+  ...n,
+  link: "/th" + n.link,
+  activeMatch: n.activeMatch ? "^/th" + n.activeMatch.slice(1) : undefined,
+}));
+
+const thSidebar = Object.fromEntries(
+  Object.entries(sidebar).map(([k, groups]) => [
+    "/th" + k,
+    groups.map((g) => ({ ...g, items: g.items.map((i) => ({ ...i, link: "/th" + i.link })) })),
+  ]),
+);
+
 export default withMermaid(defineConfig({
   title: "Opsta AI Gateway",
   description:
-    "A single, self-hosted AI gateway on Kubernetes (Higress) — routing, " +
-    "per-group/user limits, model allow-lists, observability, guardrails, SSO.",
-  lang: "en-US",
-  appearance: { theme: "light", toggle: true },
-  ignoreDeadLinks: true,
+    "Enterprise AI gateway — govern cost, access, and risk for every LLM and AI-agent request, on infrastructure you own.",
   cleanUrls: true,
+  ignoreDeadLinks: true,
+  appearance: { toggle: true },
+  head: [
+    ["link", { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" }],
+    ["meta", { name: "theme-color", content: "#111F35" }],
+  ],
   themeConfig: {
+    logo: { light: "/logo.svg", dark: "/logo-dark.svg", alt: "Opsta AI Gateway" },
     search: { provider: "local" },
-    nav: [
-      { text: "Introduction", link: "/intro/what-is", activeMatch: "^/intro/" },
-      { text: "Guides", link: "/guides/connect-a-provider", activeMatch: "^/guides/" },
-      {
-        text: "GitHub",
-        link: "https://github.com/opsta/opsta-ai-gateway",
-      },
-    ],
-    sidebar: {
-      "/intro/": [
-        {
-          text: "Introduction",
-          items: [
-            { text: "What is Opsta AI Gateway", link: "/intro/what-is" },
-            { text: "Architecture", link: "/intro/architecture" },
-            { text: "Getting started", link: "/intro/getting-started" },
-            { text: "Features", link: "/intro/features" },
-            { text: "What's next", link: "/intro/whats-next" },
-          ],
-        },
-      ],
-      "/guides/": [
-        {
-          text: "Guides",
-          items: [
-            { text: "Connect an AI provider", link: "/guides/connect-a-provider" },
-            { text: "Use it from opencode", link: "/guides/use-from-opencode" },
-            { text: "Sign in with Google", link: "/guides/sign-in-with-google" },
-            { text: "When a request is blocked", link: "/guides/when-a-request-is-blocked" },
-          ],
-        },
-        {
-          text: "Operator",
-          items: [
-            { text: "Production deployment", link: "/guides/production-deployment" },
-            { text: "How it's tested", link: "/guides/automated-testing" },
-          ],
-        },
-      ],
-    },
     footer: {
-      message:
-        "Self-hosted AI gateway on Higress — Infrastructure-as-Code, on-prem, no cloud lock-in.",
-      copyright: "Copyright © 2026 Opsta (Thailand). All rights reserved.",
+      message: "Enterprise AI governance, on infrastructure you own.",
+      copyright: "© 2026 Opsta (Thailand) Co., Ltd.",
+    },
+  },
+  locales: {
+    root: { label: "English", lang: "en-US", themeConfig: { nav, sidebar } },
+    th: {
+      label: "ไทย",
+      lang: "th",
+      link: "/th/",
+      themeConfig: { nav: thNav, sidebar: thSidebar },
     },
   },
   mermaid: {},

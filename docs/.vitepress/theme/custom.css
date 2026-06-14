@@ -1,0 +1,48 @@
+:root {
+  --vp-c-brand-1: #0067b8;
+  --vp-c-brand-2: #008bea;
+  --vp-c-brand-3: #008bea;
+  --vp-c-brand-soft: rgba(0, 139, 234, 0.14);
+  --vp-font-family-base: "Montserrat", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(120deg, #008bea 20%, #111f35);
+  --vp-home-hero-image-background-image: linear-gradient(-45deg, #008bea55, #96cc0033);
+  --vp-home-hero-image-filter: blur(48px);
+}
+.dark {
+  --vp-c-bg: #0d1626;
+  --vp-c-bg-alt: #111f35;
+  --vp-c-bg-soft: #16284a;
+  --vp-c-brand-1: #5cb8ff;
+}
+h1, h2, h3, h4,
+.VPNavBarTitle .title,
+.VPHero .name,
+.VPHero .text {
+  font-family: "Montserrat", sans-serif;
+  letter-spacing: -0.01em;
+}
+.VPNavBar .title { font-weight: 700; }
+.custom-block.tip { border-color: var(--vp-c-brand-2); }
+
+/* Responsive: keep wide Mermaid diagrams from breaking the layout on small
+   screens — scale to fit, and allow horizontal scroll if a diagram is wider
+   than the viewport rather than forcing the page wider. */
+.vp-doc .mermaid {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.vp-doc .mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Responsive: wide reference tables scroll within the content column instead
+   of overflowing on phones/tablets. */
+.vp-doc div[class*="language-"] { max-width: 100%; }
+.vp-doc table { display: block; overflow-x: auto; }
+
+@media (max-width: 640px) {
+  .VPHero .name,
+  .VPHero .text { letter-spacing: -0.02em; }
+}

@@ -16,7 +16,18 @@ spec's outlines. Thai content is NOT written here — the `/th/` scaffold is wir
 
 **"Tests" for a docs project** = `bun run docs:build` completes clean (no unexpected dead links), Mermaid renders,
 the dev server shows the page, search indexes it. Each task ends: build clean → eyeball in `bun run docs:dev` →
-commit. Deploy = push to `main` (the Pages workflow builds + deploys).
+commit (on the branch).
+
+**⚠️ Branch & deploy strategy (IMPORTANT):** do ALL of this on **`feature/docs-redesign`**, NOT on `main`.
+Pushing to `main` deploys to the LIVE site, and Phase 0's stubs would **replace the current 12 real pages with
+"being written" placeholders** — a public regression. **Merge to `main` (→ live `docs.ai-gateway.opsta.co.th`)
+only when content is ready** (all phases done, or at minimum Overview + User + Admin). The old `intro/`/`guides/`
+pages stay live on `main` until that merge.
+
+**Build-spike (validated 2026-06-14):** the Phase-0 risky bits are **verified working** — VitePress 1.5 i18n
+`locales` config builds; the custom theme + `@fontsource/montserrat` builds; **Mermaid renders under the custom
+`extends: DefaultTheme` theme** (screenshot-confirmed); the `public/**.html` redirect form works on GitHub Pages
+(pretty-URLs). The config/theme/home code below is the verified version.
 
 ---
 
@@ -349,9 +360,14 @@ mk releases/index.md "Release notes"
 - [ ] **Step 2: Gate.** `bun run docs:build` → clean; every nav link resolves to a page (no 404 in `docs:dev`).
 - [ ] **Step 3: Commit.** `git add docs/overview docs/user docs/admin docs/operate docs/security docs/reference docs/releases && git commit -m "docs: stub all IA pages (skeleton live)"`
 
-## Task 0.6: Thai locale stub + redirects for old URLs
+## Task 0.6: Thai locale stub  (redirects DEFERRED — see note)
 
-**Files:** create `docs/th/index.md`; create redirect stubs under `docs/public/intro/` and `docs/public/guides/`.
+**Files:** create `docs/th/index.md`.
+> **Build-spike correction:** redirect stubs in `docs/public/intro/*.html` would **collide** with the still-present
+> `docs/intro/*.md` (both emit `dist/intro/*.html`). So **redirects are created in the content phases, paired with
+> deleting each old page** (e.g. when Phase 1 deletes `docs/intro/*.md`, it adds the matching
+> `docs/public/intro/*.html` redirect). Phase 0 only adds the Thai home stub; old `/intro` & `/guides` pages stay
+> live (orphaned from the new nav) until their replacement lands.
 
 - [ ] **Step 1: Thai home stub** (so the `ไทย` switcher isn't a dead link until Phase 6/Gemini):
 ```bash
@@ -379,16 +395,17 @@ cd ../..
 - [ ] **Step 3: Gate.** `bun run docs:build` clean; in `docs:dev`, the `ไทย` switch loads the Thai home stub.
 - [ ] **Step 4: Commit.** `git add docs/th docs/public/intro docs/public/guides && git commit -m "docs: Thai locale stub + redirect stubs for old URLs"`
 
-## Task 0.7: Deploy & verify the branded shell
+## Task 0.7: Build-verify the branded shell (do NOT deploy to production yet)
 
-- [ ] **Step 1: Push.** `git push origin main` (triggers the Pages deploy workflow).
-- [ ] **Step 2: Verify** after the workflow completes:
-```bash
-curl -s -o /dev/null -w "%{http_code}\n" https://docs.ai-gateway.opsta.co.th/
-curl -s -o /dev/null -w "redirect: %{http_code}\n" https://docs.ai-gateway.opsta.co.th/intro/what-is.html
-```
-Expected: home 200; old URL serves the redirect. Eyeball: branded (logo/Montserrat/blue), 7 nav sections,
-EN/ไทย + light/dark toggles work.
+- [ ] **Step 1: Build clean on the branch.** `bun run docs:build` → exit 0.
+- [ ] **Step 2: Visual check.** `bun run docs:preview --port 4173`, open it (or screenshot
+  `http://localhost:4173/`): branded (Opsta logo/Montserrat/blue), 7 nav sections, sidebar correct, EN/ไทย +
+  light/dark toggles work, a Mermaid page renders.
+- [ ] **Step 3: Push the BRANCH (not main).** `git push -u origin feature/docs-redesign`.
+- [ ] **Step 4: Production deploy is DEFERRED** — do NOT merge to `main` until content is ready (see the Branch &
+  deploy strategy note). Merging now would replace the live docs with stubs. After the content phases, merge to
+  `main`; the Pages workflow deploys; then verify `https://docs.ai-gateway.opsta.co.th/` (home 200) +
+  `/intro/what-is.html` (redirect).
 
 ---
 
@@ -425,23 +442,23 @@ EN/ไทย + light/dark toggles work.
 
 ### Phase 1 — Overview (5 pages)
 Write `overview/{what-is, concepts, architecture, request-lifecycle, multi-tenancy}.md` per template + the 3
-overview diagrams. *Gate:* build clean; deploy. *Migrate:* delete `docs/intro/*.md` (redirects already cover the
-URLs). Commit `docs(overview): …`.
+overview diagrams. *Gate:* `bun run docs:build` clean on the branch. *Migrate:* delete `docs/intro/*.md`
+(redirects already cover the URLs). Commit `docs(overview): …`.
 
 ### Phase 2 — User Guide (7 pages)
 Write `user/*` per template; each procedure page gets its `[SS]` placeholder (per spec §3 table). Pull the
 connect snippets from the real console `/onboarding` behavior. *Migrate:* delete `docs/guides/use-from-opencode.md`,
-`when-a-request-is-blocked.md`. *Gate + deploy.*
+`when-a-request-is-blocked.md`. *Gate:* `bun run docs:build` clean on the branch (NO production deploy until the final merge).
 
 ### Phase 3 — Administrator Guide (14 pages)
 Write `admin/*` per template; one `[SS]` per console screen (spec §3 console-source column); the `mcp-servers`
 and `sso-and-idp` pages include their Mermaid diagrams. This closes the MCP documentation gap. *Migrate:* delete
-`docs/guides/connect-a-provider.md`, `sign-in-with-google.md`. *Gate + deploy.*
+`docs/guides/connect-a-provider.md`, `sign-in-with-google.md`. *Gate:* `bun run docs:build` clean on the branch (NO production deploy until the final merge).
 
 ### Phase 4 — Deploy & Operate (11 pages)
 Write `operate/*` per template; `requirements`/`install` carry the topology diagram; `configuration` links to
 `reference/configuration`. Source: ARCHITECTURE.md §§ TLS, HA/air-gap, release pipeline, observability +
-`docs/guides/production-deployment.md` (reuse/rewrite, then delete the old file). *Gate + deploy.*
+`docs/guides/production-deployment.md` (reuse/rewrite, then delete the old file). *Gate:* `bun run docs:build` clean on the branch (NO production deploy until the final merge).
 
 ### Phase 5 — Security + Reference + Release notes (~10 pages)
 - `security/*` — from ARCHITECTURE.md §§ control-plane auth, audit, hardening.
@@ -453,7 +470,7 @@ Write `operate/*` per template; `requirements`/`install` carry the topology diag
 - `reference/supported-providers.md`, `reference/glossary.md` (or re-export glossary from `overview/concepts`).
 - `releases/index.md` — user-facing changelog condensed from `../higress-ai-gateway/docs/PLAN.md` milestone
   history (v1.0→v1.9; each = what changed · for whom · action needed).
-*Gate + deploy.* Delete `docs/guides/automated-testing.md` (redirect covers it).
+*Gate:* `bun run docs:build` clean on the branch (NO production deploy until the final merge). Delete `docs/guides/automated-testing.md` (redirect covers it).
 
 ---
 
