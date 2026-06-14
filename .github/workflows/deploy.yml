@@ -1,4 +1,4 @@
-# Build the VitePress site and deploy it to GitHub Pages (docs.ai-gateway.opsta.dev).
+# Build the VitePress site and deploy it to GitHub Pages (docs.ai-gateway.opsta.co.th).
 name: Deploy docs to Pages
 
 on:
