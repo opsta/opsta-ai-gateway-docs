@@ -38,6 +38,7 @@ const sidebar = {
     { text: "Guardrails", link: "/admin/guardrails" },
     { text: "Semantic cache", link: "/admin/semantic-cache" },
     { text: "Semantic guard", link: "/admin/semantic-guard" },
+    { text: "Prompt management", link: "/admin/prompt-management" },
     { text: "MCP servers", link: "/admin/mcp-servers" },
     { text: "SSO & IdP brokering", link: "/admin/sso-and-idp" },
     { text: "Observability", link: "/admin/observability" },
