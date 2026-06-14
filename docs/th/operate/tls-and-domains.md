@@ -83,7 +83,6 @@ The certificate covers the in-cluster listener regardless of how traffic reaches
   tunnel relays bytes to the in-cluster listener; your in-cluster certificate still serves the connection
   end to end.
 
-> 📸 **Screenshot:** a browser padlock on `console.your-domain` showing the issued certificate — _placeholder; real capture pending._
 
 ## DNS
 

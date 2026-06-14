@@ -37,7 +37,7 @@ caching reduces spend against budgets by serving similar prompts from cache.
 The **Usage** screen (Organization section) breaks down token and cached-token usage by project and consumer,
 so you can find the heavy users before they hit a cap.
 
-> 📸 **Screenshot:** the org Usage breakdown table — _placeholder; real capture pending._
+![Organization usage — token totals per project and per consumer](/images/org-usage.png)
 
 ## Next steps
 

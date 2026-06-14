@@ -41,7 +41,7 @@ The **Guardrail blocks** screen (Organization section) lists every blocked reque
 consumer, the project, and the rule that matched — and flags those a member reported as a false positive, so
 you can tune the rules.
 
-> 📸 **Screenshot:** the org Guardrail blocks list — _placeholder; real capture pending._
+![Organization guardrail blocks — who was blocked, the matched rule, and the snippet](/images/org-guardrail-blocks.png)
 
 ## Next steps
 

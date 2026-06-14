@@ -56,7 +56,11 @@ migration if needed.
 Because the gateway holds **no configuration of its own**, restoring the database restores the whole platform's
 behavior. There's no separate gateway state to recover.
 
-> 📸 **Screenshot:** a completed CloudNativePG backup listed in its status — _placeholder; real capture pending._
+```bash
+$ kubectl -n opsta-ai-gateway get backup
+NAME                       AGE   CLUSTER    METHOD              PHASE       ERROR
+opsta-pg-backup-20260614   2m    opsta-pg   barmanObjectStore   completed
+```
 
 ## Disaster-recovery posture
 

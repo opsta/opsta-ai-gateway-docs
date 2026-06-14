@@ -25,7 +25,7 @@ A blocked request never reaches the provider, so it costs nothing against your b
 3. If it was wrongly blocked, click **Report** to flag it as a false positive. Your org admin can then tune the
    guardrail.
 
-> 📸 **Screenshot:** the Blocked requests list with the matched rule and a Report button — _placeholder; real capture pending._
+![Your blocked requests — the matched guardrail rule, the snippet, and a report action](/images/blocked-requests.png)
 
 ::: tip Distinguish 403 from 429
 A **403** means a guardrail blocked the content. A **429** means you hit a budget or token limit — see

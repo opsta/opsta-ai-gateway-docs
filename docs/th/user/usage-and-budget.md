@@ -15,7 +15,7 @@ You're signed in and your account is linked to a consumer ([Get access](/th/user
 - **Token usage** — input, output, and cached tokens.
 - **Per-model breakdown** — cost by model, so you can see where your spend goes.
 
-> 📸 **Screenshot:** the Overview dashboard (budget cards + per-model cost table) — _placeholder; real capture pending._
+![Your overview — monthly budget, spend, and a per-model cost breakdown](/images/usage-overview.png)
 
 ## How budgets work
 
