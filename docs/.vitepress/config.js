@@ -43,6 +43,7 @@ const sidebar = {
       { text: "Semantic cache", link: "/admin/semantic-cache" },
       { text: "Semantic guard", link: "/admin/semantic-guard" },
       { text: "Prompt management", link: "/admin/prompt-management" },
+      { text: "Prompt templates", link: "/admin/prompt-templates" },
       { text: "MCP servers", link: "/admin/mcp-servers" },
     ]},
     { text: "Platform", collapsed: false, items: [
