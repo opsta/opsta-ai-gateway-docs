@@ -25,7 +25,6 @@ the rollout returns the model to its single provider immediately.
 4. **Ramp** by editing the weights (e.g. 90/10 → 50/50 → keep the winner). **Remove canary** returns
    the model to its single Routing entry.
 
-![The Rollouts tab](/images/canary-rollouts.png)
 
 ## Tips
 
