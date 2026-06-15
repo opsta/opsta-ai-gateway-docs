@@ -25,6 +25,7 @@ const sidebar = {
     { text: "Connect a client", link: "/user/connect-a-client" },
     { text: "Manage API keys", link: "/user/api-keys" },
     { text: "Models & routing", link: "/user/models-and-routing" },
+    { text: "Use prompt templates", link: "/user/use-prompt-templates" },
     { text: "Use MCP servers", link: "/user/use-mcp-servers" },
     { text: "Usage & budget", link: "/user/usage-and-budget" },
     { text: "Blocked requests", link: "/user/blocked-requests" },

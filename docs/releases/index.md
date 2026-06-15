@@ -8,7 +8,23 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## MCP gateway _(latest)_
+## v1.10 — Prompt management & model rollouts _(latest)_
+
+Three additions that put the **prompt** and **model choice** under governance — all per-project,
+configured from the console, default-off.
+
+- **Enforced prompt** — set a project-wide system prompt + policy the gateway prepends to every
+  request before the model. Applied at the gateway, so an app (or a compromised client) can't
+  strip it; change it once and every app picks it up. See [Prompt management](/admin/prompt-management).
+- **Prompt template catalog** — author named, versioned prompt templates with `{{variable}}`
+  placeholders; apps invoke a *published* template by name and pass values, instead of hard-coding
+  prompt text. Draft vs published keeps edits off live traffic until you publish. See
+  [Prompt templates](/admin/prompt-templates) and [Use prompt templates](/user/use-prompt-templates).
+- **Canary / A-B rollouts** — split a logical model's traffic across two providers by weight
+  (e.g. 90/10 → 50/50 → 100) to A/B test or safely roll out a new provider — randomized per
+  request, with no client changes. See [Rollouts](/admin/canary-rollouts).
+
+## v1.9 — MCP gateway
 
 Governed access to AI-agent tools. Register remote **Model Context Protocol** servers per project; the gateway
 fronts them with the same project API key, strict per-project isolation, and activity recording you already use

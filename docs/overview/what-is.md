@@ -23,6 +23,11 @@ Opsta AI Gateway puts a single, governed control point in front of all of it.
   limits, and semantic caching that cuts spend. See [Budgets & limits](/admin/budgets-and-limits).
 - **Govern access & safety** — API-key authentication, role-based access control, PII masking,
   prompt-injection [guardrails](/admin/guardrails), and a full [audit log](/admin/audit-log).
+- **Govern the prompt** — enforce a project-wide system prompt that clients can't strip
+  ([prompt management](/admin/prompt-management)), and publish reusable, versioned
+  [prompt templates](/admin/prompt-templates) apps invoke by name.
+- **Roll out models safely** — split a model's traffic across two providers by weight to
+  A/B test or canary a new model, ramping with no client changes ([rollouts](/admin/canary-rollouts)).
 - **Govern AI agents** — register and govern remote [MCP servers](/admin/mcp-servers) so your agents' tool
   traffic is authenticated, isolated per project, and observed — the same controls as your LLM traffic.
 - **Keep it yours** — self-hosted and air-gap installable. The data plane runs in your cluster; sensitive
