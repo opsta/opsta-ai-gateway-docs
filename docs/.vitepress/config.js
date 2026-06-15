@@ -38,6 +38,7 @@ const sidebar = {
       { text: "Projects", link: "/admin/projects" },
       { text: "Providers", link: "/admin/providers" },
       { text: "Routing", link: "/admin/routing" },
+      { text: "Canary / A-B rollouts", link: "/admin/canary-rollouts" },
       { text: "Budgets & limits", link: "/admin/budgets-and-limits" },
       { text: "Guardrails", link: "/admin/guardrails" },
       { text: "Semantic cache", link: "/admin/semantic-cache" },
