@@ -25,6 +25,8 @@ by name instead of hard-coding prompt text. You author and version templates cen
 4. **Save draft** (does not affect live traffic), then **Publish** when ready.
 
 
+![The Templates tab](/images/prompt-templates.png)
+
 ## Invoke a template
 
 Apps call the normal chat-completions endpoint but send the template name and its variables instead
