@@ -56,3 +56,4 @@ Run Opsta AI Gateway yourself, or have Opsta deploy, run, and support it for you
 - [Key concepts & glossary](/overview/concepts) — the vocabulary used throughout these docs.
 - [Architecture](/overview/architecture) — how the pieces fit together.
 - [Request lifecycle](/overview/request-lifecycle) — what happens to a request as it passes through.
+- [Reference architecture](/operate/reference-architecture) — deployment topologies, component diagrams, sizing, security, and compliance for your architecture-review board.

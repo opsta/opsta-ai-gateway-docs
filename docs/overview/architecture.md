@@ -59,3 +59,9 @@ chase. See [How it works](/admin/console-tour) and [Reconcile in the request lif
 
 Everything runs inside your environment. Nothing about your prompts or data leaves the cluster. For how a
 single request flows through these pieces, continue to the [Request lifecycle](/overview/request-lifecycle).
+
+## Deployment architecture
+
+For production deployments — topology choices (Standalone vs HA), component diagrams, sizing,
+security posture, and the evidence package for an architecture-review board — see the
+[Reference architecture](/operate/reference-architecture).
