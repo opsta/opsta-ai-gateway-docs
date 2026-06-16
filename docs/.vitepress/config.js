@@ -78,6 +78,7 @@ const sidebar = {
     { text: "RBAC model", link: "/security/rbac" },
     { text: "Audit & compliance", link: "/security/audit-and-compliance" },
     { text: "Hardening", link: "/security/hardening" },
+    { text: "Software lifecycle & support", link: "/security/lifecycle" },
   ]}],
   "/reference/": [{ text: "Reference", items: [
     { text: "REST API", link: "/reference/rest-api" },

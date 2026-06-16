@@ -77,17 +77,127 @@ See [TLS & domains](/operate/tls-and-domains). The console also sets strict secu
   [Upgrades](/operate/upgrades).
 - For air-gap, mirror the pinned set into your own registry ([Air-gapped install](/operate/air-gap)).
 
+## Encryption matrix
+
+| Channel / store | Encryption | Status | Notes |
+|---|---|---|---|
+| **Client → Higress gateway** | TLS 1.2+ at ingress | **Shipped** | cert-manager cert; customer-controlled |
+| **Browser → Higress (console · Grafana · auth)** | TLS 1.2+ at ingress | **Shipped** | same wildcard cert |
+| **Higress → LLM providers** | HTTPS (TLS 1.2+) | **Shipped** | enforced by the upstream's TLS |
+| **Higress → control plane (internal)** | Plain HTTP (cluster-internal) | Cluster-net isolation | No mTLS today; NetworkPolicy restricts callers |
+| **Control plane → PostgreSQL** | TLS (`PGSSLMODE=require`) | **Shipped** | CNPG generates self-signed CA |
+| **Control plane → Redis** | Plain TCP (cluster-internal) | Cluster-net isolation | No TLS; NetworkPolicy restricts callers |
+| **PostgreSQL data at rest** | Depends on StorageClass | **Customer** | PVC encryption is storage-class-level; most cloud CSIs support it |
+| **Redis data at rest** | Depends on StorageClass | **Customer** | Same as Postgres — storage-class PVC encryption |
+| **Kubernetes Secrets at rest** | base64 (NOT encrypted) | **Customer (G3)** | Requires etcd encryption, sealed-secrets, or ESO |
+| **Object store (LGTM / backups)** | Depends on bucket config | **Customer** | Enable server-side encryption in your S3 bucket |
+| **Intra-cluster mTLS** | None (no service mesh) | **Customer (optional)** | Add Istio/Linkerd for full mTLS mesh; not required by the product |
+
+## Pod security posture (securityContext)
+
+The chart applies the same hardened security contexts to all Opsta-built workloads via shared Helm helpers.
+Third-party sub-charts (Higress, Keycloak, LGTM operators) have their own security contexts — see those charts.
+
+**Pod-level securityContext** (applied to all control-plane, console, and observability proxy pods):
+
+```yaml
+runAsNonRoot: true
+runAsUser: 65532       # nobody equivalent
+runAsGroup: 65532
+fsGroup: 65532
+seccompProfile:
+  type: RuntimeDefault  # syscall allowlist via seccomp
+```
+
+**Container-level securityContext** (applied to all containers in Opsta-built pods):
+
+```yaml
+allowPrivilegeEscalation: false
+readOnlyRootFilesystem: true
+runAsNonRoot: true
+capabilities:
+  drop:
+    - ALL               # no Linux capabilities retained
+seccompProfile:
+  type: RuntimeDefault
+```
+
+**Pod Security Standards (PSS) alignment:**
+
+| PSS level | Opsta-built workloads | Notes |
+|---|---|---|
+| **Baseline** | Met | Non-root, no host namespaces, no privileged containers |
+| **Restricted** | Largely met | `runAsNonRoot`, `drop ALL`, `readOnlyRootFilesystem`, `seccompProfile: RuntimeDefault` |
+| **Restricted (strict)** | Partial | Higress gateway requires host-port access for port 80/443 (may need `hostPorts` exception in `Restricted` namespace policy) |
+
+To apply a namespace-level Pod Security Admission policy in production:
+
+```bash
+kubectl label namespace opsta-ai-gateway \
+  pod-security.kubernetes.io/enforce=restricted \
+  pod-security.kubernetes.io/warn=restricted
+```
+
+Test with `--dry-run=server` and check for violations before enforcing.
+
+## Egress allowlist
+
+At runtime the gateway makes outbound connections only to destinations **you control or explicitly configure**.
+The minimal production egress allowlist (for NetworkPolicy `Egress` rules or a firewall):
+
+| Destination | Port | When | Purpose |
+|---|---|---|---|
+| Your configured LLM provider endpoints | 443 | Always | Forwarding chat-completion requests |
+| Your configured MCP server endpoints | 443 (or custom) | If MCP servers configured | MCP tool calls |
+| `acme-v02.api.letsencrypt.org` | 443 | `tls.mode: letsencrypt` only | ACME certificate issuance |
+| Kubernetes API server (`kubernetes.default.svc`) | 443 | Always (operators) | Operator reconcile loops (CNPG, Redis, cert-manager) |
+| Your configured OIDC/SAML IdP endpoints | 443 | SSO configured | Keycloak broker OIDC discovery + token exchange |
+| Your S3-compatible object store | 443 | HA + backups enabled | LGTM blocks + Postgres WAL archiving |
+| Your image registry | 443 | Image pulls | Applies only if `imagePullPolicy: Always` is active |
+
+**No outbound connection to Opsta.** There is no telemetry, no license check, and no call-home.
+
+For air-gapped clusters, configure `tls.mode: provided` or `selfsigned`, and ensure the image registry is your
+internal mirror. After installation, the only required egress is to your LLM providers and IdP.
+
+## Supply chain (G8 — current state and interim controls)
+
+::: warning Image signing and SBOM are roadmap items
+Images are built, scanned, and promote by retag (dev → uat → vX.Y.Z). **No cosign signatures, no published
+SBOM, and no SLSA provenance attestations are available yet.** This is a known gap (G8 in the
+[Shared responsibility matrix](/operate/shared-responsibility.md)).
+:::
+
+**Current controls (interim):**
+
+- **Version-pinned component matrix** — every image is pinned to an explicit tag in `version.yaml`; no
+  `latest` or floating tags in production.
+- **Build-once / promote-by-retag** — the exact image digest tested on `dev` is what ships to prod; no
+  rebuilds between environments reduce the window for supply-chain injection.
+- **Trivy SCA + IaC scan** — run in CI on every push; gates on HIGH/CRITICAL findings.
+- **gosec Go SAST** — run on every Go change in CI; gates on HIGH/CRITICAL.
+- **Apache-2.0/MIT dependencies only** — enforced by `task license-check` in the pre-commit hook.
+- **Digest pinning (recommended customer control)** — pin the chart to the specific OCI digest rather than the
+  version tag in your `helmfile.yaml`; verify the digest against the release notes before updating.
+
+Image signing, SBOM publication, and SLSA provenance are tracked in the product roadmap.
+
 ## Hardening checklist
 
 - [ ] OIDC issuer configured (identity verification on)
 - [ ] `controlPlane.networkPolicy.enabled` and `observability.networkPolicy.enabled` on, with an enforcing CNI
-- [ ] Secrets referenced from an external store, not committed values
+- [ ] Secrets referenced from an external store, not committed values; etcd encryption enabled (G3)
 - [ ] TLS from a trusted source; `letsencrypt-prod` or internal CA
+- [ ] StorageClass with at-rest encryption enabled for PostgreSQL and Redis PVCs (customer)
+- [ ] S3 bucket server-side encryption enabled (HA / backups)
 - [ ] Admin access via group membership, email allowlist for break-glass only
+- [ ] Egress NetworkPolicy applied (restrict to allowlist above)
+- [ ] Pod Security Admission label applied to `opsta-ai-gateway` namespace
 - [ ] Backups configured and tested ([Backup & DR](/operate/backup-and-dr))
-- [ ] Audit retention set to your policy ([Audit & compliance](/security/audit-and-compliance))
+- [ ] Audit and guardrail-block retention set to your policy (G4)
+- [ ] Chart pinned to OCI digest in your helmfile (interim supply-chain control, G8)
 
 ## Next steps
 
 - [RBAC model](/security/rbac) · [Audit & compliance](/security/audit-and-compliance) ·
-  [Data sovereignty](/security/data-sovereignty)
+  [Data sovereignty](/security/data-sovereignty) · [Software lifecycle & support](/security/lifecycle)
