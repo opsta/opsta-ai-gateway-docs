@@ -71,6 +71,7 @@ const sidebar = {
     { text: "Compliance & control mapping", link: "/operate/compliance" },
     { text: "Shared responsibility & maturity", link: "/operate/shared-responsibility" },
     { text: "Production-readiness checklist", link: "/operate/production-readiness" },
+    { text: "Support", link: "/operate/support" },
     { text: "Troubleshooting", link: "/operate/troubleshooting" },
   ]}],
   "/security/": [{ text: "Security & Compliance", items: [

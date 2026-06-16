@@ -70,7 +70,27 @@ HA, point it at your internal object storage. See [Platform observability](/oper
 
 See [Data sovereignty](/security/data-sovereignty) for the full statement.
 
+## Egress allowlist (non-air-gapped clusters)
+
+If you are **not** fully air-gapped but want to restrict outbound access, configure NetworkPolicy
+`Egress` rules or a firewall allowlist to these destinations only:
+
+| Destination | Port | When required | Purpose |
+|---|---|---|---|
+| Your LLM provider endpoints (e.g. `api.openai.com`) | 443 | Always | Forwarding chat-completion requests |
+| Your MCP server endpoints | 443 (or custom) | If MCP servers configured | MCP tool calls |
+| `acme-v02.api.letsencrypt.org` | 443 | `tls.mode: letsencrypt` only | ACME cert issuance |
+| Kubernetes API server | 443 | Always | Operator reconcile loops (CNPG, Redis operator, cert-manager) |
+| Your OIDC/SAML IdP endpoints | 443 | SSO configured | Keycloak broker discovery + token exchange |
+| Your S3-compatible object store | 443 | HA + backups enabled | LGTM blocks + Postgres WAL archiving |
+| Your internal image registry | 443 | Air-gap + image pulls | Required if `imagePullPolicy: Always` is active |
+
+**No outbound connection to Opsta.** The platform has no telemetry, license check, or call-home.
+
+For a true air-gap (full `imageMirror` + `tls.mode: provided`/`selfsigned` + internal IdP + local
+object store), **zero** outbound connections are required after installation beyond your LLM providers.
+
 ## Next steps
 
 - [Reuse existing operators](/operate/byo-operators) · [Upgrades](/operate/upgrades) ·
-  [Data sovereignty](/security/data-sovereignty)
+  [Data sovereignty](/security/data-sovereignty) · [Hardening](/security/hardening)
