@@ -56,6 +56,7 @@ const sidebar = {
     ]},
   ],
   "/operate/": [{ text: "Deploy & Operate", items: [
+    { text: "Reference architecture", link: "/operate/reference-architecture" },
     { text: "Requirements", link: "/operate/requirements" },
     { text: "Install", link: "/operate/install" },
     { text: "Configuration", link: "/operate/configuration" },
