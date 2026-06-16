@@ -402,10 +402,24 @@ Recommended per worker node: **4–8 vCPU / 8–16 GiB RAM / 50 Gi disk**.
 
 See [Requirements → Compute](./requirements.md#compute) for the full per-component breakdown.
 
-::: info FMEA — coming in RA.3
-The failure-mode and effects analysis (node loss, PostgreSQL primary loss, Redis partition,
-control-plane down, Keycloak down, cert expiry) will be added here after each failure mode is
-verified on the running system (RA.3 slice — requires a cluster window).
+### FMEA — verified on running cluster (Standalone, v1.11.1)
+
+The table below records failure modes exercised against the `k3d-higress-lab` dev cluster (k3s v1.36, product v1.11.1, Standalone topology). Each row states what was done, what was observed, and what the operational implication is.
+
+| Failure mode | How triggered | Observed behavior | Recovery time | Operational implication |
+|---|---|---|---|---|
+| **Control-plane pod killed** | `kubectl delete pod -l app=control-plane` (force) | Data plane served **HTTP 200** throughout — zero dropped requests | ~28 s (Deployment re-schedules) | Request serving unaffected. Config changes (new provider, route, budget) are blocked until CP restarts. HA: 2 replicas + PDB prevents single-pod outage. |
+| **PostgreSQL pod killed** | `kubectl delete pod opsta-pg-1` (force) | Data plane served **HTTP 200** throughout — zero dropped requests | ~36 s (CNPG operator restores pod) | Request serving unaffected; Envoy serves from cached plugin config. CP API calls that write to PG fail. HA: 3-instance sync cluster auto-promotes a standby. |
+| **Keycloak pod killed** | `kubectl delete pod keycloak-keycloakx-0` (force) | AI API key requests served **HTTP 200**; new browser SSO sessions blocked | ~37 s (StatefulSet recreates pod) | `key-auth` plugin validates keys against data-plane cached config — no live Keycloak call. Console admin login and new OAuth sessions fail until KC restarts. HA: 2 replicas + PDB. |
+| **Redis pod deleted (pod restart simulation)** | `kubectl delete pod redis-0` (force) | During restart: **HTTP 403** `ai-quota.noquota` — requests denied (**fail-closed**) | ~16 s (StatefulSet recreates pod) | `ai-quota` Wasm plugin cannot connect to Redis → logs `[critical]` → denies all quota-gated requests. **Intended behavior:** fail-closed prevents unbounded budget overrun when quota state is unknown. HA: Redis Replication + Sentinel keeps a primary available across single-node loss. |
+
+**Not yet verified on this cluster:**
+- Node loss in HA topology (requires multi-node HA cluster; Standalone has no node redundancy by design).
+- cert-manager loss (existing TLS certs keep serving; renewal blocked until CM restarts).
+- Redis primary failover time (Sentinel election) in HA topology.
+
+::: warning Redis is in the critical path for quota enforcement
+In Standalone, a Redis pod restart causes a brief denial window for all budget-gated requests until Redis recovers (~16 s observed). Monitor with `kube_pod_status_phase{pod=~"redis.*"}` and alert on pod restarts. In HA topology, Sentinel election eliminates this window.
 :::
 
 **DR objectives (honest baseline):**
@@ -432,21 +446,17 @@ Full security documentation is in the [Security](/security/overview) section. Ke
 - [RBAC model](/security/rbac) — how org/project/user roles map to API and gateway enforcement
 - [Audit & compliance](/security/audit-and-compliance) — audit log, retention, compliance mapping
 
-::: info Encryption matrix, secrets enumeration, supply chain — coming in RA-SEC
-A full in-transit × at-rest encryption matrix, the enumeration of every Kubernetes Secret the
-product creates with rotation procedures, securityContext/PSS table per workload, egress allowlist,
-and vuln/patch SLA will be added in the RA-SEC slice.
-:::
+Full security documentation is published in the [Security](/security/overview) section — including
+the encryption matrix, Kubernetes Secrets enumeration, pod securityContext/PSS posture,
+egress allowlist, supply-chain status, and vuln/patch SLA.
 
 ---
 
 ## Data handling
 
-::: info Full data handling page — coming in RA-DATA
-A complete data inventory (what's stored where, classification, retention, guardrail-snippet
-redaction, PII masking guidance, provider data-flow, cross-border/telemetry disclosure) will be
-published as a dedicated page `/operate/data-handling.md` in the RA-DATA slice.
-:::
+The full data inventory — classification, retention, guardrail-snippet redaction, PII masking
+guidance, provider data-flow, and cross-border/telemetry disclosure — is in
+[Data handling](./data-handling.md).
 
 **Quick reference — what's stored where:**
 
@@ -465,10 +475,8 @@ to Opsta.** Whether your provider uses your data for training is governed by you
 
 ## Observability & SLOs
 
-::: info SLOs, error budget, and recommended alerts — coming in RA-OBS
-Golden signals, SLO definitions, error-budget policy, and recommended Grafana alert rules will
-be added to [Platform observability](./observability-platform.md) in the RA-OBS slice.
-:::
+SLO definitions, error-budget policy, golden signals, and recommended Grafana alert rules are
+documented in [Platform observability](./observability-platform.md).
 
 The LGTM stack ships inside the appliance and is pre-wired:
 
