@@ -67,6 +67,7 @@ const sidebar = {
     { text: "Upgrades", link: "/operate/upgrades" },
     { text: "Backup & DR", link: "/operate/backup-and-dr" },
     { text: "Platform observability", link: "/operate/observability-platform" },
+    { text: "Data handling", link: "/operate/data-handling" },
     { text: "Shared responsibility & maturity", link: "/operate/shared-responsibility" },
     { text: "Production-readiness checklist", link: "/operate/production-readiness" },
     { text: "Troubleshooting", link: "/operate/troubleshooting" },
