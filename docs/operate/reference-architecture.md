@@ -391,11 +391,16 @@ flowchart TB
 
 ## Reliability / HA / DR
 
-::: info Sizing data — coming in RA.1
-Per-component CPU/RAM/disk sizing tables (idle + load model) will be added here once measured
-on a live cluster (RA.1 slice). See the [Requirements](./requirements.md) page for current
-prerequisites guidance.
-:::
+Per-component CPU/RAM/disk sizing is measured and documented in [Requirements](./requirements.md).
+Load model: ~5 RPS sustained, 1 org/project, ~10 users (PoC/small-team baseline).
+
+**Standalone headline (measured, v1.11.1):** ~0.1 vCPU / 3.8 GiB RAM idle; 28 Gi PVC total.
+Recommended node: **4–8 vCPU / 8–16 GiB RAM / 50 Gi disk**.
+
+**HA headline (estimated from standalone measurements):** ~340m CPU / 7 GiB RAM across ≥3 nodes.
+Recommended per worker node: **4–8 vCPU / 8–16 GiB RAM / 50 Gi disk**.
+
+See [Requirements → Compute](./requirements.md#compute) for the full per-component breakdown.
 
 ::: info FMEA — coming in RA.3
 The failure-mode and effects analysis (node loss, PostgreSQL primary loss, Redis partition,
