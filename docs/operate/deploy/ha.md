@@ -208,13 +208,36 @@ is additionally exercised by every production deploy.
 :::
 
 ### Phase 4 — Day-1 configuration
-Bootstrap/break-glass admin login; wire the external IdP + email-domain restriction; create an
-org → project → user; issue an API key; set a budget; enable guardrails. Hand the key to an app and
-confirm a governed request flows and shows in usage.
+
+**Intent:** make the gateway usable — an admin signs in, identity is wired, and a first project + key
+serves governed traffic. Each step links the detail page; do them in this order.
+
+1. **Sign in as the bootstrap admin.** Open `https://console-<baseDomain>/` and sign in. The
+   break-glass/bootstrap admin is set at install (`controlPlane.bootstrapAdmin`); store its credential
+   in your vault. See the [Console tour](/admin/console-tour).
+2. **Wire the external IdP + restrict the email domain** so staff log in via your SSO and only your
+   domain(s) are allowed. See [SSO & IdP brokering](/admin/sso-and-idp).
+3. **Create an organization → project → members.** See
+   [Organizations & members](/admin/organizations-and-members).
+4. **Issue a project API key** (one key for chat and tools). See [Manage API keys](/user/api-keys).
+5. **Set a budget** and **enable guardrails** for the project. See
+   [Budgets & limits](/admin/budgets-and-limits) and [Guardrails](/admin/guardrails).
+6. **Prove it end-to-end:** hand the key to an app ([Connect a client](/user/connect-a-client)), send a
+   request, and confirm it flows and appears in usage. (This is the same governed `200` path verified
+   in Phase 3.)
 
 ### Phase 5 — Production hardening sign-off
-Walk the [Production-readiness checklist](/operate/production-readiness); record RTO/RPO from the
-restore drill; confirm alerts are wired to your paging; assign secret-rotation owners.
+
+**Intent:** the go-live gate. Walk the [Production-readiness checklist](/operate/production-readiness)
+top to bottom and record the result:
+
+- Confirm every checklist item, or log it as an accepted risk with an owner (see the
+  [Shared-responsibility & maturity matrix](/operate/shared-responsibility) for what you vs. Opsta own).
+- **Record RTO/RPO** from the [backup restore drill](/operate/backup-and-dr).
+- Confirm **alerts are wired to your paging** ([Platform observability](/operate/observability-platform)).
+- Assign **secret-rotation owners** for provider keys, IdP secrets, and TLS material.
+
+Sign the checklist's sign-off table; you're in production.
 
 ---
 
@@ -225,10 +248,33 @@ restore drill; confirm alerts are wired to your paging; assign secret-rotation o
   single-binary LGTM (Loki/Tempo single-binary + the all-in-one Mimir chart). Same Phase 1–3 commands;
   just the standalone values. This is the shortest path to a demo and is the configuration validated
   end-to-end above (32 pods Running, 120/120 governed completions at `200`).
-- **Appendix B — Air-gap** — registry mirror, OCI chart, image list, egress allowlist.
-- **Appendix C — BYO operators (advanced)** — reuse an existing CloudNativePG / Redis / cert-manager.
-- **Appendix D — Upgrade & rollback** — `helmfile` upgrade; back-up-before-upgrade; the forward-only
-  migration caveat; the rollback procedure. See [Upgrades](/operate/upgrades).
-- **Appendix E — Uninstall / teardown.**
-- **Appendix F — Troubleshooting** — common failures per phase + the diagnostics-bundle command. See
-  [Troubleshooting](/operate/troubleshooting).
+### Appendix B — Air-gap
+No outbound internet: mirror the chart + every image into your internal registry (e.g. Harbor) and
+point the install at it, plus the LLM-provider egress allowlist. Full procedure:
+[Air-gapped install](/operate/air-gap).
+
+### Appendix C — BYO operators (advanced)
+Reuse an existing CloudNativePG / Redis / cert-manager operator instead of the bundled ones (toggles in
+values). The appliance is still one support boundary, but the operator lifecycle becomes yours. See
+[Reuse existing operators](/operate/byo-operators).
+
+### Appendix D — Upgrade & rollback
+Upgrade = bump `PRODUCT_VERSION` and re-run `helmfile -e <env> sync`. **Always back up the database
+first** — control-plane migrations are **forward-only at runtime**, so a rollback across a schema
+change is not automatic (see [Shared-responsibility](/operate/shared-responsibility#upgrade-reversibility)).
+Full upgrade/rollback procedure: [Upgrades](/operate/upgrades).
+
+### Appendix E — Uninstall / teardown
+```bash
+# Remove the appliance releases (keeps the cluster)
+helmfile -e <your-env> destroy
+# PVCs are retained by default — delete them to remove data (irreversible):
+kubectl get pvc -A | grep -E 'opsta|observability|cnpg|redis'
+# kubectl delete pvc <name> -n <ns>   # only when you mean it
+```
+Then delete the cluster per your platform (e.g. via Rancher, or your cloud console).
+
+### Appendix F — Troubleshooting
+Common failures per phase, and the standard diagnostics to gather (`kubectl get pods -A`,
+`kubectl describe`, `kubectl logs`, `kubectl get events -A --sort-by=.lastTimestamp`,
+`helm -n <ns> history <release>`): [Troubleshooting](/operate/troubleshooting).
