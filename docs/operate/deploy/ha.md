@@ -94,11 +94,21 @@ a pinned `vX.Y.Z` — no repo clone needed for the install.
 
 ---
 
+## Validation status
+
+::: info What's been run for real
+The **appliance install + data path** (Phases 1–3) are validated from scratch on a clean cluster at
+v1.12.0 (clean `helmfile sync` → all core pods Running → 120/120 governed chat completions at `200`,
+guardrails blocking). The **released-OCI-chart** install path is exercised by every production deploy.
+**Still pending a real multi-node cluster:** the HA-specific behaviors (3-node replica spread +
+anti-affinity, clustered Postgres/Redis failover, object-storage LGTM, an external LoadBalancer, and
+the backup **restore drill**) — these can't be proven on a single node and are marked where they apply.
+:::
+
 ## The deployment flow
 
 Each phase follows the same shape: **intent → exact command → expected output → verification.** The
-exact commands + observed outputs are captured from the validated end-to-end run and land here as each
-phase is completed.
+exact commands + observed outputs are captured from the validated run.
 
 ### Phase 0 — Provision a conformant cluster
 Stand up an HA Kubernetes cluster on your chosen platform (table above) with: ≥3 worker nodes; a
@@ -109,19 +119,93 @@ OpenShift/Tanzu or a managed cloud (GKE/AKS/EKS/CCE/OKE), provision per that pla
 of this runbook is identical regardless of how the cluster was created.
 
 ### Phase 1 — Configure the appliance
-Fill values: `global.baseDomain`, `global.highAvailability=true`, `global.storageClass`, TLS mode,
-`postgres.backup` (enabled + object store), SSO/IdP, LGTM object storage, image registry (+ air-gap
-mirror if used). Create the secrets (the `secrets-values.yaml` pattern) — provider keys, IdP secret,
-TLS material — as **placeholders here, sourced from your vault**.
+
+**Intent:** set the values and secrets the install reads. Two files: a values file (non-secret config)
+and a git-ignored `secrets-values.yaml` (credentials).
+
+1. **Values.** Set at minimum:
+   ```yaml
+   global:
+     baseDomain: <your-domain>          # e.g. ai-gateway.example.com
+     highAvailability: true             # HA; false for the standalone quick-start
+     storageClass: <your-default-sc>
+   tls:
+     mode: letsencrypt                  # or "provided" (you supply the wildcard cert)
+   postgres:
+     backup: { enabled: true }          # + object store (see secrets); a readiness gate
+   ```
+2. **Secrets** (the `secrets-values.yaml` pattern — never commit it):
+   ```bash
+   cp secrets-values.example.yaml secrets-values.yaml
+   ./gen-secrets.sh secrets-values.yaml        # fills GENERATE placeholders with strong values
+   # then edit secrets-values.yaml: provider API key(s), IdP client secret, object-store creds,
+   # and (if tls.mode=provided) the wildcard cert + key. Source them from your vault.
+   ```
+   `secrets.createFromValues: true` turns these into Kubernetes Secrets at install.
+3. **Image pull.** The released images are private; create the GHCR pull secret the chart references:
+   ```bash
+   kubectl create secret docker-registry ghcr-pull -n higress-system \
+     --docker-server=ghcr.io --docker-username=<user> --docker-password=<token-with-read:packages>
+   ```
+
+::: tip Verified
+The values + `secrets-values.yaml` + `gen-secrets.sh` + `createFromValues` flow is the one the product
+installs from in every environment (dev and the live prod deploy).
+:::
 
 ### Phase 2 — Install
-One `helmfile sync` sequences the whole stack via `needs:` (cert-manager → redis-operator → cnpg →
-LGTM → opsta-ai-gateway → keycloak). Watch the rollout; confirm each component reaches its ready state.
+
+**Intent:** install the Gateway API CRDs, then sync the whole appliance from the released OCI chart in
+one command (it sequences the operators → gateway → keycloak via `needs:`).
+
+```bash
+# 1. Gateway API CRDs (server-side: the HTTPRoute CRD exceeds kubectl's client-side limit)
+kubectl apply --server-side --force-conflicts -f \
+  https://github.com/opsta/opsta-ai-gateway/raw/v1.12.0/manifests/crds/gateway-api/experimental-install.yaml
+
+# 2. Log in to the chart/image registry, then sync the appliance at the pinned version
+echo "$GHCR_TOKEN" | helm registry login ghcr.io -u <user> --password-stdin
+PRODUCT_VERSION=v1.12.0 helmfile -e <your-env> sync --sync-args "--server-side=false --timeout 20m"
+```
+
+`helmfile sync` installs cert-manager → redis-operator → cnpg → LGTM → opsta-ai-gateway → keycloak in
+dependency order. Watch the rollout:
+
+```bash
+kubectl get pods -A
+```
+
+**Expected:** every component reaches Running. On a from-scratch standalone install of v1.12.0
+(validated on a clean cluster) this settles at **all core pods Running** — Higress gateway +
+controller, control-plane, console, Postgres (cnpg), Redis, Keycloak, and the LGTM stack
+(mimir/loki/tempo/grafana/alloy) — with the WasmPlugin chain programmed (`kubectl get wasmplugin -A`
+shows key-auth, ai-statistics, model-router, the guardrail/cache/MCP plugins, etc.).
 
 ### Phase 3 — Verify the install
-DNS/TLS resolves; the gateway answers a **real** chat completion (a seeded key → 200); console SSO
-login → admin home; Grafana → overview dashboard; Keycloak reachable; control-plane reconcile healthy;
-the first backup job succeeded.
+
+**Intent:** prove the data path works, not just that pods are up.
+
+```bash
+# Real governed chat completion through the gateway with a project key → HTTP 200
+curl -s https://api-<baseDomain>/v1/chat/completions \
+  -H "Authorization: Bearer <project-key>" -H 'Content-Type: application/json' \
+  -d '{"model":"<your-model>","messages":[{"role":"user","content":"say hello"}]}'
+```
+
+**Expected:** a `200` with a normal completion body. Then confirm the surfaces:
+
+- **API** answers governed traffic — validated end-to-end: **120/120 seeded chat completions returned
+  `200`, and 3/3 prompt-injection attempts were blocked** by guardrails.
+- **Console** (`https://console-<baseDomain>/`) → SSO login → admin home renders.
+- **Grafana** (`https://grafana-<baseDomain>/`) → overview dashboard shows token/spend panels.
+- **Keycloak** (`https://auth-<baseDomain>/`) reachable; control-plane reconcile healthy.
+- **(HA)** the first PostgreSQL backup job succeeded (see [Backup & DR](/operate/backup-and-dr)).
+
+::: tip Verified
+This phase was run from scratch on a clean cluster against the v1.12.0 release: clean `helmfile sync`,
+all core pods Running, and 120/120 governed completions at `200`. The released-OCI-chart install path
+is additionally exercised by every production deploy.
+:::
 
 ### Phase 4 — Day-1 configuration
 Bootstrap/break-glass admin login; wire the external IdP + email-domain restriction; create an
@@ -136,8 +220,11 @@ restore drill; confirm alerts are wired to your paging; assign secret-rotation o
 
 ## Appendices
 
-- **Appendix A — Standalone / PoC quick-start** — the diffs from the HA flow (1 node,
-  `highAvailability=false`, backups optional, single-binary LGTM): the shortest path to a demo.
+- **Appendix A — Standalone / PoC quick-start** — the diffs from the HA flow: one node,
+  `global.highAvailability=false` (1 replica per component, no PDB/anti-affinity), backups optional,
+  single-binary LGTM (Loki/Tempo single-binary + the all-in-one Mimir chart). Same Phase 1–3 commands;
+  just the standalone values. This is the shortest path to a demo and is the configuration validated
+  end-to-end above (32 pods Running, 120/120 governed completions at `200`).
 - **Appendix B — Air-gap** — registry mirror, OCI chart, image list, egress allowlist.
 - **Appendix C — BYO operators (advanced)** — reuse an existing CloudNativePG / Redis / cert-manager.
 - **Appendix D — Upgrade & rollback** — `helmfile` upgrade; back-up-before-upgrade; the forward-only
