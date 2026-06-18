@@ -8,7 +8,23 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.12 — Governed MCP tool calls, end-to-end _(latest)_
+## v1.13 — Turn REST APIs into governed MCP servers _(latest)_
+
+Register an existing REST API as a **governed MCP server** in clicks — no code. Paste the API's
+**OpenAPI/Swagger spec**, **pick which operations** agents may call, and the gateway exposes each as
+an MCP tool, fronted by the same project-key authentication, per-project isolation, and audit as the
+rest of your traffic.
+
+- **OpenAPI → MCP** — on **Projects → MCP Servers**, choose **Source → REST API (OpenAPI)**, paste the
+  spec, and **Discover tools**.
+- **Pick the tools agents get** — the operation checklist is the access policy; unticked operations
+  are never exposed.
+- **Same connect URL and governance** as a proxied MCP server — agents can't tell the difference, and
+  cross-project keys are still refused (`403`).
+
+See [MCP servers](/admin/mcp-servers) and [Use MCP servers](/user/use-mcp-servers).
+
+## v1.12 — Governed MCP tool calls, end-to-end
 
 The MCP gateway now **proxies agent tool calls through to your registered servers**. A governed
 `tools/list` / `tools/call` reaches the backend MCP server and returns real results — with the same

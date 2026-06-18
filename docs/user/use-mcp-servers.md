@@ -2,7 +2,8 @@
 
 The gateway can give your AI agents **governed access to tools** through the Model Context Protocol (MCP). Your
 administrator registers approved MCP servers for your project; you connect to them through the gateway using the
-same project API key you use for chat.
+same project API key you use for chat. A server may front a real MCP backend **or** be generated from a REST
+API (OpenAPI) — either way you connect and call its tools exactly the same.
 
 ::: info Prerequisites
 - Your administrator has registered one or more MCP servers for your project — see
