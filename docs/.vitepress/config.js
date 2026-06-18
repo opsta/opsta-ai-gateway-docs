@@ -59,6 +59,7 @@ const sidebar = {
     { text: "Reference architecture", link: "/operate/reference-architecture" },
     { text: "Requirements", link: "/operate/requirements" },
     { text: "Install", link: "/operate/install" },
+    { text: "Production deployment (HA)", link: "/operate/deploy/ha" },
     { text: "Configuration", link: "/operate/configuration" },
     { text: "TLS & domains", link: "/operate/tls-and-domains" },
     { text: "High availability", link: "/operate/high-availability" },
