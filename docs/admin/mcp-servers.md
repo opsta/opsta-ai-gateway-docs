@@ -25,23 +25,26 @@ A request must carry a valid **project API key** (key-auth) and may only reach *
 ## Register a server
 
 1. Open **Projects → MCP Servers** and click **Add server**.
-2. Enter a **name**, the backend **MCP server URL**, a **timeout**, and (if the backend needs one) an upstream
-   **credential**.
+2. Enter a **name**, the backend **MCP server URL**, the **transport** the backend speaks —
+   **Streamable HTTP** (the default) or **SSE** — a **timeout**, and (if the backend needs one) an
+   upstream **credential**.
 3. Toggle **enabled** and save. The control plane provisions the route and isolation rules.
 4. Share the generated **connect URL** with your developers:
    `https://mcp.<your-domain>/<organization>.<project>/<server-name>`.
 
 ![The MCP Servers tab](/images/mcp-servers.png)
 
-## What's governed (Stage 1)
+## What's governed
 
 - **Access** — agents authenticate with the project API key (one key for chat and tools).
 - **Isolation** — strict per-project: a key cannot reach another project's servers.
+- **Proxying** — tool calls are proxied through the gateway to your backend server: a `tools/list`
+  or `tools/call` reaches the registered upstream and returns its real result, governed end-to-end.
 - **Activity** — tool-call activity is recorded per organization.
 
 ::: info Scope
-This first stage covers **governed access + a catalog** of remote MCP servers. Per-tool budgets/guardrails and
-auto-generating MCP servers from REST APIs are future capabilities.
+This covers **governed access, proxying, and a catalog** of remote MCP servers. Per-tool
+budgets/guardrails and auto-generating MCP servers from REST APIs are future capabilities.
 :::
 
 ## Next steps

@@ -18,9 +18,11 @@ Each registered server is reachable at a per-project URL:
 https://mcp.<your-domain>/<organization>.<project>/<server-name>
 ```
 
-Point your MCP-capable agent or IDE at that URL (over **Streamable HTTP**) and authenticate with your project
-**API key** — the same key you use for the chat API. The gateway authenticates the connection, enforces that
-you can only reach **your own project's** servers, and records the activity.
+Point your MCP-capable agent or IDE at that URL and authenticate with your project **API key** — the same key
+you use for the chat API. Each server is registered with a **transport** (Streamable HTTP or SSE); use the one
+your administrator chose for that server. The gateway authenticates the connection, proxies your `tools/list`
+and `tools/call` to the backend server, enforces that you can only reach **your own project's** servers, and
+records the activity.
 
 ![The MCP Servers tab and connect URL](/images/mcp-servers.png)
 

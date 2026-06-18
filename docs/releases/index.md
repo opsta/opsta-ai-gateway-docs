@@ -8,7 +8,27 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.10 — Prompt management & model rollouts _(latest)_
+## v1.12 — Governed MCP tool calls, end-to-end _(latest)_
+
+The MCP gateway now **proxies agent tool calls through to your registered servers**. A governed
+`tools/list` / `tools/call` reaches the backend MCP server and returns real results — with the same
+project-key authentication, strict per-project isolation, and activity recording as your LLM traffic.
+Earlier releases registered and fronted MCP servers; this release completes the governed data path.
+
+- **Tool calls flow through the gateway** — list and call tools on a registered server with your
+  project API key; a key from another project is still refused (`403`).
+- **Choose the transport per server** — register each MCP server as **Streamable HTTP** (the default)
+  or **SSE**, to match how your backend speaks MCP.
+
+See [MCP servers](/admin/mcp-servers) and [Use MCP servers](/user/use-mcp-servers).
+
+## v1.11 — Observability stack modernization _(internal)_
+
+Platform internals only — **no change to how you use the gateway**. The bundled metrics/logs/traces
+stack moved to maintained community Helm charts, and the standalone metrics store was simplified for
+more reliable single-node installs. See [Platform observability](/operate/observability-platform).
+
+## v1.10 — Prompt management & model rollouts
 
 Three additions that put the **prompt** and **model choice** under governance — all per-project,
 configured from the console, default-off.
