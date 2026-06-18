@@ -8,7 +8,22 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.13 — Turn REST APIs into governed MCP servers _(latest)_
+## v1.14 — Native providers (Bedrock, Vertex, Claude, Gemini) + failover _(latest)_
+
+Connect **AWS Bedrock, Google Vertex, Anthropic Claude, and native Google Gemini** directly — your apps
+keep speaking the OpenAI chat API and the gateway **translates the protocol** automatically. Native
+providers also get built-in **resilience**.
+
+- **Native providers** — on **Projects → LLM Providers**, pick Bedrock / Vertex / Claude / Gemini and enter
+  that provider's own credentials (AWS keys, Vertex service-account, API keys). No app changes.
+- **Failover + retry** — give a native provider multiple API keys and the gateway rotates off a failing key
+  (with health-checks); optionally retry failed requests.
+- **No disruption** — OpenAI-compatible providers (OpenAI/DeepSeek/Fireworks/self-hosted, …) work exactly as
+  before; native providers run alongside them per project.
+
+See [Providers](/admin/providers) and [Routing](/admin/routing).
+
+## v1.13 — Turn REST APIs into governed MCP servers
 
 Register an existing REST API as a **governed MCP server** in clicks — no code. Paste the API's
 **OpenAPI/Swagger spec**, **pick which operations** agents may call, and the gateway exposes each as
