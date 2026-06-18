@@ -100,9 +100,19 @@ a pinned `vX.Y.Z` — no repo clone needed for the install.
 The **appliance install + data path** (Phases 1–3) are validated from scratch on a clean cluster at
 v1.12.0 (clean `helmfile sync` → all core pods Running → 120/120 governed chat completions at `200`,
 guardrails blocking). The **released-OCI-chart** install path is exercised by every production deploy.
-**Still pending a real multi-node cluster:** the HA-specific behaviors (3-node replica spread +
-anti-affinity, clustered Postgres/Redis failover, object-storage LGTM, an external LoadBalancer, and
-the backup **restore drill**) — these can't be proven on a single node and are marked where they apply.
+
+**Validated on a real multi-node managed cloud cluster (4-node GKE, 2026-06-18):** the full install on a
+generic cluster off the released chart + private images — every component (Higress, control-plane,
+console, Postgres/CNPG, Redis, Keycloak, the LGTM stack) reached Running on a clean install, with a
+**real cloud LoadBalancer** as the ingress, governed routing live (no-key API request → `401` from
+key-auth, console → `302` SSO redirect, Keycloak realm reachable), and the bundled-Keycloak local admin
+seeded. Two multi-node-only install issues surfaced and were fixed: the **Gateway API CRDs** must be
+applied before the chart (Phase 2, step 1 — managed clusters don't pre-ship them), and the embedding
+model-seed job must not share the model PVC across nodes.
+
+**Still pending a long-lived HA cluster:** the HA-failover behaviors (3-replica Postgres/Redis **failover**,
+multi-node anti-affinity under node loss, object-storage LGTM) and the backup **restore drill** — marked
+where they apply.
 :::
 
 ## The deployment flow
@@ -142,10 +152,16 @@ and a git-ignored `secrets-values.yaml` (credentials).
    # and (if tls.mode=provided) the wildcard cert + key. Source them from your vault.
    ```
    `secrets.createFromValues: true` turns these into Kubernetes Secrets at install.
-3. **Image pull.** The released images are private; create the GHCR pull secret the chart references:
-   ```bash
-   kubectl create secret docker-registry ghcr-pull -n higress-system \
-     --docker-server=ghcr.io --docker-username=<user> --docker-password=<token-with-read:packages>
+3. **Image pull.** The released images are private and run in several namespaces. Set the registry
+   credential (an Opsta-provided `read:packages` token) and the chart templates the `ghcr-pull` pull
+   secret into **every namespace it owns** — no manual per-namespace `kubectl create secret`:
+   ```yaml
+   secrets:
+     registryAuth:
+       create: true
+       server: ghcr.io
+       username: <ghcr-user>          # username + token live in secrets-values.yaml, never in git
+       password: <token-with-read:packages>
    ```
 
 ::: tip Verified
