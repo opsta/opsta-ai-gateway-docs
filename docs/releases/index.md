@@ -8,7 +8,21 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.16 — Guardrail review & approval _(latest)_
+## v1.17 — FinOps: chargeback & forecast _(latest)_
+
+Turn usage into money. A per-tenant **chargeback statement** (project → group → user → model,
+priced server-side, **CSV-exportable** for internal billing) and a **budget forecast** that
+projects where this month's spend will land — so you can act before a cap is hit.
+
+- **Chargeback** — on **Usage → FinOps**, pick a month and export a priced statement. Pricing is the
+  same the gateway *enforces* with, so the bill can't disagree with what capped spend.
+- **Unpriced usage is flagged**, never silently billed $0.
+- **Forecast** — per budget (project/user): spend-to-date, % consumed, projected month-end, with an
+  over-budget warning.
+
+See [FinOps — chargeback & forecast](/admin/finops).
+
+## v1.16 — Guardrail review & approval
 
 Guardrail changes are now **governed**, not applied live by one person. A change to a project's
 prompt-injection patterns or [semantic guard](/admin/semantic-guard) is a **staged, versioned

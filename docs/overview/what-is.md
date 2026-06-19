@@ -20,7 +20,9 @@ Opsta AI Gateway puts a single, governed control point in front of all of it.
 ## What it gives you
 
 - **Control the cost** — hierarchical USD budgets (organization → project → group → user), per-minute token
-  limits, and semantic caching that cuts spend. See [Budgets & limits](/admin/budgets-and-limits).
+  limits, semantic caching that cuts spend, and **FinOps chargeback + forecast** (exportable per-tenant
+  cost statements priced from the same rates you enforce, plus month-end budget projection). See
+  [Budgets & limits](/admin/budgets-and-limits) and [FinOps](/admin/finops).
 - **Govern access & safety** — API-key authentication, role-based access control, PII masking,
   prompt-injection [guardrails](/admin/guardrails) with **review & approval** (versioned, 4-eyes,
   revertible), an emergency [AI kill-switch](/admin/kill-switch) that halts all traffic for a

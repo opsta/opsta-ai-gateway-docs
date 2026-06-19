@@ -41,6 +41,7 @@ const sidebar = {
       { text: "Routing", link: "/admin/routing" },
       { text: "Canary / A-B rollouts", link: "/admin/canary-rollouts" },
       { text: "Budgets & limits", link: "/admin/budgets-and-limits" },
+      { text: "FinOps — chargeback & forecast", link: "/admin/finops" },
       { text: "Guardrails", link: "/admin/guardrails" },
       { text: "AI kill-switch", link: "/admin/kill-switch" },
       { text: "Semantic cache", link: "/admin/semantic-cache" },
