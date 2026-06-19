@@ -12,26 +12,57 @@ on-prem data centers).
 ## 1. Mirror the images
 
 Every image — the gateway, control plane, console, databases, identity, observability, and the built-in plugins —
-is pinned to an explicit version. Mirror them into your registry, then tell the chart to pull from there.
+is pinned to an explicit version and **copied** (not rebuilt) from the public release registry
+`ghcr.io/opsta/opsta-ai-gateway` into **your** registry. Run this once, from a host that can reach both your
+registry and `ghcr.io` (the source images are public — no Opsta credentials needed).
+
+### Prerequisites
+
+- [`oras`](https://oras.land) and [`yq`](https://github.com/mikefarah/yq) on the connected host (the repo's
+  `task` runner uses both).
+- Log in to **your** registry: `oras login your-registry.internal` (use `-u/-p` or a token). The `ghcr.io`
+  source is public, so it needs no login.
+
+### One command for the whole set
+
+From a checkout of the product repo at the release tag you're installing:
+
+```bash
+task mirror:product MIRROR=your-registry.internal/agw VERSION=v1.14.0
+# add PLAIN_HTTP=1 if your registry serves plain HTTP (no TLS)
+```
+
+`mirror:product` copies **everything** into one project: the Opsta-built images
+(`your-registry.internal/agw/<name>:v1.14.0`), the built-in AI plugins
+(`your-registry.internal/agw/plugins/<name>`), and every third-party upstream image (oauth2-proxy, redis,
+nginx, …) flattened to `your-registry.internal/agw/<leaf>`. It is idempotent — re-running skips images already
+present. (Internally it runs `task mirror` for the upstream images and `task mirror:images` for ours + plugins;
+you can run those two steps separately if you prefer.)
+
+### Point the chart at your registry
+
+Set both `registry` and `imageMirror` to the **same** project so the entire product is served from one place:
 
 ```yaml
 global:
-  registry: registry.internal/opsta-ai-gateway   # your registry for Opsta-built images
-  imageMirror: registry.internal/mirror           # mirror for upstream third-party images
-  imageMirrorFlatten: true                         # collapse all images under one project/repo
+  registry: your-registry.internal/agw       # Opsta-built images + AI plugins
+  imageMirror: your-registry.internal/agw    # upstream third-party images (same project)
+  imageMirrorFlatten: true                   # collapse everything under that one project
   imagePullSecrets:
-    - name: internal-registry
+    - name: internal-registry                # a Secret granting pull on your registry
 ```
 
-::: tip Flatten to avoid repo sprawl
-`imageMirrorFlatten: true` rewrites every upstream image to `<imageMirror>/<leaf>:<tag>`, so you don't have to
-create dozens of nested repositories in Harbor/ECR/Artifactory. The chart rewrites image references
-automatically; you don't edit manifests.
+::: tip One project, no repo sprawl
+`imageMirrorFlatten: true` rewrites every upstream image to `<imageMirror>/<leaf>:<tag>`, and the Opsta-built
+leaf names are unique across the whole set (our console ships as `opsta-console` so it never clashes with
+Higress's `console`). With `registry` and `imageMirror` pointed at the same `<host>/<project>`, **the entire
+product sits under one Harbor/ECR/Artifactory project** — you create a single repository, not dozens. The chart
+rewrites image references automatically; you never edit manifests.
 :::
 
 The exact image list and tested versions live in the chart's component matrix — see [Upgrades](/operate/upgrades)
-and the [Configuration reference](/reference/configuration#images). Mirror the whole set for the product version
-you're installing; the set is tested together.
+and the [Configuration reference](/reference/configuration#images). `mirror:product` always copies the whole set
+for the product version you check out; the set is tested together.
 
 ## 2. Self-signed or internal-CA TLS
 
