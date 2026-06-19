@@ -8,7 +8,22 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.17 — FinOps: chargeback & forecast _(latest)_
+## v1.18 — Trusted Agent Identity _(latest)_
+
+Make every autonomous AI agent a **first-class, governed principal** instead of an anonymous shared
+key. Register an agent under a project's new **Agents** tab — give it an owner, who it *acts for*, and a
+**risk tier** — and it gets its own verifiable, revocable credential that flows through every LLM **and**
+MCP/tool call.
+
+- **Per-agent everything, no new machinery** — an agent is governed exactly like any principal:
+  per-agent [budgets](/admin/budgets-and-limits), model allow-lists, [guardrails](/admin/guardrails),
+  [MCP](/admin/mcp-servers) isolation, and the [kill-switch](/admin/kill-switch).
+- **Per-agent cost** — agent spend is labeled and attributed on the [FinOps](/admin/finops) chargeback.
+- **Stop one agent instantly** — rotate or delete an agent to revoke its credential at the gateway.
+
+See [AI Agents — trusted agent identity](/admin/agents).
+
+## v1.17 — FinOps: chargeback & forecast
 
 Turn usage into money. A per-tenant **chargeback statement** (project → group → user → model,
 priced server-side, **CSV-exportable** for internal billing) and a **budget forecast** that

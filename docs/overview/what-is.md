@@ -35,9 +35,12 @@ Opsta AI Gateway puts a single, governed control point in front of all of it.
   per-provider key **failover** — your apps keep speaking one OpenAI-style API.
 - **Roll out models safely** — split a model's traffic across two providers by weight to
   A/B test or canary a new model, ramping with no client changes ([rollouts](/admin/canary-rollouts)).
-- **Govern AI agents** — register and govern remote [MCP servers](/admin/mcp-servers), or turn an existing
-  REST API into a governed MCP server from its OpenAPI spec, so your agents' tool traffic is authenticated,
-  isolated per project, and observed — the same controls as your LLM traffic.
+- **Govern AI agents** — give each autonomous agent a **trusted, first-class identity**
+  ([AI Agents](/admin/agents)): a verifiable, revocable credential carried through every LLM and tool
+  call, so spend, access, and audit attribute to the *agent*. Register and govern remote
+  [MCP servers](/admin/mcp-servers), or turn an existing REST API into a governed MCP server from its
+  OpenAPI spec, so your agents' tool traffic is authenticated, isolated per project, and observed — the
+  same controls as your LLM traffic.
 - **Keep it yours** — self-hosted and air-gap installable. The data plane runs in your cluster; sensitive
   prompts and data never leave your environment. See [Data sovereignty](/security/data-sovereignty).
 - **Built for many teams** — true [multi-tenancy](/overview/multi-tenancy): one platform serves many
