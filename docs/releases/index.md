@@ -8,7 +8,19 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.18 — Trusted Agent Identity _(latest)_
+## v1.19 — Agent & Tool catalog _(latest)_
+
+One governance overview of everything that can act in your organization. The new **Agent & Tool
+catalog** (admin sidebar) lists every **AI agent** and every governed **tool** (MCP server) across
+all projects — with its **owner** and **risk tier** — and a risk filter to focus on what matters.
+
+- **Tools get owner + risk** — MCP servers now carry the same governance metadata as agents (owner,
+  risk tier, description), set on the project's MCP servers tab.
+- **One pane for "what exists, who owns it, how risky"** — across every project in the org.
+
+See [Agent & Tool catalog](/admin/catalog).
+
+## v1.18 — Trusted Agent Identity
 
 Make every autonomous AI agent a **first-class, governed principal** instead of an anonymous shared
 key. Register an agent under a project's new **Agents** tab — give it an owner, who it *acts for*, and a

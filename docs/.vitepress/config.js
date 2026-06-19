@@ -45,6 +45,7 @@ const sidebar = {
       { text: "Guardrails", link: "/admin/guardrails" },
       { text: "AI kill-switch", link: "/admin/kill-switch" },
       { text: "AI Agents — trusted identity", link: "/admin/agents" },
+      { text: "Agent & Tool catalog", link: "/admin/catalog" },
       { text: "Semantic cache", link: "/admin/semantic-cache" },
       { text: "Semantic guard", link: "/admin/semantic-guard" },
       { text: "Prompt management", link: "/admin/prompt-management" },
