@@ -8,7 +8,22 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.15 — AI kill-switch _(latest)_
+## v1.16 — Guardrail review & approval _(latest)_
+
+Guardrail changes are now **governed**, not applied live by one person. A change to a project's
+prompt-injection patterns or [semantic guard](/admin/semantic-guard) is a **staged, versioned
+revision**: one admin proposes, a different admin approves (4-eyes), and only then does it reach the
+gateway.
+
+- **Propose → approve → publish** — proposed changes are **pending** (not live) until a second admin
+  approves; every version is recorded with who proposed and who approved, and is **revertible**.
+- **Approval mode per organization** — **strict** (4-eyes) or **self** (single-admin teams / dev).
+- **Tune from evidence** — a per-project **policy-hit** view shows how often each rule fires and how
+  many users flagged a false positive.
+
+See [Guardrails](/admin/guardrails).
+
+## v1.15 — AI kill-switch
 
 An **emergency stop** for AI traffic. An admin can instantly block **all** LLM and agent (MCP)
 traffic for a scope — for an incident, a suspected key leak, abuse, or a compliance hold — and
