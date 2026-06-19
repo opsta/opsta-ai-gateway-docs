@@ -22,7 +22,9 @@ Opsta AI Gateway puts a single, governed control point in front of all of it.
 - **Control the cost** — hierarchical USD budgets (organization → project → group → user), per-minute token
   limits, and semantic caching that cuts spend. See [Budgets & limits](/admin/budgets-and-limits).
 - **Govern access & safety** — API-key authentication, role-based access control, PII masking,
-  prompt-injection [guardrails](/admin/guardrails), and a full [audit log](/admin/audit-log).
+  prompt-injection [guardrails](/admin/guardrails), an emergency [AI kill-switch](/admin/kill-switch)
+  that halts all traffic for a project/org/platform in one click, and a full
+  [audit log](/admin/audit-log).
 - **Govern the prompt** — enforce a project-wide system prompt that clients can't strip
   ([prompt management](/admin/prompt-management)), and publish reusable, versioned
   [prompt templates](/admin/prompt-templates) apps invoke by name.

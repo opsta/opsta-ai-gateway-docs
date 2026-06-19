@@ -8,7 +8,21 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.14 — Native providers (Bedrock, Vertex, Claude, Gemini) + failover _(latest)_
+## v1.15 — AI kill-switch _(latest)_
+
+An **emergency stop** for AI traffic. An admin can instantly block **all** LLM and agent (MCP)
+traffic for a scope — for an incident, a suspected key leak, abuse, or a compliance hold — and
+resume it just as fast.
+
+- **One-click suspend/resume** — on **Projects → Settings**, suspend all traffic for a project
+  (with an optional reason); every consumer in it gets `503` within seconds. Resume restores it.
+- **Three scopes** — project, organization, or global (whole platform), mirroring budgets.
+- **Reversible & audited** — budgets, keys, and config are untouched; every suspend/resume is in
+  the audit log with the actor and reason.
+
+See [AI kill-switch](/admin/kill-switch).
+
+## v1.14 — Native providers (Bedrock, Vertex, Claude, Gemini) + failover
 
 Connect **AWS Bedrock, Google Vertex, Anthropic Claude, and native Google Gemini** directly — your apps
 keep speaking the OpenAI chat API and the gateway **translates the protocol** automatically. Native
