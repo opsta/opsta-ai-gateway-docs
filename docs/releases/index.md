@@ -8,7 +8,14 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.19 — Agent & Tool catalog _(latest)_
+## v1.19.1 — Security maintenance _(latest)_
+
+A maintenance release — **no user-facing changes**. Hardens the **admin console** container image by
+removing the unused `npm` CLI from the runtime, which clears a HIGH-severity advisory
+(CVE-2026-12151, an `undici` denial-of-service) the image scanner flagged. The console behaves exactly
+as in v1.19; all v1.19 capabilities below are unchanged.
+
+## v1.19 — Agent & Tool catalog
 
 One governance overview of everything that can act in your organization. The new **Agent & Tool
 catalog** (admin sidebar) lists every **AI agent** and every governed **tool** (MCP server) across
