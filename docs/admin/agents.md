@@ -38,6 +38,21 @@ agent on the [FinOps](/admin/finops) chargeback (each line is labeled by kind), 
 - **Rotate / revoke** — rotate the agent's key, or **Delete** the agent to instantly revoke its
   credential at the gateway (it can no longer authenticate) — your emergency stop for a single agent.
 
+## Restrict which tools an agent can call
+
+By default an agent may call **any** tool ([MCP server](/admin/mcp-servers)) in its project. For an agent
+that should only touch a subset, set a **tool allow-list** — the gateway then blocks every other tool.
+
+1. On the **Agents** tab, find the agent and open its **Tool access** editor (**Edit**).
+2. Tick the tools the agent is allowed to call, then **Save tool access**.
+3. The agent can now reach only the selected tools; any other tool call is denied at the gateway
+   (`403`, before it ever reaches the tool). Calls to LLMs are unaffected.
+
+**Opt-in, default-allow.** With **no** tools selected, the agent keeps the default — it may call any tool
+in its project. Selecting one or more switches *that* agent to deny-by-default for everything else, so
+turning this on never breaks agents you haven't scoped. Clear the selection to return to default-allow.
+Enforcement is per-agent and applies to your registered MCP tools (server-level).
+
 ## Why not agent-issued JWT/SPIFFE?
 
 Agent identity here is a *governance* capability, not an agent *runtime*. The agent's credential is a

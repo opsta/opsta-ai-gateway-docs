@@ -41,7 +41,8 @@ Opsta AI Gateway puts a single, governed control point in front of all of it.
   [MCP servers](/admin/mcp-servers), or turn an existing REST API into a governed MCP server from its
   OpenAPI spec, so your agents' tool traffic is authenticated, isolated per project, and observed — the
   same controls as your LLM traffic. One **[Agent & Tool catalog](/admin/catalog)** shows every agent
-  and tool across the org with its owner and risk tier.
+  and tool across the org with its owner and risk tier, and you can **restrict which tools each agent may
+  call** (a per-agent tool allow-list, enforced at the gateway).
 - **Keep it yours** — self-hosted and air-gap installable. The data plane runs in your cluster; sensitive
   prompts and data never leave your environment. See [Data sovereignty](/security/data-sovereignty).
 - **Built for many teams** — true [multi-tenancy](/overview/multi-tenancy): one platform serves many

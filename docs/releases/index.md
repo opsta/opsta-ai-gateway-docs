@@ -8,7 +8,17 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.19.1 — Security maintenance _(latest)_
+## v1.20 — Agent tool-access enforcement _(latest)_
+
+Govern not just *who* an agent is, but *what it can touch*. You can now give any AI agent a **tool
+allow-list** — pick exactly which [MCP tools](/admin/mcp-servers) it may call, and the gateway blocks
+every other tool call (before it reaches the tool). It's **opt-in and default-allow**: an agent with no
+list keeps full access, so scoping one agent never disrupts the rest. Set it on the project's **Agents**
+tab → an agent's **Tool access**.
+
+See [Restrict which tools an agent can call](/admin/agents#restrict-which-tools-an-agent-can-call).
+
+## v1.19.1 — Security maintenance
 
 A maintenance release — **no user-facing changes**. Hardens the **admin console** container image by
 removing the unused `npm` CLI from the runtime, which clears a HIGH-severity advisory
