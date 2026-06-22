@@ -8,7 +8,13 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.20.14 — Per-route reasoning effort _(latest)_
+## v1.20.15 — Name your API keys _(latest)_
+
+- **Give each API key a name.** When you issue a key on your **API keys** page you can add an
+  optional label (e.g. `laptop`, `CI`, `opencode`), shown in a new **Name** column — so a
+  consumer with several keys can tell them apart at a glance. Existing keys simply show a dash.
+
+## v1.20.14 — Per-route reasoning effort
 
 - **Set a default reasoning effort on a model route.** On a project's **Routing** tab, each route
   now has a **Reasoning effort** (none / low / medium / high). When set, the gateway adds a default
