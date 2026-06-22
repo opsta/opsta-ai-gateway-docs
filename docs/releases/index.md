@@ -8,6 +8,18 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
+## v1.20.5 — Project page polish + dashboard budget fix _(latest)_
+
+- **Project page layout fixed and polished.** A wide table on a project's tab (LLM
+  Providers, MCP Servers) could be cut off at the right edge after the v1.20.4 layout
+  change, and that clipping made the buttons appear to flicker. Wide tables now fit/scroll
+  cleanly and the page uses more width. The left section menu also gets **icons** per item,
+  and the **MCP Servers** table is tidied up with a one-click **Copy URL** for each server's
+  connect address.
+- **Dashboard budget matches the enforced budget.** A user's *effective budget* shown in
+  the console now resolves the full project → group → user limit hierarchy, so the number
+  you see is the number actually enforced.
+
 ## v1.20.4 — Project settings, reorganized + flexible service accounts _(latest)_
 
 Two improvements to project administration:
