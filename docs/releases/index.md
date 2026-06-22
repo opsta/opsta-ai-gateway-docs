@@ -8,7 +8,20 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.20.3 — Group list reflects deletions _(latest)_
+## v1.20.4 — Project settings, reorganized + flexible service accounts _(latest)_
+
+Two improvements to project administration:
+
+- **The project page is now grouped.** The 14 configuration tabs are organized into five
+  sections — **Access**, **Models**, **Safety & Prompts**, **Tools**, **Governance** — in a
+  side menu, so it reads like a settings page instead of a long row of tabs. Nothing moved
+  in terms of *what* you can configure; it's just easier to find.
+- **Service accounts no longer require an owner.** A service account belongs to the
+  **project** and is managed by org admins. You can still optionally name an owner so that
+  member can self-manage its key from their portal — but if they later leave the
+  organization, the service account keeps working untouched.
+
+## v1.20.3 — Group list reflects deletions
 
 The **Group** picker on a project's Users/Agents tabs now lists exactly your
 organization's groups (plus **default**). Previously a group could keep appearing in the
