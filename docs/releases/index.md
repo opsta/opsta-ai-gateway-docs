@@ -8,7 +8,15 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.20.7 — Budget delete, provider templates & clearer errors _(latest)_
+## v1.20.8 — Clearer provider test results _(latest)_
+
+- **A failed provider test now names the real cause.** When the **Test** button reached a
+  provider that rejected the credentials, the result mislabeled it as "your session has
+  expired." It now reads correctly — e.g. **"The provider rejected the API key (HTTP 401) —
+  check the key"** — and distinguishes a bad base URL (404), rate-limiting (429), or an
+  upstream outage (5xx) from anything to do with your console login.
+
+## v1.20.7 — Budget delete, provider templates & clearer errors
 
 - **Remove a budget or limit.** The **Budgets & Limits** table now has a **Delete** on every
   row — project ceiling, group default, or individual override. Deleting a limit falls back
