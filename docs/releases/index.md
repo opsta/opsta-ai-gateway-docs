@@ -8,7 +8,19 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.20 — Agent tool-access enforcement _(latest)_
+## v1.20.1 — Reliable member management + group controls _(latest)_
+
+Adding people to a project is now solid. Previously, adding a member could fail with a database error
+(and still leave a half-created entry) when the chosen **group** hadn't been set up for the organization
+yet. Now the group is **created automatically** as part of the add, the whole operation is **atomic** (it
+either fully succeeds or changes nothing — no orphaned entries), and adding the **same person twice** to a
+project is politely rejected instead of creating a duplicate.
+
+Group management is rounder too: the project **Users** tab now lists your organization's real groups, and
+you can **delete** a group from **Organization → Groups** (blocked while anyone still uses it). See
+[Groups](/admin/organizations-and-members#groups).
+
+## v1.20 — Agent tool-access enforcement
 
 Govern not just *who* an agent is, but *what it can touch*. You can now give any AI agent a **tool
 allow-list** — pick exactly which [MCP tools](/admin/mcp-servers) it may call, and the gateway blocks

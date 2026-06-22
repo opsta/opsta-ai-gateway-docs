@@ -42,6 +42,18 @@ On **Organization → Groups** you create groups (teams) that map from your iden
 for **model access** and **budget aggregation**, and are assigned to projects. When you connect an identity
 provider ([SSO & IdP](/admin/sso-and-idp)), users land in the right group automatically on first login.
 
+Every member, agent and service account belongs to exactly one group, which is why the **Group** field is
+required when you add someone to a project ([Projects → Users](/admin/projects)). The group decides which
+models that person may call. You don't have to pre-create groups for the common case: picking a group name
+on the Users tab **creates it on the spot** if it doesn't exist yet, so adding a member never fails on a
+missing group.
+
+**Delete a group** with the **Delete** button on Organization → Groups. Deletion is blocked (with a clear
+message) while any member or agent still uses the group — reassign or remove them first, so no one is left
+without model access.
+
+![An organization's Groups tab, with per-group Delete](/images/groups.png)
+
 ## Next steps
 
 - [Projects](/admin/projects) — configure what each team can do.
