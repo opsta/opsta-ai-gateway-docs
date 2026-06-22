@@ -44,9 +44,13 @@ provider ([SSO & IdP](/admin/sso-and-idp)), users land in the right group automa
 
 Every member, agent and service account belongs to exactly one group, which is why the **Group** field is
 required when you add someone to a project ([Projects → Users](/admin/projects)). The group decides which
-models that person may call. You don't have to pre-create groups for the common case: picking a group name
-on the Users tab **creates it on the spot** if it doesn't exist yet, so adding a member never fails on a
-missing group.
+models that person may call. You don't have to pre-create groups for the common case: every organization
+has a **default** group that the form pre-selects, and picking any group name **creates it on the spot** if
+it doesn't exist yet — so adding a member is one tap and never fails on a missing group.
+
+When you add a **member** (a person with an SSO login), the gateway does **not** issue them an API key —
+they generate their own from their **Keys** page after signing in. Only **service accounts** and **agents**,
+which have no login, receive a key at creation time for the admin to hand off.
 
 **Delete a group** with the **Delete** button on Organization → Groups. Deletion is blocked (with a clear
 message) while any member or agent still uses the group — reassign or remove them first, so no one is left

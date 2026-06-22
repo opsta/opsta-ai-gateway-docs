@@ -8,7 +8,22 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.20.1 — Reliable member management + group controls _(latest)_
+## v1.20.2 — Smoother member onboarding _(latest)_
+
+Three rough edges in member management are gone:
+
+- **Deleting a member (or group, provider, project) no longer shows a false "HTTP 500".**
+  The delete was actually working, but the console mishandled the server's empty
+  "no content" response and surfaced a spurious error. Deletes now report success
+  cleanly.
+- **Members create their own API key.** Adding a member no longer hands the admin a key
+  the member doesn't need — each person generates their own from their **Keys** page
+  after signing in. (Service accounts and AI agents, which have no login, still get their
+  key at creation.)
+- **Adding a member is one tap.** Every organization now has a **default** group that's
+  pre-selected on the form, so you don't have to set one up first.
+
+## v1.20.1 — Reliable member management + group controls
 
 Adding people to a project is now solid. Previously, adding a member could fail with a database error
 (and still leave a half-created entry) when the chosen **group** hadn't been set up for the organization
