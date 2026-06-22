@@ -8,7 +8,18 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.20.11 — Key expiry + self-serve key management _(latest)_
+## v1.20.12 — Streaming usage is metered again _(latest)_
+
+- **Token usage from streaming requests is now counted.** Most clients (opencode, IDE
+  assistants, chat UIs) stream their responses, and a parser bug meant the usage reported at the
+  end of a streamed response was missed — so those calls showed **0 tokens / $0** on dashboards
+  and didn't draw down budgets. Streaming usage is now captured correctly. (Non-streaming was
+  always fine; no historical data is affected — metering is corrected going forward.)
+- **A provider in use can't be deleted out from under its routes.** Deleting an LLM provider is
+  now blocked while any model route still points at it — repoint or delete those routes first.
+  This prevents a "dangling route" that would fail requests with a confusing error.
+
+## v1.20.11 — Key expiry + self-serve key management
 
 - **Set an expiry when you issue a key.** Your **API keys** page now has an **Expires** choice —
   Never, 30/90/180 days, or 1 year — so you can mint short-lived keys instead of only permanent
