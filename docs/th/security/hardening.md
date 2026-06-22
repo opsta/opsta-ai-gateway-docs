@@ -1,95 +1,180 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# การเพิ่มความปลอดภัยให้ระบบ
 
-# Hardening
+ตัวแพลตฟอร์มมีการกำหนดค่าเริ่มต้นที่ปลอดภัยสูง ครอบคลุมทั้งในส่วนของระบบระบุตัวตน ความปลอดภัยของบริการภายในระบบ การแยกส่วนเครือข่าย การจัดการข้อมูลความลับ การตรวจสอบความถูกต้องของข้อมูลนำเข้า และซอฟต์แวร์ห่วงโซ่อุปทาน หน้านี้ทำหน้าที่เป็นรายการตรวจสอบสำหรับผู้ดูแลระบบเพื่อควบคุมความปลอดภัยของระบบจริงให้แน่นหนาอยู่เสมอ
 
-The platform ships with secure defaults across identity, internal-service trust, network isolation, secret
-handling, input validation, and the software supply chain. This page is the operator's checklist for keeping a
-production deployment locked down.
-
-::: info Who this is for
-Platform engineers and security reviewers hardening a production installation.
+::: info เอกสารนี้เหมาะสำหรับใคร
+วิศวกรแพลตฟอร์มและทีมตรวจสอบความปลอดภัยระบบที่ทำหน้าที่เสริมสร้างความมั่นคงปลอดภัยให้กับระบบใช้งานจริง
 :::
 
-## Verified identity
+## การตรวจสอบตัวตนที่แท้จริง
 
-The configuration API authorizes on a **verified token**, not on trust-me headers. When an OIDC issuer is
-configured, the control plane fetches the issuer's signing keys and verifies each request's token signature and
-claims (issuer, audience, expiry) before deriving the caller's identity and role. Requests without a valid token
-are rejected. This closes header-spoofing as an escalation path — see [RBAC model](/th/security/rbac).
+ระบบ API ตั้งค่าของระบบจะอนุมัติสิทธิ์การทำงานตาม **โทเค็นที่ผ่านการยืนยันแล้ว** แทนการเชื่อถือข้อมูลใน header ทั่วไป เมื่อมีการตั้งค่าผู้ให้บริการ OIDC ระบบ control plane จะดึงคีย์การลงนามของผู้ให้บริการ OIDC มาเพื่อตรวจสอบลายเซ็นดิจิทัลของโทเค็นและข้อมูลประกอบ เช่น ผู้รับรอง ผู้รับ ข้อมูลวันหมดอายุ ก่อนจะระบุตัวตนและสิทธิ์การทำงานของผู้เรียกใช้คำสั่ง โดยคำขอใดๆ ที่ไม่มีโทเค็นที่ถูกต้องจะถูกปฏิเสธทันที ระบบนี้ช่วยป้องกันไม่ให้เกิดภัยคุกคามจากการแก้ไขข้อมูลใน header เพื่อยกระดับสิทธิ์ตัวเอง โดยศึกษารายละเอียดเพิ่มเติมได้ที่หน้า [โมเดล RBAC](/th/security/rbac)
 
-::: tip Configure the OIDC issuer in production
-With identity verification enabled, the platform stops trusting forwarded identity headers entirely. Always run
-production with a real issuer configured.
+::: tip ตั้งค่าผู้ให้บริการ OIDC ในการใช้งานจริง
+เมื่อเปิดใช้งานระบบยืนยันตัวตนแล้ว แพลตฟอร์มจะไม่เชื่อถือข้อมูลสิทธิ์ที่ส่งต่อมาทาง header อีกต่อไป ขอแนะนำให้ตั้งค่าใช้งานร่วมกับผู้ให้บริการ OIDC จริงเสมอกับระบบที่ใช้งานจริง
 :::
 
-## Internal-service authentication
+## การยืนยันสิทธิ์ระหว่างบริการภายใน
 
-Calls between platform components require a **shared internal secret**, checked with a constant-time comparison.
-Data-plane ingest endpoints (usage, cache hits, guardrail blocks) are gated by their own tokens. Health and
-readiness probes are the only exempt endpoints.
+การสื่อสารระหว่างส่วนประกอบต่างๆ ภายในแพลตฟอร์มจำเป็นต้องส่ง**รหัสลับภายในร่วมกัน** ซึ่งจะถูกตรวจสอบผ่านฟังก์ชันการเปรียบเทียบข้อมูลที่ใช้เวลาคงที่เพื่อความปลอดภัย และปลายทางรับส่งข้อมูลประวัติระบบ เช่น บันทึกการใช้งาน ข้อมูลประวัติแคช ข้อมูลการบล็อกของ guardrail จะถูกจำกัดสิทธิ์โดยโทเค็นเฉพาะของแต่ละส่วนเช่นกัน โดยมีเพียงเฉพาะปลายทางระบบตรวจสอบสุขภาพทั่วไปและระบบเตรียมพร้อมทำงานเท่านั้นที่ไม่จำเป็นต้องยืนยันตัวตนนี้
 
-## Network isolation
+## การแยกส่วนระบบเครือข่าย
 
-Default-deny network policies restrict who can reach sensitive services:
+การจำกัดสิทธิ์การเชื่อมต่อเริ่มต้นด้วย NetworkPolicy เพื่อควบคุมขอบเขตผู้ที่สามารถเข้าถึงบริการที่สำคัญได้ดังนี้
 
 ```yaml
 controlPlane:
   networkPolicy:
-    enabled: true     # only the console and gateway may reach the control-plane API
+    enabled: true     # กำหนดสิทธิ์ให้เฉพาะ console และเกตเวย์เท่านั้นที่สามารถเรียกใช้ API ของ control-plane
 observability:
   networkPolicy:
-    enabled: true     # only the auth proxy may reach the telemetry backends
+    enabled: true     # กำหนดสิทธิ์ให้เฉพาะ proxy การตรวจสอบสิทธิ์เท่านั้นที่สามารถดึงข้อมูลสถิติประวัติได้
 ```
 
-::: warning Needs an enforcing CNI
-Network policies are only effective on a CNI that enforces them. Lightweight CNIs (k3d/flannel) ignore them — the
-platform still runs, but you lose this layer. Use an enforcing CNI in production.
+::: warning จำเป็นต้องใช้ CNI ที่รองรับกฎความปลอดภัย
+กฎ NetworkPolicy จะมีผลบังคับใช้อย่างถูกต้องเฉพาะบน CNI ที่รองรับฟังก์ชันนี้เท่านั้น ซึ่งระบบ CNI ขนาดเล็ก เช่น k3d หรือ flannel จะละเลยกฎเหล่านี้ แม้แพลตฟอร์มจะยังทำงานได้ตามปกติแต่คุณจะสูญเสียความปลอดภัยในชั้นนี้ไป โปรดใช้ CNI ที่รองรับมาตรการนี้สำหรับระบบใช้งานจริง
 :::
 
-## Secret hygiene
+## สุขอนามัยในการจัดการความลับ
 
-- Keep credentials **out of git**. Either let the chart create Secrets from a **separate, git-ignored** values
-  file (`secrets.createFromValues: true`), or reference **pre-existing Secrets** managed by Vault/sealed-secrets
-  (`secrets.createFromValues: false`) — the recommended production mode.
-- Provider API keys are stored as Kubernetes Secrets and injected at the gateway; they aren't exposed to other
-  tenants.
-- The audit log never records bodies or credentials ([Audit & compliance](/th/security/audit-and-compliance)).
+- แยกข้อมูลยืนยันตัวตน**ออกจากระบบ git เสมอ** โดยคุณสามารถเลือกให้ Helm chart สร้าง Secrets จากไฟล์ values **ที่แยกต่างหากและถูกตั้งค่าไม่ให้เก็บใน git** ผ่านคำสั่ง `secrets.createFromValues: true` หรือใช้วิธีอ้างอิงไปยัง **Secrets เดิมที่มีอยู่แล้วในระบบ** ซึ่งควบคุมดูแลผ่านระบบ Vault หรือ Sealed Secrets ด้วยคำสั่ง `secrets.createFromValues: false` ซึ่งเป็นวิธีแนะนำสำหรับใช้งานจริง
+- คีย์ API ของผู้ให้บริการโมเดลจะถูกจัดเก็บในรูป Kubernetes Secrets และเรียกใช้งานเฉพาะที่ระดับเกตเวย์เท่านั้น โดยจะไม่ถูกเปิดเผยไปยังผู้ใช้งานกลุ่มอื่น
+- บันทึกประวัติการตรวจสอบความปลอดภัยจะไม่มีการบันทึกเนื้อหาคำสั่งหรือรหัสคีย์ความลับใดๆ ตามรายละเอียดในหน้า [การตรวจสอบระบบและการปฏิบัติตามข้อกำหนด](/th/security/audit-and-compliance)
 
-## Request-level safety
+## ความมั่นคงปลอดภัยระดับคำสั่งใช้งาน
 
-The configuration API applies an outer guard on mutating requests:
+ระบบ API ตั้งค่ามีกลไกป้องกันคำสั่งแก้ไขข้อมูลภายนอกดังนี้
 
-- A global **rate limit** (token bucket), coordinated across replicas when Redis is enabled.
-- A **body-size cap** on mutating methods.
-- **Input validation** on identifiers (e.g. organization and project slugs).
+- มีระบบ**จำกัดความถี่การใช้งานส่วนกลาง**ในรูปแบบ token bucket โดยจะซิงก์ข้อมูลข้าม replicas เมื่อเปิดใช้งาน Redis
+- มีการ**จำกัดขนาดเนื้อความคำสั่ง**สำหรับคำสั่งประเภทร้องขอแก้ไขข้อมูล
+- มีการ**ตรวจสอบความถูกต้องของข้อมูลนำเข้า**สำหรับรหัสระบุตัวตนต่างๆ เช่น รหัสขององค์กรและโครงการ
 
-The data-plane gateway buffers request bodies up to a configurable max (`gateway.maxRequestBytes`, default
-10 MiB) and rejects larger payloads.
+เกตเวย์ในส่วนรับส่งข้อมูลหลักจะทำบัฟเฟอร์เก็บเนื้อหาคำสั่งสูงสุดตามค่าที่ระบุไว้ เช่น `gateway.maxRequestBytes` มีค่าเริ่มต้นที่ 10 MiB และจะปฏิเสธคำสั่งที่มีขนาดเกินค่าดังกล่าวทันที
 
-## TLS everywhere
+## การบังคับใช้ TLS ทุกช่องทางการเชื่อมต่อ
 
-TLS terminates in-cluster with a certificate you control — Let's Encrypt, your own, or self-signed for air-gap.
-See [TLS & domains](/th/operate/tls-and-domains). The console also sets strict security response headers.
+การเข้ารหัส TLS จะสิ้นสุดการทำงานภายในคลัสเตอร์ของคุณผ่านใบรับรองที่คุณควบคุมเอง ได้แก่ Let's Encrypt ใบรับรองขององค์กร หรือระบบใบรับรองตนเองกรณีติดตั้งในระบบปิด โดยศึกษาเพิ่มเติมได้ที่หน้า [TLS และโดเมน](/th/operate/tls-and-domains) อีกทั้งหน้าเว็บ console จะมีการกำหนดความปลอดภัยของ response headers อย่างเข้มงวดด้วย
 
-## Supply chain
+## ห่วงโซ่อุปทานซอฟต์แวร์
 
-- Every image is **pinned** to an explicit, tested version as part of the product's component matrix.
-- Images are **scanned** for HIGH/CRITICAL vulnerabilities; releases gate on the results.
-- Build-once / promote-by-retag means the **exact digest** that was tested is the one you run — see
-  [Upgrades](/th/operate/upgrades).
-- For air-gap, mirror the pinned set into your own registry ([Air-gapped install](/th/operate/air-gap)).
+- อิมเมจอิมเมจทั้งหมดจะถูก**ล็อกเวอร์ชัน (pinned)** ตามรุ่นเวอร์ชันที่ผ่านการทดสอบมาตรฐานในโครงสร้างส่วนประกอบของผลิตภัณฑ์
+- อิมเมจระบบจะผ่านการ**สแกนช่องโหว่ความปลอดภัย**ระดับสูง (HIGH) และวิกฤต (CRITICAL) เสมอก่อนนำออกเผยแพร่เพื่อตรวจสอบความปลอดภัย
+- กระบวนการพัฒนาครั้งเดียวและยกสถานุ่นด้วยการเปลี่ยนแท็กช่วยรับประกันว่า**รหัสอิมเมจระบุตัวตนจริง (digest)** ที่ใช้งานจริงจะเป็นตัวเดียวกับที่ผ่านการทดสอบเป็นที่เรียบร้อยดี โดยศึกษาข้อมูลเพิ่มเติมได้ที่หน้า [การอัปเกรดระบบ (Upgrades)](/th/operate/upgrades)
+- สำหรับระบบติดตั้งแบบระบบปิด ให้ทำสำเนาอิมเมจเหล่านี้เข้าสู่คลังเก็บอิมเมจของตนเองตามคำแนะนำในหน้า [การติดตั้งในระบบปิด (Air-gapped install)](/th/operate/air-gap)
 
-## Hardening checklist
+## ตารางรูปแบบการเข้ารหัสข้อมูล (Encryption matrix)
 
-- [ ] OIDC issuer configured (identity verification on)
-- [ ] `controlPlane.networkPolicy.enabled` and `observability.networkPolicy.enabled` on, with an enforcing CNI
-- [ ] Secrets referenced from an external store, not committed values
-- [ ] TLS from a trusted source; `letsencrypt-prod` or internal CA
-- [ ] Admin access via group membership, email allowlist for break-glass only
-- [ ] Backups configured and tested ([Backup & DR](/th/operate/backup-and-dr))
-- [ ] Audit retention set to your policy ([Audit & compliance](/th/security/audit-and-compliance))
+| ช่องทางการรับส่ง หรือ การจัดเก็บ | รูปแบบการเข้ารหัส | สถานะการทำงาน | หมายเหตุเพิ่มเติม |
+|---|---|---|---|
+| **ลูกค้า → เกตเวย์ Higress** | TLS 1.2 ขึ้นไปที่ระดับ ingress | **Shipped** | ใบรับรองจาก cert-manager ควบคุมสิทธิ์โดยลูกค้า |
+| **เว็บเบราว์เซอร์ → Higress (console, Grafana และหน้า auth)** | TLS 1.2 ขึ้นไปที่ระดับ ingress | **Shipped** | ใช้ใบรับรอง wildcard ร่วมกัน |
+| **เกตเวย์ Higress → ผู้ให้บริการ LLM** | HTTPS (TLS 1.2 ขึ้นไป) | **Shipped** | ถูกบังคับใช้โดยมาตรฐาน TLS ของผู้ให้บริการต้นทาง |
+| **เกตเวย์ Higress → control plane (ภายใน)** | โปรโตคอล HTTP ปกติภายในคลัสเตอร์ | การแยกส่วนเครือข่ายคลัสเตอร์ | ระบบยังไม่มี mTLS ภายในตัวในปัจจุบัน โดยใช้ NetworkPolicy จำกัดผู้เรียกใช้งาน |
+| **ระบบ control plane → PostgreSQL** | TLS แบบระบุ `PGSSLMODE=require` | **Shipped** | ระบบ CNPG จะสร้าง CA แบบลงนามตนเองให้อัตโนมัติ |
+| **ระบบ control plane → Redis** | โปรโตคอล TCP ปกติภายในคลัสเตอร์ | การแยกส่วนเครือข่ายคลัสเตอร์ | ไม่มี TLS โดยใช้ NetworkPolicy จำกัดผู้เรียกใช้งาน |
+| **ข้อมูลฐานข้อมูล PostgreSQL ขณะจัดเก็บ** | ขึ้นกับประเภท StorageClass | **Customer** | การเข้ารหัส PVC จะอยู่ที่ระดับ StorageClass ซึ่งระบบคลาวด์ส่วนใหญ่รองรับความสามารถนี้ |
+| **ข้อมูล Redis ขณะจัดเก็บ** | ขึ้นกับประเภท StorageClass | **Customer** | เช่นเดียวกับ Postgres โดยใช้การเข้ารหัส PVC ที่ระดับ StorageClass |
+| **ข้อมูลความลับ Kubernetes Secrets ขณะจัดเก็บ** | การแปลงรหัส base64 โดยไม่ได้เข้ารหัส | **Customer (G3)** | จำเป็นต้องเปิดระบบเข้ารหัส etcd ติดตั้ง Sealed Secrets หรือใช้ External Secrets |
+| **ระบบจัดเก็บออบเจกต์ (ข้อมูล LGTM หรือ ข้อมูลสำรอง)** | ขึ้นกับการตั้งค่าของถังข้อมูล | **Customer** | เปิดใช้งานการเข้ารหัสข้อมูลฝั่งเซิร์ฟเวอร์ในถังเก็บข้อมูล S3 ของคุณ |
+| **ระบบ mTLS ภายในคลัสเตอร์** | ไม่มีในตัวเนื่องจากไม่ได้รัน service mesh | **Customer (ตัวเลือกเพิ่มเติม)** | ติดตั้ง Istio หรือ Linkerd เพื่อเพิ่มความปลอดภัย mTLS ได้ ซึ่งระบบซอฟต์แวร์ไม่มีความจำเป็นต้องใช้ฟีเจอร์นี้ในการทำงานทั่วไป |
 
-## Next steps
+## ความปลอดภัยระดับ Pod (securityContext)
 
-- [RBAC model](/th/security/rbac) · [Audit & compliance](/th/security/audit-and-compliance) ·
-  [Data sovereignty](/th/security/data-sovereignty)
+ตัว Helm chart จะมีการตั้งค่าความปลอดภัยระดับ pod ที่ปลอดภัยสูงในลักษณะเดียวกันสำหรับทุกกระบวนการทำงานที่พัฒนาโดย Opsta ผ่านทางตัวช่วยของ Helm ส่วนชุดคำสั่งซอฟต์แวร์ย่อยภายนอกอื่นๆ เช่น Higress, Keycloak หรือ LGTM operators จะมีการกำหนดความปลอดภัยของตนเองตาม chart ต้นทาง
+
+**การกำหนดตั้งค่าความปลอดภัยระดับ Pod** (นำไปใช้กับ Pod ของ control plane, console และ observability proxy ทั้งหมด)
+
+```yaml
+runAsNonRoot: true
+runAsUser: 65532       # เทียบเท่าผู้ใช้ nobody เพื่อความปลอดภัย
+runAsGroup: 65532
+fsGroup: 65532
+seccompProfile:
+  type: RuntimeDefault  # ตัวจำกัดระบบ syscall ด้วยโปรไฟล์ความปลอดภัยมาตรฐาน
+```
+
+**การกำหนดตั้งค่าความปลอดภัยระดับ Container** (นำไปใช้กับทุกคอนเทนเนอร์ใน Pod ที่พัฒนาโดย Opsta)
+
+```yaml
+allowPrivilegeEscalation: false
+readOnlyRootFilesystem: true
+runAsNonRoot: true
+capabilities:
+  drop:
+    - ALL               # ตัดสิทธิ์การเข้าใช้งานพิเศษของระบบปฏิบัติการออกทั้งหมด
+seccompProfile:
+  type: RuntimeDefault
+```
+
+**ความสอดคล้องตามมาตรฐานความปลอดภัย Pod Security Standards (PSS)**
+
+| ระดับมาตรฐาน PSS | ความสอดคล้องของอิมเมจ Opsta | หมายเหตุเพิ่มเติม |
+|---|---|---|
+| **Baseline** | ผ่านการทดสอบ (Met) | ทำงานแบบ non-root ไม่มีสิทธิ์ host namespace และไม่มีคอนเทนเนอร์แบบมีสิทธิ์สูง |
+| **Restricted** | ผ่านการทดสอบเป็นส่วนใหญ่ | ทำงานภายใต้ข้อกำหนด `runAsNonRoot`, `drop ALL`, `readOnlyRootFilesystem` และใช้โปรไฟล์ระบบแบบ `seccompProfile: RuntimeDefault` |
+| **Restricted (strict)** | ผ่านการทดสอบบางส่วน | เกตเวย์ Higress จำเป็นต้องสิทธิ์เข้าถึงพอร์ต 80 และ 443 ของเครื่องโฮสต์จริง ซึ่งอาจต้องกำหนดกรณียกเว้นสำหรับ `hostPorts` ในระดับนโยบายของเนมสเปซเพิ่ม |
+
+ขั้นตอนการบังคับใช้นโยบาย Pod Security Admission ในระดับเนมสเปซสำหรับระบบใช้งานจริง
+
+```bash
+kubectl label namespace opsta-ai-gateway \
+  pod-security.kubernetes.io/enforce=restricted \
+  pod-security.kubernetes.io/warn=restricted
+```
+
+ให้ทดสอบโดยใช้ตัวแปร `--dry-run=server` ก่อนเพื่อตรวจสอบรายการที่ขัดแย้งก่อนเปิดใช้นโยบายจริง
+
+## รายการการเชื่อมต่อขาออกที่อนุญาต (Egress allowlist)
+
+ระหว่างทำงานเกตเวย์จะเชื่อมต่อออกภายนอกไปยังปลายทาง**ที่คุณเป็นผู้ควบคุมหรือตั้งค่าไว้โดยตรงเท่านั้น** รายการเชื่อมต่อออกที่จำเป็นขั้นต่ำสำหรับตั้งค่ากฎ NetworkPolicy ขาออก หรือไฟร์วอลล์ มีดังนี้
+
+| ปลายทางเชื่อมต่อ | พอร์ตการเชื่อมต่อ | เงื่อนไขการเข้าใช้งาน | วัตถุประสงค์การใช้งาน |
+|---|---|---|---|
+| ปลายทางผู้ให้บริการ LLM ที่คุณกำหนดไว้ | 443 | ตลอดเวลา | ส่งต่อข้อมูลคำขอการทำงานไปยังโมเดล |
+| ปลายทางเซิร์ฟเวอร์ MCP ที่คุณกำหนดไว้ | 443 หรือพอร์ตเฉพาะ | เฉพาะเมื่อมีการเปิดใช้งาน MCP | เรียกใช้งานเครื่องมือภายนอกผ่านทาง MCP |
+| ปลายทาง `acme-v02.api.letsencrypt.org` | 443 | เฉพาะโหมด `tls.mode: letsencrypt` เท่านั้น | ขอและอัปเดตใบรับรอง TLS แบบอัตโนมัติ |
+| บริการ Kubernetes API server (`kubernetes.default.svc`) | 443 | ตลอดเวลาสำหรับตัวจัดการระบบ | ตรวจสอบข้อมูลสิทธิ์และทำงานของ cnpg, Redis และ cert-manager |
+| ปลายทางผู้ให้บริการ IdP ของคุณ | 443 | เฉพาะเมื่อเปิดใช้ SSO | ระบบ Keycloak ติดต่อสื่อสารเพื่อแลกเปลี่ยนสิทธิ์และโทเค็นของผู้ใช้ |
+| ระบบจัดเก็บออบเจกต์ที่เข้ากันได้กับ S3 ของคุณ | 443 | เฉพาะเมื่อรันแบบ HA และเปิดใช้ระบบสำรองข้อมูล | จัดเก็บข้อมูลล็อกของ LGTM และไฟล์ WAL ของ Postgres |
+| คลังเก็บอิมเมจส่วนตัวของคุณ | 443 | เมื่อดึงอิมเมจมาใช้งาน | มีผลเฉพาะเมื่อตั้งค่าใช้งาน `imagePullPolicy: Always` เท่านั้น |
+
+**ไม่มีการเชื่อมต่อขาออกไปยังบริษัท Opsta** ไม่มีการส่งข้อมูลวิเคราะห์การใช้งาน ไม่มีระบบตรวจสัญญาสิทธิ์ใช้งาน หรือการเชื่อมต่อใดๆ กลับมาที่ผู้พัฒนา
+
+สำหรับคลัสเตอร์แบบระบบปิด ให้เลือกตั้งค่าใช้งาน CA ภายในองค์กร เช่น `tls.mode: provided` หรือ `selfsigned` และระบุให้ดึงอิมเมจจากคลังเก็บอิมเมจภายในองค์กรของคุณ ซึ่งจะทำให้หลังจากติดตั้งระบบแล้ว เกตเวย์จะต้องการเชื่อมต่อขาออกเฉพาะไปยังผู้ให้บริการ LLM และระบบ IdP ของคุณเท่านั้น
+
+## ซอฟต์แวร์ห่วงโซ่อุปทาน
+
+::: warning ระบบ SBOM และการลงนามซอฟต์แวร์อยู่ในแผนพัฒนาการทำงาน
+อิมเมจระบบถูกพัฒนา สแกนความปลอดภัย และยกสถานะรุ่นผ่านทางวิธีการเปลี่ยนแท็กเท่านั้น **ตัวระบบในเวอร์ชันปัจจุบันยังไม่มีรายงาน SBOM การลงลายเซ็นรับรองด้วย cosign หรือเอกสารประวัติซอฟต์แวร์ SLSA** ซึ่งประเด็นนี้เป็นข้อจำกัดที่ระบุไว้ในตารางความรับผิดชอบร่วมกัน (รหัส G8)
+:::
+
+มาตรการควบคุมความปลอดภัยชั่วคราวในปัจจุบัน
+
+- **ตารางควบคุมรุ่นของส่วนประกอบระบบ** อิมเมจทั้งหมดจะถูกล็อกแท็กรุ่นเวอร์ชันที่แน่นอนไว้ในไฟล์ `version.yaml` โดยไม่มีการใช้แท็ก `latest` หรือรุ่นแบบไม่ระบุเฉพาะในระบบใช้งานจริง
+- **พัฒนาครั้งเดียวและยกสถานุ่นด้วยการเปลี่ยนแท็ก** เพื่อรับประกันว่ารหัสอิมเมจระบุตัวตนจริง (digest) ที่ผ่านการทดสอบเป็นที่เรียบร้อยในระบบ uat จะเป็นอิมเมจตัวเดียวกับที่ใช้งานในระบบจริงโดยไม่มีการแก้ไขโครงสร้างซอฟต์แวร์ระหว่างกลาง
+- **การสแกนความปลอดภัยด้วย Trivy** ระบบจะทำการตรวจสอบความถูกต้องและสแกนช่องโหว่ความปลอดภัยระดับสูงและวิกฤตในขั้นตอน CI ทุกครั้งที่มีการบันทึกแก้ไขโค้ด
+- **การตรวจสอบความปลอดภัยของซอร์สโค้ด Go ด้วย gosec (SAST)** ระบบจะทำการตรวจสอบช่องโหว่ความปลอดภัยของโค้ด Go ทุกครั้งในกระบวนการ CI
+- **การควบคุมสิทธิ์การใช้งานของส่วนประกอบภายนอก** บังคับใช้เฉพาะซอฟต์แวร์ภายนอกที่มีสัญญาอนุญาตประเภท Apache-2.0 หรือ MIT เท่านั้น ซึ่งควบคุมความถูกต้องด้วยคำสั่ง `task license-check` ในขั้นตอน pre-commit
+- **การระบุอิมเมจแบบระบุ digest** ผู้ใช้งานแนะนำให้กำหนดระบุค่า OCI digest ที่ถูกต้องของซอฟต์แวร์แทนการระบุรุ่นเวอร์ชันทั่วไปในไฟล์ `helmfile.yaml` และทำกระบวนการตรวจสอบค่าระบุตัวตนนี้กับบันทึกการออกรุ่นซอฟต์แวร์ก่อนทำการอัปเดตระบบ
+
+แผนการลงลายเซ็นรับรองซอฟต์แวร์ รายงาน SBOM และการรับรอง SLSA ได้รับการบันทึกอยู่ในแผนพัฒนาซอฟต์แวร์เรียบร้อยแล้ว
+
+## รายการตรวจสอบความปลอดภัยของระบบ (Hardening checklist)
+
+- [ ] กำหนดค่า OIDC issuer เรียบร้อยเพื่อเปิดระบบตรวจสอบความถูกต้องของตัวตนผู้ใช้งาน
+- [ ] เปิดใช้งาน `controlPlane.networkPolicy.enabled` และ `observability.networkPolicy.enabled` ร่วมกับ CNI ที่รองรับการจำกัดสิทธิ์เชื่อมต่อจริง
+- [ ] อ้างอิงข้อมูลความลับจากระบบจัดเก็บภายนอกโดยไม่มีการบันทึกข้อมูลในไฟล์ตั้งค่าของระบบ และเปิดระบบการเข้ารหัสข้อมูล etcd เสมอ (รหัส G3)
+- [ ] เปิดใช้งาน TLS จากแหล่งออกใบรับรองที่น่าเชื่อถือ เช่น Let's Encrypt หรือ CA ภายในองค์กร
+- [ ] ใช้ StorageClass ที่มีระบบเข้ารหัสข้อมูลขณะจัดเก็บสำหรับ PVC ของ PostgreSQL และ Redis
+- [ ] เปิดใช้งานระบบการเข้ารหัสข้อมูลฝั่งเซิร์ฟเวอร์ในถังเก็บข้อมูล S3 เสมอสำหรับการใช้งานสำรองข้อมูลและระบบ HA
+- [ ] จัดการสิทธิ์การเข้าใช้งานของผู้ดูแลระบบหลักผ่านทางกลุ่มผู้ใช้ OIDC และเก็บการตั้งค่าผ่านอีเมลแบบเจาะจงไว้สำหรับกรณีฉุกเฉินเท่านั้น
+- [ ] บังคับใช้กฎ NetworkPolicy สำหรับการเชื่อมต่อขาออก เพื่อควบคุมสิทธิ์เฉพาะปลายทางที่ปลอดภัยตามตารางด้านบน
+- [ ] กำหนดป้ายกำกับมาตรการความปลอดภัย Pod Security Admission ให้กับเนมสเปซ `opsta-ai-gateway` เสมอ
+- [ ] กำหนดตั้งค่าระบบสำรองข้อมูลและทำแบบทดสอบกู้คืนระบบจริงสำเร็จเรียบร้อยตามหน้า [การสำรองข้อมูลและการกู้คืน (Backup & DR)](/th/operate/backup-and-dr)
+- [ ] กำหนดระยะเวลาจัดเก็บข้อมูลประวัติการตรวจสอบและการบล็อกของ guardrail ตามข้อกำหนดความปลอดภัยขององค์กร (รหัส G4)
+- [ ] ล็อกรหัส OCI digest ของ Helm chart เสมอในไฟล์ helmfile สำหรับการป้องกันความปลอดภัยห่วงโซ่อุปทานชั่วคราว (รหัส G8)
+
+## ขั้นตอนต่อไป
+
+- [โมเดล RBAC (RBAC model)](/th/security/rbac) · [การตรวจสอบระบบและการปฏิบัติตามข้อกำหนด (Audit & compliance)](/th/security/audit-and-compliance) ·
+  [อธิปไตยของข้อมูล (Data sovereignty)](/th/security/data-sovereignty) · [วงจรชีวิตและการสนับสนุนซอฟต์แวร์ (Software lifecycle & support)](/th/security/lifecycle)

@@ -1,48 +1,56 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# ภาพรวมความปลอดภัย
 
-# Security overview
+**Opsta AI Gateway** ได้รับการพัฒนาขึ้นเพื่อทำหน้าที่เป็น**จุดควบคุมที่น่าเชื่อถือ (Trusted control point)** สำหรับการรับส่งข้อมูล AI ในองค์กร โดยมาตรการความปลอดภัยถูกออกแบบมาในระดับโครงสร้างตั้งแต่แรกและไม่ได้ถูกนำมาติดตั้งเพิ่มเติมภายหลัง ตัวแพลตฟอร์มทำงานอยู่บนระบบโครงสร้างพื้นฐานที่คุณเป็นเจ้าของทั้งหมด ทุกๆ คำสั่งใช้งานต้องผ่านลำดับขั้นตอนการตรวจสอบนโยบายความปลอดภัย ทุกการเปลี่ยนแปลงจากผู้ดูแลระบบจะถูกบันทึกประวัติการตรวจสอบ และระบบผู้ใช้จะแยกขอบเขตการเข้าถึงออกจากกันโดยสิ้นเชิงในระดับโครงสร้าง
 
-Opsta AI Gateway is built to be the **trusted control point** for enterprise AI traffic. Security is structural,
-not bolted on: the platform runs entirely on infrastructure you own, every request passes an ordered chain of
-policy gates, every administrative change is audited, and tenants are isolated by construction.
-
-::: info Who this is for
-Security, risk, and compliance stakeholders evaluating the platform, and the engineers who operate it.
+::: info เอกสารนี้เหมาะสำหรับใคร
+ผู้มีส่วนได้ส่วนเสียด้านความมั่นคงปลอดภัย ความเสี่ยง และการปฏิบัติตามข้อกำหนดที่ต้องการประเมินการใช้งานแพลตฟอร์ม รวมถึงวิศวกรระบบผู้ทำหน้าที่ควบคุมดูแลระบบเกตเวย์
 :::
 
-## The pillars
+## เสาหลักด้านความปลอดภัย (The pillars)
 
-| Pillar | What it means | Read more |
+| เสาหลักความปลอดภัย | ความหมายของการควบคุม | อ่านเพิ่มเติม |
 |---|---|---|
-| **Data sovereignty** | Self-hosted; request content, telemetry, identity, and config never leave your cluster. Runs air-gapped. | [Data sovereignty](/th/security/data-sovereignty) |
-| **Tenant isolation** | Organizations, projects, and users are isolated across keys, budgets, routing, telemetry, and MCP access. | [Multi-tenancy model](/th/overview/multi-tenancy) |
-| **Least-privilege access** | Three roles — platform admin, org admin, member — scope every action; org admins see only their org. | [RBAC model](/th/security/rbac) |
-| **Policy enforcement** | Each request runs key-auth, guardrails, routing, budgets/limits, and cache before reaching a provider. | [Request lifecycle](/th/overview/request-lifecycle) |
-| **Auditability** | Every mutating action — including denied attempts — is recorded with actor, target, outcome, and status. | [Audit & compliance](/th/security/audit-and-compliance) |
-| **Hardened by default** | Verified identity, internal-service auth, network isolation, secret hygiene, supply-chain scanning. | [Hardening](/th/security/hardening) |
+| **อธิปไตยของข้อมูล (Data sovereignty)** | ติดตั้งในระบบของตนเอง โดยที่เนื้อหาคำสั่ง ข้อมูลสถิติ ข้อมูลระบุตัวตน และการตั้งค่าระบบจะไม่ถูกส่งออกนอกคลัสเตอร์ และรองรับการทำงานในระบบปิด | [อธิปไตยของข้อมูล](/th/security/data-sovereignty) |
+| **การแยกส่วนผู้ใช้งาน (Tenant isolation)** | องค์กร โครงการ และผู้ใช้จะถูกแยกออกจากกันอย่างเด็ดขาด ทั้งในส่วนของคีย์ งบประมาณการใช้งาน การจัดเส้นทาง ข้อมูลสถิติ และสิทธิ์การเข้าถึง MCP | [โมเดลการรองรับผู้ใช้หลายกลุ่ม (Multi-tenancy)](/th/overview/multi-tenancy) |
+| **สิทธิ์เข้าถึงเท่าที่จำเป็น (Least-privilege access)** | มีบทบาทควบคุม 3 ระดับ ได้แก่ platform_admin, org_admin และ member เพื่อจำกัดขอบเขตการเข้าถึง โดย org_admin จะมองเห็นเฉพาะข้อมูลขององค์กรตนเองเท่านั้น | [โมเดล RBAC](/th/security/rbac) |
+| **การบังคับใช้นโยบาย (Policy enforcement)** | ทุกคำสั่งจะถูกตรวจสอบคีย์ ตรวจสอบกฎความปลอดภัย จัดส่งข้อมูล ตรวจสอบงบประมาณ และค้นหาในแคช ก่อนส่งไปยังผู้ให้บริการโมเดล | [วงจรชีวิตของคำขอ (Request lifecycle)](/th/overview/request-lifecycle) |
+| **การตรวจสอบย้อนกลับได้ (Auditability)** | ทุกการแก้ไขค่าระบบรวมถึงความพยายามที่ถูกปฏิเสธจะถูกบันทึกเก็บไว้ โดยระบุรายละเอียดผู้ดำเนินการ เป้าหมาย ผลลัพธ์ และสถานะ | [การตรวจสอบและการปฏิบัติตามข้อกำหนด](/th/security/audit-and-compliance) |
+| **ความปลอดภัยที่แน่นหนาตั้งแต่ต้น (Hardened by default)** | มีการตรวจสอบตัวตน การยืนยันสิทธิ์ระหว่างบริการภายในระบบ การแยกส่วนเครือข่าย การจำกัดข้อมูลความลับ และการสแกนความปลอดภัยซอฟต์แวร์ห่วงโซ่อุปทาน | [การเพิ่มความปลอดภัยให้ระบบ (Hardening)](/th/security/hardening) |
 
-## Defense in depth
+## การป้องกันเชิงลึก (Defense in depth)
 
-Security is layered so that no single control is a single point of failure:
+ระบบความปลอดภัยถูกออกแบบมาในลักษณะเป็นชั้น เพื่อไม่ให้มาตรการความปลอดภัยเพียงจุดเดียวกลายเป็นจุดอ่อนของระบบทั้งหมด
 
-- **At the edge** — TLS terminates in your cluster with a certificate you control.
-- **At the gateway** — every request is authenticated and runs the policy gate chain; a failing gate stops the
-  request with a clear status code.
-- **At the control plane** — the configuration API verifies caller identity (signed tokens), enforces RBAC,
-  rate-limits and size-caps requests, and validates input.
-- **Between services** — internal calls require a shared secret, and network policy restricts who can reach the
-  control plane and the telemetry backends.
-- **At rest** — the source of truth is your PostgreSQL; secrets live in Kubernetes Secrets or your external
-  secret store.
+- **ที่ระดับขอบระบบ (Edge)** มีการเข้ารหัส TLS สิ้นสุดภายในคลัสเตอร์ของคุณด้วยใบรับรองที่คุณควบคุมได้เอง
+- **ที่ระดับเกตเวย์** ทุกคำขอจะได้รับการตรวจสอบตัวตนและผ่านลำดับชั้นนโยบายความปลอดภัย หากขั้นตอนใดไม่ผ่านระบบจะหยุดคำสั่งและส่งรหัสข้อผิดพลาดกลับไปทันที
+- **ที่ระดับ control plane** ระบบ API ตั้งค่าจะทำหน้าที่ตรวจสอบสิทธิ์ผู้เรียกใช้งานผ่านโทเค็นที่มีการเซ็นชื่อ บังคับใช้ระบบสิทธิ์ RBAC จำกัดความถี่และจำกัดขนาดข้อมูลคำสั่ง พร้อมทั้งตรวจสอบความถูกต้องของข้อมูลนำเข้า
+- **ระหว่างแต่ละบริการ** การเชื่อมต่อภายในทั้งหมดจำเป็นต้องมีรหัสลับร่วมกัน และใช้กฎ NetworkPolicy เพื่อจำกัดผู้ที่สามารถเข้าถึง control plane และฐานข้อมูลเก็บสถิติได้
+- **ขณะจัดเก็บข้อมูล (At rest)** ข้อมูลหลักทั้งหมดจะถูกเก็บใน PostgreSQL และรหัสความลับต่างๆ จะถูกเก็บไว้ใน Kubernetes Secrets หรือระบบจัดเก็บความลับภายนอกของคุณ
 
-## Trust boundary
+## ขอบเขตความน่าเชื่อถือ (Trust boundary)
 
-Everything inside the trust boundary — the gateway, control plane, database, identity, telemetry, and console —
-runs in **your** Kubernetes cluster. The only things that cross it are requests to the **LLM and MCP providers
-you explicitly configure**. There is no Opsta-operated cloud in the data path.
+ทุกส่วนประกอบที่อยู่ภายในขอบเขตความน่าเชื่อถือ ได้แก่ เกตเวย์, control plane, ฐานข้อมูล, ระบบระบุตัวตน, ระบบตรวจสอบสถานะ และ Console จะทำงานอยู่ภายในคลัสเตอร์ Kubernetes **ของคุณเองทั้งหมด** ส่วนข้อมูลที่จะถูกส่งออกนอกขอบเขตความน่าเชื่อถือมีเพียงคำสั่งใช้งานที่ถูกส่งไปยัง**ผู้ให้บริการ LLM และเซิร์ฟเวอร์ MCP ที่คุณได้ระบุตั้งค่าไว้ด้วยตัวเองเท่านั้น** โดยจะไม่มีระบบคลาวด์ใดๆ ของบริษัท Opsta มาอยู่ในระบบรับส่งข้อมูลหลักนี้เลย
 
-## Next steps
+## สรุปโมเดลภัยคุกคาม (Threat model summary)
 
-- [Data sovereignty](/th/security/data-sovereignty) — exactly what stays in your environment.
-- [RBAC model](/th/security/rbac) · [Audit & compliance](/th/security/audit-and-compliance) ·
-  [Hardening](/th/security/hardening)
+ตารางด้านล่างแสดงภัยคุกคามหลักที่อาจเกิดขึ้นจากการข้ามผ่านขอบเขตความน่าเชื่อถือของแต่ละส่วน และมาตรการควบคุมที่มีการนำมาใช้งานในปัจจุบัน โดยสามารถดูรายละเอียดการวิเคราะห์รูปแบบภัยคุกคาม STRIDE ทั้งหมดได้ที่แผนภาพขอบเขตความน่าเชื่อถือในหน้า [สถาปัตยกรรมอ้างอิง (Reference architecture)](/th/operate/reference-architecture#trust-boundaries--threat-model)
+
+| ภัยคุกคาม | ขอบเขตที่อาจถูกโจมตี | มาตรการควบคุมความปลอดภัย | ความเสี่ยงที่เหลืออยู่ |
+|---|---|---|---|
+| **การเข้าถึง API โดยไม่มีการยืนยันตัวตน** | ปลายทาง `/v1/*` ของระบบรับส่งข้อมูลหลัก | ปลั๊กอิน `key-auth` ทำหน้าที่ปฏิเสธทุกคำขอที่ไม่มีคีย์ส่งกลับรหัส 401 | ต่ำ (Low) |
+| **คีย์รั่วไหลและถูกนำไปสวมรอยใช้งาน** | คีย์ API ของผู้ให้บริการที่เก็บใน Kubernetes Secrets | เก็บคีย์ในรูป Kubernetes Secrets โดยไม่มีการบันทึกในฐานข้อมูลหรือ git ทว่าการเข้ารหัส etcd ถือเป็นหน้าที่ของลูกค้า | ปานกลาง (Medium) โดยขึ้นกับมาตรการเข้ารหัส etcd ในฝั่งของลูกค้า |
+| **การโจมตีผ่านคำสั่งลวง (Prompt injection)** | ข้อความคำสั่งของผู้ใช้ทั่วไป | ปลั๊กอิน `prompt-guard` ตรวจสอบตามรูปแบบข้อความร่วมกับฟังก์ชัน semantic-guard | ปานกลาง (Medium) โดยความสามารถครอบคลุมของการตรวจจับรูปแบบขึ้นกับการตั้งค่าของคุณ |
+| **ข้อมูลของผู้ใช้แต่ละกลุ่มปะปนกัน** | การแยกส่วนองค์กรและโครงการในระบบควบคุมหลัก | บังคับใช้ระบบสิทธิ์ RBAC ที่ระดับ API แยกเก็บข้อมูลตรวจสอบการทำงานด้วยป้ายชื่อแยกแต่ละองค์กร และแยกข้อมูลใน Redis ด้วยการใส่คำนำหน้าแยกแต่ละองค์กร | ต่ำ (Low) |
+| **การยกระดับสิทธิ์ผ่านทาง header** | API สำหรับตั้งค่าระบบของ control plane | ตรวจสอบข้อมูลสิทธิ์จากโทเค็น OIDC แทนการเชื่อถือข้อมูลใน header และตรวจสอบรหัสความลับภายในด้วยฟังก์ชันที่ใช้เวลาประมวลผลคงที่ | ต่ำ (Low) โดยจำเป็นต้องตั้งค่าตัวออกโทเค็น OIDC ให้ถูกต้อง |
+| **การเจาะระบบเข้าหาเครื่องอื่นเมื่อมี pod โดนควบคุม** | เครือข่ายภายในคลัสเตอร์ | บังคับใช้กฎ NetworkPolicy ปฏิเสธการเชื่อมต่อเริ่มต้นและอนุญาตเฉพาะที่จำเป็น รวมถึงการแยกเนมสเปซการทำงานของแต่ละระบบย่อย | ปานกลาง (Medium) โดยจำเป็นต้องใช้ CNI ที่รองรับมาตรการนี้ |
+| **การขโมยความลับจากระบบจัดเก็บ etcd** | ข้อมูล Kubernetes Secrets ที่ผ่านรหัส base64 | ผู้ใช้ต้องดำเนินการเปิดการเข้ารหัส etcd ติดตั้ง Sealed Secrets หรือใช้ External Secrets ด้วยตนเอง | **สูง (High) หากไม่มีการดำเนินการป้องกัน** |
+| **ข้อมูลส่วนบุคคลรั่วไหลผ่านทางประวัติ guardrail** | คอลัมน์ `guardrail_blocks.snippet` ที่เก็บตัวอย่างข้อความทำผิดกฎ | จำกัดการเก็บไม่เกิน 280 ตัวอักษร ไม่มีการส่งข้อมูลออกนอกระบบ และจำกัดสิทธิ์อ่านเฉพาะบทบาทของฐานข้อมูลเท่านั้น | ปานกลาง (Medium) |
+| **การฝังโค้ดอันตรายในซอฟต์แวร์ห่วงโซ่อุปทาน** | อิมเมจระบบและ Helm charts | ตารางล็อกรุ่นซอฟต์แวร์ที่แน่นอน ร่วมกับการสแกนในขั้นตอน CI ด้วย Trivy และ gosec แม้จะยังไม่มีระบบ SBOM ในปัจจุบัน | ปานกลาง (Medium) โดยมีมาตรการป้องกันชั่วคราวคือการระบุอิมเมจแบบระบุ digest |
+| **ข้อมูลรั่วไหลออกภายนอกคลัสเตอร์** | การเชื่อมต่อไปยังผู้ให้บริการ LLM และ MCP ภายนอก | คุณกำหนดปลายทางเชื่อมต่อด้วยตนเอง และใช้กฎ NetworkPolicy จำกัดช่องทางออกข้อมูล โดยศึกษาวิธีตั้งค่าได้ที่หน้า [การเพิ่มความปลอดภัยให้ระบบ (Hardening)](/th/security/hardening) | ปานกลาง (Medium) โดยขึ้นกับความเข้มงวดของการตั้งค่ารายการปลายทางที่อนุญาต |
+| **การส่งคำสั่งจำนวนมากเพื่อโจมตี API ระบบตั้งค่า** | ปลายทาง `/api/*` ที่ทำหน้าที่แก้ไขระบบ | ตัวจำกัดความถี่แบบ Token-bucket และการจำกัดขนาดข้อมูลคำสั่ง | ต่ำ (Low) |
+| **ใบรับรองหมดอายุจนส่งผลต่อการเชื่อมต่อ** | ใบรับรอง wildcard สำหรับ TLS | การขอและต่ออายุใบรับรองอัตโนมัติผ่าน cert-manager ในโหมด Let's Encrypt หรือหมุนเวียนใบรับรองด้วยตัวเองหากนำใบรับรองมาติดตั้งใช้งานเอง | ต่ำ (Low) สำหรับ Let's Encrypt และปานกลาง (Medium) สำหรับใบรับรองภายนอก |
+
+## ขั้นตอนต่อไป
+
+- [อธิปไตยของข้อมูล (Data sovereignty)](/th/security/data-sovereignty)
+- [โมเดล RBAC (RBAC model)](/th/security/rbac) · [การตรวจสอบระบบและการปฏิบัติตามข้อกำหนด (Audit & compliance)](/th/security/audit-and-compliance) · [การเพิ่มความปลอดภัยให้ระบบ (Hardening)](/th/security/hardening) · [วงจรชีวิตและการสนับสนุนซอฟต์แวร์ (Software lifecycle & support)](/th/security/lifecycle)

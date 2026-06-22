@@ -1,44 +1,41 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# อภิธานศัพท์
 
-# Glossary
+คำศัพท์สำคัญที่ใช้ในเอกสารประกอบการใช้งานระบบทั้งหมด สำหรับรูปแบบแนวคิดหลักเบื้องหลังสามารถศึกษาเพิ่มเติมได้ที่หน้า [แนวคิดสำคัญ (Key concepts)](/th/overview/concepts) และ [โมเดลการรองรับผู้ใช้หลายกลุ่ม (Multi-tenancy)](/th/overview/multi-tenancy)
 
-Key terms used throughout this documentation. For the conceptual model behind them, see
-[Key concepts](/th/overview/concepts) and the [Multi-tenancy model](/th/overview/multi-tenancy).
-
-| Term | Meaning |
+| คำศัพท์ | ความหมายการใช้งาน |
 |---|---|
-| **Organization** | The top tenant boundary — a customer or business unit. The isolation, billing, and SSO boundary. |
-| **Project** | A workspace within an organization. Providers, routing, guardrails, and budgets are configured per project. |
-| **Group** | A set of users within a project, used for shared limits and model allow-lists. |
-| **User / Consumer** | An identity that makes requests, expressed as the tuple `organization.project.user`. |
-| **Consumer tuple** | The three-part identity (`org.project.user`) that keys API keys, budgets, usage, and isolation. |
-| **Platform admin** | Role spanning all organizations. |
-| **Org admin** | Role confined to one organization. |
-| **Member** | Read-only, self-service role for an individual user. |
-| **Control plane** | The configuration service (backed by PostgreSQL) that is the single source of truth. |
-| **Data plane** | The gateway that handles live traffic and enforces policy. Holds no configuration of its own. |
-| **Reconcile** | The continuous projection of the control plane's desired state onto the data plane. |
-| **Logical model name** | A stable name developers call (e.g. `coding-default`), mapped to a real provider model by routing. |
-| **Provider** | An upstream LLM endpoint (OpenAI-compatible) configured per project. |
-| **Routing** | The mapping of logical model names to providers and real model IDs. |
-| **Budget** | A USD spending cap at organization, project, group, or user scope; the tightest applicable cap wins. |
-| **Limit** | A rate cap (tokens per minute) at a tenancy scope. |
-| **Guardrail** | A request-content control — prompt-injection detection and PII masking. |
-| **Semantic cache** | A response cache keyed by meaning, so similar prompts reuse a prior answer and avoid upstream spend. |
-| **Semantic guard** | An embedding-based prompt-safety classifier, tunable per project with sample prompts. |
-| **MCP** | Model Context Protocol — the standard for giving AI agents access to external tools. |
-| **MCP server** | A backend tool endpoint registered per project and fronted by the gateway. |
-| **Gate** | A policy stage in the request lifecycle (key-auth, guardrails, routing, budget/limits, cache). |
-| **Key-auth** | The gate that authenticates an API key and resolves the consumer identity. |
-| **Tenant guard** | The check that a request may only reach its own tenant's resources. |
-| **IdP brokering** | Connecting an organization's own identity provider so users sign in with corporate credentials. |
-| **JIT provisioning** | Creating a user account automatically on first successful sign-in. |
-| **Audit log** | The record of every mutating administrative action, including denied attempts. |
-| **Component matrix** | The set of component versions tested together for a given product release. |
-| **Build-once / promote-by-retag** | Shipping the exact tested image digest to production by retagging, not rebuilding. |
-| **Air-gap** | Running with no internet egress — images mirrored, TLS internal, identity in-cluster. |
+| **Organization** | ขอบเขตระดับบนสุดของผู้ใช้งานระบบ หมายถึงลูกค้าหรือหน่วยธุรกิจหลัก ทำหน้าที่แยกข้อมูล ควบคุมงบประมาณ และเป็นขอบเขตของ SSO |
+| **Project** | พื้นที่ทำงานย่อยภายในองค์กร โดยโครงสร้างผู้ให้บริการ การจัดเส้นทาง นโยบาย guardrails และงบประมาณจะตั้งค่าในระดับโครงการนี้ |
+| **Group** | กลุ่มผู้ใช้ภายใต้โครงการ สำหรับระบุการตั้งค่าจำกัดปริมาณงานและรายการอนุญาตโมเดลร่วมกัน |
+| **User / Consumer** | บัญชีตัวตนผู้ใช้ที่เรียกใช้งานคำสั่งส่งออกข้อมูล โดยมีรหัสอ้างอิงร่วมกันในรูปแบบ `organization.project.user` |
+| **Consumer tuple** | รหัสตัวตนผู้ใช้ 3 ส่วนหลัก (`org.project.user`) ที่ใช้ระบุคีย์ API ข้อมูลการเงินการใช้งานระบบ และการแยกส่วนขอบเขตสิทธิ์ |
+| **Platform admin** | บทบาทผู้ดูแลระบบที่ครอบคลุมการควบคุมทุกองค์กรในระบบ |
+| **Org admin** | บทบาทผู้ดูแลระบบระดับองค์กรที่จำกัดเฉพาะองค์กรตนเอง |
+| **Member** | บทบาทสมาชิกทั่วไปที่มีสิทธิ์ระดับอ่านอย่างเดียวและจัดการเฉพาะสิทธิ์บริการตนเอง |
+| **Control plane** | บริการส่วนควบคุมระบบตั้งค่าซึ่งรันฐานข้อมูลเป็น PostgreSQL ทำหน้าที่เป็นแหล่งข้อมูลอ้างอิงหลักในระบบทั้งหมด |
+| **Data plane** | ตัวเกตเวย์หลักที่ทำหน้าที่รับส่งและควบคุมเส้นทางข้อมูลจริง โดยไม่มีการจัดเก็บข้อมูลการตั้งค่าใดๆ ในเครื่องตนเอง |
+| **Reconcile** | กระบวนการอัปเดตและประสานสถานะระบบจาก control plane ไปยัง data plane อย่างต่อเนื่องเพื่อรักษาสิทธิ์ความปลอดภัยระบบ |
+| **Logical model name** | ชื่อเล่นโมเดลที่นักพัฒนาเรียกใช้งาน เช่น `coding-default` จากนั้นระบบจะจับคู่ปลายทางไปยังโมเดลจริงผ่านทางการจัดเส้นทาง |
+| **Provider** | ปลายทางการเชื่อมต่อบริการ LLM ของผู้ให้บริการภายนอกที่เข้ากันได้กับมาตรฐาน OpenAI ตั้งค่าแยกตามแต่ละโครงการ |
+| **Routing** | การจับคู่ระหว่างชื่อเล่นโมเดลกับผู้ให้บริการภายนอกและโมเดล ID ตัวจริงปลายทาง |
+| **Budget** | การจำกัดจำนวนเงินดอลลาร์สหรัฐสูงสุดแยกตามระดับองค์กร โครงการ กลุ่ม หรือผู้ใช้งาน โดยระบบจะบังคับใช้กฎที่เข้มงวดที่สุดเป็นหลัก |
+| **Limit** | การจำกัดความถี่การใช้งานสูงสุดระบุในหน่วยโทเค็นต่อนาทีแยกตามขอบเขตสิทธิ์ผู้ใช้ |
+| **Guardrail** | มาตรการความมั่นคงปลอดภัยระดับข้อความคำสั่ง ได้แก่ ระบบตรวจจับคำสั่งลวงระดับนำเข้าและการปกปิดข้อมูลส่วนบุคคล PII |
+| **Semantic cache** | ระบบบันทึกคำตอบแคชตามความหมายของคำสั่ง เพื่อช่วยให้คำสั่งที่มีความหมายใกล้เคียงกันใช้คำตอบเดิมล่วงหน้าและประหยัดการส่งเงินภายนอก |
+| **Semantic guard** | ระบบช่วยกรองและตรวจจับความปลอดภัยของคำสั่งด้วยเวกเตอร์ สามารถตั้งค่าฝึกฝนแยกตามโครงการได้ผ่านตัวอย่างข้อความคำสั่ง |
+| **MCP** | โปรโตคอลการแลกเปลี่ยนบริบทโมเดล (Model Context Protocol) มาตรฐานสำหรับช่วยให้โมเดล AI สามารถเข้าใช้งานเครื่องมือภายนอกระบบได้ |
+| **MCP server** | เซิร์ฟเวอร์ผู้ให้บริการเครื่องมือภายนอกที่ลงทะเบียนไว้ในโครงการและเรียกใช้ผ่านทางเกตเวย์ |
+| **Gate** | ลำดับชั้นหรือด่านขั้นตอนการควบคุมนโยบายคำขอ ได้แก่ ตรวจสอบคีย์ กรองคำสั่ง จัดส่งข้อมูล ตรวจสอบปริมาณ และค้นหาแคช |
+| **Key-auth** | ขั้นตอนแรกในการยืนยันสิทธิ์ของคีย์ API และระบุตัวตนรหัสผู้ใช้ |
+| **Tenant guard** | ขั้นตอนตรวจสอบว่าคำขอใช้สิทธิ์สามารถเชื่อมต่อได้เฉพาะทรัพยากรภายใน tenant ของตัวเองเท่านั้น |
+| **IdP brokering** | การตั้งค่าเชื่อมต่อระบบผู้ให้บริการยืนยันตัวตนขององค์กรเองเพื่อให้ผู้ใช้งานล็อกอินด้วยบัญชีของบริษัท |
+| **JIT provisioning** | การสร้างและลงทะเบียนบัญชีผู้ใช้งานใหม่ในระบบโดยอัตโนมัติเมื่อลงชื่อเข้าใช้งานเป็นครั้งแรกสำเร็จ |
+| **Audit log** | ระบบจัดเก็บข้อมูลประวัติการทำงานแก้ไขและตั้งค่าระบบของทุกส่วนรวมถึงรายการที่โดนปฏิเสธสิทธิ์ |
+| **Component matrix** | ตารางรวมเวอร์ชันของส่วนประกอบระบบทั้งหมดที่ผ่านการทดสอบใช้งานร่วมกันอย่างละเอียดสำหรับซอฟต์แวร์รุ่นนั้นๆ |
+| **Build-once / promote-by-retag** | หลักการพัฒนาซอฟต์แวร์และยกระดับรุ่นโดยใช้ค่า OCI digest เดิมและใช้วิธีเปลี่ยนแท็กเวอร์ชัน แทนการพัฒนาโค้ดใหม่ทั้งหมด |
+| **Air-gap** | การทำงานในระบบปิดแบบไม่มีเครือข่ายเชื่อมต่อออกภายนอก โดยทำสำเนาอิมเมจทั้งหมด ใช้ใบรับรอง CA ภายใน และยืนยันตัวตนภายในคลัสเตอร์ |
 
-## Next steps
+## ขั้นตอนต่อไป
 
-- [Key concepts](/th/overview/concepts) — the model these terms describe.
-- [Multi-tenancy model](/th/overview/multi-tenancy) — organizations, projects, groups, users.
+- [แนวคิดสำคัญ (Key concepts)](/th/overview/concepts)
+- [โมเดลการรองรับผู้ใช้หลายกลุ่ม (Multi-tenancy)](/th/overview/multi-tenancy)

@@ -1,55 +1,47 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# โมเดล RBAC
 
-# RBAC model
+การเข้าถึงระบบควบคุมดูแลโดย**บทบาทการใช้งาน 3 ระดับ**และลำดับสิทธิ์การใช้ระบบ โดยทุกการกระทำของผู้ดูแลระบบจะถูกจำกัดขอบเขตการทำงานอย่างชัดเจน ได้แก่ ผู้ดูแลระบบแพลตฟอร์ม (platform_admin) จะมีสิทธิ์ควบคุมทุกองค์กร ผู้ดูแลระบบระดับองค์กร (org_admin) จะมีสิทธิ์จำกัดเฉพาะในองค์กรของตนเองเท่านั้น และสมาชิกทั่วไป (member) จะมีสิทธิ์แบบอ่านข้อมูลได้อย่างเดียวและจัดการเฉพาะข้อมูลของตนเอง ซึ่งรูปแบบการควบคุมสิทธิ์นี้มีผลบังคับใช้งานครอบคลุมทั้งบนหน้าเว็บ Console และระบบ API ตั้งค่าหลักทั้งหมด
 
-Access is governed by **three roles** and the tenant hierarchy. Every administrative action is scoped: a platform
-admin spans all organizations, an org admin is confined to their own organization, and a member has read-only,
-self-service access. The same model is enforced at the console and at the configuration API.
-
-::: info Who this is for
-Security stakeholders and administrators who assign access.
+::: info เอกสารนี้เหมาะสำหรับใคร
+ผู้ดูแลระบบความปลอดภัยและผู้ดูแลระบบหลักที่ทำหน้าที่จัดการกำหนดสิทธิ์การใช้งาน
 :::
 
-## The roles
+## บทบาทการใช้งาน
 
-| Role | Scope | Can do |
+| บทบาทการใช้งาน | ขอบเขตการทำงาน | สิ่งที่กระทำได้ |
 |---|---|---|
-| **Platform admin** | All organizations | Create/delete organizations, appoint org admins, set platform-wide pricing and login methods, read every org's audit and usage |
-| **Org admin** | One organization | Manage their org's projects, members, providers, routing, budgets, guardrails, MCP servers, and SSO; read their org's audit and usage |
-| **Member** | Their own consumer | Read their own usage and blocked requests; manage their own API keys |
+| **Platform admin** | ทุกองค์กรในระบบ | สร้างหรือลบองค์กร แต่งตั้งผู้ดูแลระบบองค์กร กำหนดราคาการใช้งานและวิธีลงชื่อเข้าใช้หลักของแพลตฟอร์ม และอ่านบันทึกประวัติการตรวจสอบกับการใช้งานของทุกองค์กร |
+| **Org admin** | เฉพาะองค์กรของตนเอง | จัดการโครงการ สมาชิก ผู้ให้บริการ การกำหนดเส้นทาง งบประมาณ ระบบ guardrails เซิร์ฟเวอร์ MCP และระบบ SSO ขององค์กรตนเอง รวมถึงอ่านบันทึกประวัติการตรวจสอบและการใช้งานภายในองค์กรตนเอง |
+| **Member** | บัญชีการใช้งานตนเอง | อ่านสถิติการใช้งานและประวัติคำขอที่ถูกบล็อกของตนเอง และจัดการข้อมูลคีย์ API ของตนเองได้ |
 
-A member's mutating actions on shared configuration are refused — they get a clear "forbidden" outcome, which is
-also recorded in the audit log.
+การกระทำใดๆ ของสมาชิกทั่วไป (member) ที่พยายามแก้ไขข้อมูลการตั้งค่าส่วนกลางจะถูกปฏิเสธ โดยระบบจะแสดงสถานะ "forbidden" อย่างชัดเจนและทำการบันทึกประวัติดังกล่าวเก็บไว้ในบันทึกการตรวจสอบระบบด้วย
 
-## How a role is determined
+## วิธีการระบุบทบาทผู้ใช้
 
-- **Platform admin** comes from membership in a designated admin **group** (from your IdP) or an explicit email
-  allowlist — a break-glass path. Group-based assignment is the primary route.
-- **Org admin** comes from a membership record with the org-admin role for that organization.
-- **Member** is the default for an authenticated user in an organization.
+- **Platform admin** จะได้รับสิทธิ์จากการเป็นสมาชิกใน **กลุ่ม (group)** ของผู้ดูแลระบบที่กำหนดไว้ใน IdP ของคุณ หรือมาจากการระบุอีเมลผู้ดูแลระบบเริ่มต้นในลักษณะ break-glass เพื่อกู้คืนระบบ โดยปกติวิธีอ้างอิงตามกลุ่มใน IdP จะเป็นช่องทางหลักในการใช้งาน
+- **Org admin** จะได้รับสิทธิ์จากรายการบันทึกสมาชิกที่ระบุบทบาท org_admin สำหรับองค์กรนั้นๆ
+- **Member** เป็นบทบาทเริ่มต้นทั่วไปสำหรับผู้ใช้ที่ผ่านการยืนยันตัวตนเข้ามาใช้งานในองค์กร
 
-Roles are driven by the **claims your IdP sends** (groups and email), mapped through
-[SSO & IdP brokering](/th/admin/sso-and-idp). New users are provisioned just-in-time on first login.
+การระบุบทบาทจะทำงานตาม **ข้อมูลการยืนยัน (claims) ที่ส่งมาจากระบบ IdP ของคุณ** เช่น ข้อมูลกลุ่มและอีเมล ซึ่งจะเชื่อมต่อผ่านทางหน้า [ระบบยืนยันตัวตน SSO และ IdP](/th/admin/sso-and-idp) และบัญชีผู้ใช้ใหม่จะถูกลงทะเบียนในระบบโดยอัตโนมัติเมื่อเข้าใช้งานครั้งแรก (Just-In-Time)
 
-## Scoping is enforced, not advisory
+## ระบบสิทธิ์ที่มีการบังคับใช้งานจริงไม่ใช่เพียงข้อแนะนำ
 
-The configuration API checks the caller's verified identity on **every** request:
+ระบบ API ตั้งค่าจะทำหน้าที่ตรวจสอบตัวตนที่ผ่านการยืนยันแล้วของผู้เรียกใช้งานใน**ทุกๆ** คำสั่ง
 
-- An org admin acting on a path that belongs to **another** organization is refused.
-- Cross-organization reads of usage or audit are refused.
-- Members are limited to their own self-service endpoints.
+- ผู้ดูแลระบบองค์กร (org_admin) ที่พยายามกระทำการกับส่วนการทำงานของ**องค์กรอื่น**จะถูกปฏิเสธทันที
+- การพยายามขออ่านข้อมูลการใช้งานหรือบันทึกประวัติข้ามองค์กรจะถูกปฏิเสธ
+- สมาชิกทั่วไป (member) จะมีสิทธิ์เข้าถึงเฉพาะปลายทางบริการตนเองเท่านั้น
 
-Authorization is based on the **verified token**, not on any header a client could forge — see
-[Hardening](/th/security/hardening#verified-identity).
+การอนุมัติสิทธิ์การทำงานจะยึดตาม **โทเค็นที่ผ่านการยืนยันความถูกต้องแล้ว (Verified token)** เท่านั้น และไม่ใช้ข้อมูลใน header ที่ลูกค้าระบุเองซึ่งอาจถูกปลอมแปลงได้ โดยศึกษารายละเอียดได้ที่หน้า [การเพิ่มความปลอดภัยให้ระบบ (Hardening)](/th/security/hardening#verified-identity)
 
-## Least privilege in practice
+## แนวทางปฏิบัติในการกำหนดสิทธิ์ขั้นต่ำ (Least privilege)
 
-- Grant org-admin to the smallest group that needs to manage an organization.
-- Keep the platform-admin email allowlist for break-glass only; prefer the admin group.
-- Use [hierarchical budgets and limits](/th/admin/budgets-and-limits) so even authorized users operate within caps.
+- มอบสิทธิ์ org_admin ให้กับผู้ใช้กลุ่มที่เล็กที่สุดเท่าที่จำเป็นสำหรับการดูแลองค์กรเท่านั้น
+- เก็บรายการอนุญาตอีเมล platform_admin ไว้สำหรับกรณีฉุกเฉิน (break-glass) เท่านั้น และแนะนำให้จัดการสิทธิ์ผ่านทางกลุ่มใน IdP เป็นหลัก
+- ใช้งานระบบ [งบประมาณและขีดจำกัดการใช้งานตามลำดับชั้น](/th/admin/budgets-and-limits) เพื่อควบคุมไม่ให้ผู้ใช้ที่มีสิทธิ์ทำงานเกินงบประมาณที่กำหนดไว้
 
-## Next steps
+## ขั้นตอนต่อไป
 
-- [SSO & IdP brokering](/th/admin/sso-and-idp) — map IdP groups to roles.
-- [Audit & compliance](/th/security/audit-and-compliance) — every role's actions are recorded.
-- [Multi-tenancy model](/th/overview/multi-tenancy) — the hierarchy roles act within.
+- [ระบบยืนยันตัวตน SSO และ IdP](/th/admin/sso-and-idp)
+- [การตรวจสอบระบบและการปฏิบัติตามข้อกำหนด](/th/security/audit-and-compliance)
+- [โมเดลการรองรับผู้ใช้หลายกลุ่ม (Multi-tenancy)](/th/overview/multi-tenancy)

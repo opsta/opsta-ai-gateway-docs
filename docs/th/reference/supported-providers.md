@@ -1,52 +1,41 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# ผู้ให้บริการที่รองรับ
 
-# Supported providers
+เกตเวย์รองรับการเชื่อมต่อกับระบบ API ที่**ทำงานร่วมกับมาตรฐาน OpenAI ได้ (OpenAI-compatible)** จึงสามารถทำงานร่วมกับผู้ให้บริการรายใดก็ได้ที่มีส่วนประสานงานดังกล่าว รวมถึงทำงานร่วมกับโมเดลที่ติดตั้งและดูแลด้วยตัวเองที่มีระบบแปลงโปรโตคอลให้เข้ากันได้กับ OpenAI โดยการตั้งค่าผู้ให้บริการจะถูกกำหนดแยกตาม**โครงการ** และระบบจะจัดเก็บคีย์ความลับเชื่อมต่อไว้ในรูปแบบ Kubernetes Secrets ภายในคลัสเตอร์ของคุณ
 
-The gateway speaks the **OpenAI-compatible** API, so it works with any provider that exposes that interface — and
-with self-hosted models behind an OpenAI-compatible shim. Providers are configured **per project**, with their
-credentials held as Kubernetes Secrets in your cluster.
-
-::: info Who this is for
-Administrators connecting model providers, and architects evaluating compatibility.
+::: info เอกสารนี้เหมาะสำหรับใคร
+ผู้ดูแลระบบที่ทำหน้าที่เพิ่มผู้ให้บริการโมเดลเข้ามาในระบบ และนักสถาปัตยกรรมระบบที่ต้องการประเมินความเข้ากันได้ของการทำงาน
 :::
 
-## Provider types
+## ประเภทผู้ให้บริการโมเดล
 
-| Type | Examples | Notes |
+| ประเภท | ตัวอย่างผู้ให้บริการ | หมายเหตุเพิ่มเติม |
 |---|---|---|
-| **OpenAI-compatible** | OpenAI, and any gateway/proxy exposing the OpenAI API | The native interface; works out of the box |
-| **DeepSeek** | DeepSeek chat/coder models | Supported including cache-aware pricing tiers |
-| **Anthropic** | Claude models | Via the provider integration |
-| **Generic / self-hosted** | vLLM, Ollama, internal model servers | Any endpoint that presents an OpenAI-compatible API |
+| **ทำงานร่วมกับมาตรฐาน OpenAI ได้ (OpenAI-compatible)** | OpenAI และระบบเกตเวย์หรือพร็อกซีภายนอกอื่นๆ ที่ให้บริการรูปแบบเดียวกับ OpenAI API | ส่วนประสานงานมาตรฐานภายในระบบ สามารถทำงานร่วมกันได้ทันที |
+| **DeepSeek** | โมเดล DeepSeek ประเภทการสนทนาและเขียนโปรแกรม | รองรับฟังก์ชันการคิดราคาตามอัตราส่วนที่มีการทำแคชของคีย์ใช้งาน |
+| **Anthropic** | โมเดลตระกูล Claude | ทำงานร่วมกันผ่านการเชื่อมโยงระบบผู้ให้บริการ |
+| **ทั่วไป หรือดูแลระบบด้วยตัวเอง** | vLLM, Ollama หรือเซิร์ฟเวอร์รันโมเดลภายในองค์กร | ลิงก์เชื่อมต่อใดๆ ที่ให้บริการ API รูปแบบที่ทำงานร่วมกับมาตรฐาน OpenAI ได้ |
 
-Because routing is by **logical model name**, your developers call stable names (e.g. `coding-default`) and you
-map them to whichever provider and real model you choose — see [Routing](/th/admin/routing).
+เนื่องจากการจัดเส้นทางข้อมูลจะอ้างอิงผ่าน **ชื่อเล่นโมเดล (logical model name)** นักพัฒนาของคุณจะเรียกใช้ชื่อมาตรฐานที่กำหนดร่วมกัน เช่น `coding-default` และคุณจะเป็นผู้แมปชื่อดังกล่าวไปยังผู้ให้บริการโมเดลและชื่อรุ่นโมเดลจริงที่ต้องการ โดยศึกษาเพิ่มเติมได้ที่หน้า [การจัดเส้นทางโมเดล (Routing)](/th/admin/routing)
 
-## How to add a provider
+## วิธีการเพิ่มผู้ให้บริการโมเดล
 
-1. As an org admin, open **Projects → Providers** for the project.
-2. Add the provider: its **type**, the **endpoint**, and the **API key** (stored as a Secret, scoped to the
-   project).
-3. **Test** the connection from the console.
-4. Map one or more **logical model names** to the provider's real model IDs in **Routing**.
+1. ลงชื่อเข้าใช้งานด้วยสิทธิ์ผู้ดูแลระบบระดับองค์กร (org_admin) และเปิดหน้า **โครงการ (Projects) → ผู้ให้บริการ (Providers)** สำหรับโครงการที่ต้องการ
+2. เพิ่มผู้ให้บริการโมเดล ระบุ **ประเภท (type)** ลิงก์ปลายทาง **(endpoint)** และคีย์ **(API key)** ซึ่งจะถูกเก็บไว้ใน Secrets ที่จำกัดขอบเขตสิทธิ์เฉพาะโครงการนั้น
+3. กดปุ่มเพื่อ **ทดสอบการเชื่อมต่อ (Test)** จากหน้าเว็บ console
+4. แมปชื่อเล่นโมเดล **(logical model names)** เข้ากับโมเดล ID ตัวจริงของผู้ให้บริการที่หัวข้อ **การจัดเส้นทาง (Routing)**
 
-The control plane provisions the routing and key injection; your developers immediately get the new model by its
-logical name. See [Providers](/th/admin/providers) for the full workflow.
+ระบบ control plane จะประมวลผลการจัดเส้นทางข้อมูลและเตรียมคีย์ความลับเชื่อมต่อให้อัตโนมัติ โดยนักพัฒนาของคุณจะสามารถเรียกใช้โมเดลใหม่ผ่านทางชื่อเล่นที่กำหนดไว้ได้ในทันที ศึกษาขั้นตอนทั้งหมดได้ที่หน้า [การจัดการผู้ให้บริการ (Providers)](/th/admin/providers)
 
-## Pricing & cost accuracy
+## ความแม่นยำของการคำนวณราคาและต้นทุนการใช้งาน
 
-Each model's per-token price drives every budget and usage figure. For providers that support prompt caching, the
-platform tracks **cache-read** and **cache-write** rates separately so cached requests are costed accurately. See
-[Pricing](/th/admin/pricing).
+ราคาต่อโทเค็นของแต่ละโมเดลจะถูกนำไปคำนวณในงบประมาณการเงินและสถิติการใช้งาน สำหรับผู้ให้บริการโมเดลภายนอกที่รองรับการทำแคชคำขอ แพลตฟอร์มนี้สามารถเฝ้าติดตามตัววัดในส่วนของอัตรา **การอ่านข้อมูลแคช (cache-read)** และ **การเขียนข้อมูลแคช (cache-write)** แยกจากกันเพื่อคำนวณเงินค่าใช้จ่ายได้อย่างแม่นยำตามการใช้งานจริง ศึกษาข้อมูลเพิ่มเติมได้ที่หน้า [อัตราค่าบริการ (Pricing)](/th/admin/pricing)
 
-## Isolation
+## การแยกขอบเขตการเข้าถึง (Isolation)
 
-A provider's credentials belong to the project that configured them. A key from one project can never use another
-project's providers — isolation is enforced at the gateway. See the
-[Multi-tenancy model](/th/overview/multi-tenancy).
+คีย์ความลับสำหรับเชื่อมโยงผู้ให้บริการโมเดลจะผูกกับโครงการที่ตั้งค่ากำหนดขึ้น คีย์ใช้งานจากโครงการอื่นจะไม่สามารถเข้าใช้งานผู้ให้บริการของโครงการนี้ได้ โดยระบบเกตเวย์จะบังคับใช้กฎความปลอดภัยนี้อย่างเข้มงวด ศึกษาเพิ่มเติมได้ที่หน้า [โมเดลการรองรับผู้ใช้หลายกลุ่ม (Multi-tenancy)](/th/overview/multi-tenancy)
 
-## Next steps
+## ขั้นตอนต่อไป
 
-- [Providers](/th/admin/providers) — connect and test a provider.
-- [Routing](/th/admin/routing) — map logical names to provider models.
-- [Pricing](/th/admin/pricing) — keep cost figures accurate.
+- [การจัดการผู้ให้บริการ (Providers)](/th/admin/providers)
+- [การจัดเส้นทางโมเดล (Routing)](/th/admin/routing)
+- [อัตราค่าบริการ (Pricing)](/th/admin/pricing)

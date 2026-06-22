@@ -1,64 +1,53 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# อธิปไตยของข้อมูล
 
-# Data sovereignty
+แพลตฟอร์มนี้ได้รับการออกแบบให้**เป็นแบบติดตั้งและจัดการด้วยตัวเอง (Self-hosted)** โดยตัวระบบจะทำงานอยู่บนคลัสเตอร์ Kubernetes ของคุณเอง และข้อมูลสำคัญทุกอย่าง ไม่ว่าจะเป็นเนื้อหาคำสั่งและคำตอบ ข้อมูลสถิติระบบ ข้อมูลผู้ใช้การลงชื่อเข้าใช้ ข้อมูลการตั้งค่าระบบ และประวัติการตรวจสอบการทำงาน จะถูกเก็บรักษาอยู่ภายในสภาพแวดล้อมระบบของคุณเท่านั้น คุณสมบัตินี้ช่วยให้องค์กรที่อยู่ภายใต้ข้อบังคับทางกฎหมายเข้มงวดสามารถนำเทคโนโลยี AI มาปรับใช้งานได้โดยไม่ต้องกังวลเรื่องการส่งข้อมูลที่มีความสำคัญสูงออกไปยังผู้ให้บริการภายนอก
 
-The platform is **self-hosted by design**. It runs on your Kubernetes cluster, and the data that matters —
-prompt and response content, telemetry, identity, configuration, and audit history — stays inside your
-environment. This is what lets regulated organizations adopt AI without sending sensitive data to a third party.
-
-::: info Who this is for
-Security, compliance, and data-residency stakeholders.
+::: info เอกสารนี้เหมาะสำหรับใคร
+ผู้ดูแลความปลอดภัย ผู้ดูแลการปฏิบัติตามข้อกำหนด และผู้มีส่วนได้ส่วนเสียเกี่ยวกับการจัดการพื้นที่เก็บข้อมูล
 :::
 
-## What stays in your environment
+## ข้อมูลที่เก็บอยู่ภายในสภาพแวดล้อมระบบของคุณ
 
-| Data | Where it lives | Leaves your cluster? |
+| ข้อมูล | แหล่งจัดเก็บข้อมูล | ข้อมูลถูกส่งออกนอกคลัสเตอร์หรือไม่ |
 |---|---|---|
-| Prompt & response **content** | Proxied through the gateway to the providers _you_ configure | Only to **your chosen** LLM/MCP providers |
-| **Telemetry** (metrics, logs, traces) | Self-hosted observability stack | No |
-| **Identity** (users, sign-in, tokens) | In-cluster Keycloak + your brokered IdP | No |
-| **Configuration** (orgs, projects, budgets, providers, guardrails) | Your PostgreSQL | No |
-| **API keys** | Your PostgreSQL | No |
-| **Usage ledger & audit log** | Your PostgreSQL | No |
+| เนื้อหา**คำสั่งและคำตอบ** | ส่งผ่านเกตเวย์เพื่อเชื่อมต่อกับผู้ให้บริการที่คุณกำหนดตั้งค่าเอง | ส่งเฉพาะไปยังผู้ให้บริการ LLM หรือ MCP **ที่คุณเลือกเองเท่านั้น** |
+| **ข้อมูลสถิติ** เช่น metrics, logs และ traces | ชุดระบบตรวจสอบการทำงานที่ติดตั้งในระบบตัวเอง | ไม่ส่งออก |
+| **ข้อมูลระบุตัวตน** เช่น บัญชีผู้ใช้ ประวัติเข้าใช้ และโทเค็น | ระบบ Keycloak ในคลัสเตอร์ร่วมกับ IdP ของคุณ | ไม่ส่งออก |
+| **ข้อมูลการตั้งค่า** เช่น ข้อมูลองค์กร โครงการ งบประมาณ ผู้ให้บริการ และ guardrails | ระบบ PostgreSQL ของคุณ | ไม่ส่งออก |
+| **คีย์ API** | ระบบ PostgreSQL ของคุณ | ไม่ส่งออก |
+| **บันทึกการใช้งานและบันทึกประวัติการตรวจสอบ** | ระบบ PostgreSQL ของคุณ | ไม่ส่งออก |
 
-There is **no Opsta-operated cloud** in the data path. The platform does not phone home, and no usage or content
-is sent to Opsta.
+บริษัท Opsta **ไม่มีการรันระบบคลาวด์ภายนอกใดๆ** มาขวางในเส้นทางการรับส่งข้อมูล แพลตฟอร์มนี้ไม่มีการเชื่อมต่อกลับมายังผู้พัฒนาภายนอก และไม่มีข้อมูลการใช้งานหรือเนื้อหาใดๆ ถูกจัดส่งกลับมายังบริษัท Opsta เลย
 
-## You choose where requests go
+## คุณคือผู้เลือกเส้นทางส่งข้อมูลด้วยตัวเอง
 
-The only data that crosses your trust boundary is the request the gateway forwards to an **LLM or MCP provider
-that you explicitly configured**. You decide which providers exist, per project, and you hold their credentials.
-If you run a fully internal model, nothing leaves your network at all.
+ข้อมูลเดียวที่จะถูกส่งออกนอกขอบเขตความปลอดภัยของคุณคือคำขอที่เกตเวย์ส่งต่อไปยัง**ผู้ให้บริการ LLM หรือเซิร์ฟเวอร์ MCP ที่คุณระบุตั้งค่าไว้อย่างชัดเจน** โดยคุณเป็นผู้กำหนดว่าโครงการใดจะใช้บริการรายใดบ้างและคุณเป็นผู้เก็บรักษาข้อมูลคีย์เชื่อมต่อเหล่านั้นด้วยตนเอง หากคุณเลือกใช้งานโมเดลระบบปิดภายในองค์กรก็จะไม่มีข้อมูลใดส่งออกนอกเครือข่ายของคุณเลย
 
-## Runs air-gapped
+## รองรับการทำงานในระบบปิด (Air-gapped)
 
-The platform is built to operate with **no internet egress**:
+แพลตฟอร์มได้รับการออกแบบให้พร้อมทำงานได้โดย**ไม่จำเป็นต้องเชื่อมต่ออินเทอร์เน็ตขาออก**
 
-- All container images can be **mirrored** into your registry.
-- TLS can be issued from your **internal CA** or self-signed.
-- Identity is brokered through **in-cluster** Keycloak to your corporate IdP.
-- Observability is **self-hosted**.
+- อิมเมจคอนเทนเนอร์ทั้งหมดสามารถ**คัดลอก (mirror)** เข้าคลังเก็บอิมเมจภายในองค์กรของคุณได้
+- ใบรับรอง TLS สามารถขอผ่านระบบ **CA ภายในองค์กร** ของคุณหรือใช้แบบลงนามตนเองได้
+- ระบบยืนยันตัวตนจะเชื่อมต่อผ่าน Keycloak **ภายในคลัสเตอร์** ไปยังระบบ IdP ของบริษัทของคุณ
+- ชุดระบบตรวจสอบการทำงานเป็นแบบ**ติดตั้งและรันในเครื่องตัวเอง**
 
-See [Air-gapped install](/th/operate/air-gap) for the mechanics.
+ศึกษาขั้นตอนการตั้งค่าใช้งานได้ที่หน้า [การติดตั้งในระบบปิด (Air-gapped install)](/th/operate/air-gap)
 
-## Residency and retention
+## พื้นที่เก็บรักษาข้อมูลและระยะเวลาจัดเก็บ
 
-Because every store is in your cluster, **data residency follows your cluster** — deploy in the region or data
-center your policy requires. Retention is under your control:
+เนื่องจากระบบจัดเก็บข้อมูลทั้งหมดรันอยู่ภายในคลัสเตอร์ของคุณ **พื้นที่จัดเก็บข้อมูลจริงจึงเป็นไปตามพื้นที่ที่คลัสเตอร์ติดตั้งอยู่** โดยคุณสามารถเลือกติดตั้งในภูมิภาคหรือศูนย์ข้อมูลตามที่นโยบายความมั่นคงปลอดภัยกำหนดไว้ได้ทันที และระยะเวลาจัดเก็บข้อมูลทั้งหมดอยู่ภายใต้การควบคุมของคุณเองดังนี้
 
-- Telemetry retention is configured per signal — see
-  [Platform observability](/th/operate/observability-platform).
-- Audit retention is configured centrally — see [Audit & compliance](/th/security/audit-and-compliance).
-- Configuration and usage persist in your database until you remove them, and are protected by your
-  [backups](/th/operate/backup-and-dr).
+- ระยะเวลาเก็บข้อมูลการตรวจสอบตั้งค่าแยกตามประเภทของข้อมูลได้ โดยดูวิธีตั้งค่าได้ที่หน้า [ระบบตรวจสอบการทำงานของแพลตฟอร์ม (Platform observability)](/th/operate/observability-platform)
+- ระยะเวลาเก็บรักษาบันทึกประวัติการตรวจสอบสามารถกำหนดตั้งค่าได้จากจุดศูนย์กลาง โดยดูวิธีตั้งค่าได้ที่หน้า [การตรวจสอบระบบและการปฏิบัติตามข้อกำหนด (Audit & compliance)](/th/security/audit-and-compliance)
+- ข้อมูลการตั้งค่าและประวัติการใช้งานจะคงอยู่ในฐานข้อมูลของคุณจนกว่าคุณจะลบทิ้ง และปลอดภัยภายใต้ระบบ [การสำรองข้อมูลและกู้คืน (Backup & DR)](/th/operate/backup-and-dr) ของคุณ
 
-## Ownership and reproducibility
+## ความเป็นเจ้าของและความสามารถในการสร้างระบบขึ้นมาใหม่
 
-The entire platform is reproducible from the Helm chart plus your database. There's no hidden state and no
-managed dependency — you can rebuild it, move it, or audit it entirely from artifacts you hold.
+ระบบแพลตฟอร์มทั้งหมดสามารถสร้างขึ้นมาใหม่ได้เสมอจากตัว Helm chart ร่วมกับข้อมูลฐานข้อมูลสำรองของคุณ โดยไม่มีสถานะระบบแฝงหรือส่วนใดที่ต้องขึ้นกับระบบจัดการภายนอก คุณจึงสามารถสร้างระบบใหม่ ย้ายระบบ หรือตรวจสอบความปลอดภัยทั้งหมดได้จากทรัพย์สินซอฟต์แวร์ที่คุณเป็นผู้ครอบครองเอง
 
-## Next steps
+## ขั้นตอนต่อไป
 
-- [Air-gapped install](/th/operate/air-gap) — running with no egress.
-- [Backup & DR](/th/operate/backup-and-dr) — protecting your data.
-- [Hardening](/th/security/hardening) — securing the platform itself.
+- [การติดตั้งในระบบปิด (Air-gapped install)](/th/operate/air-gap)
+- [การสำรองข้อมูลและการกู้คืน (Backup & DR)](/th/operate/backup-and-dr)
+- [การเพิ่มความปลอดภัยให้ระบบ (Hardening)](/th/security/hardening)

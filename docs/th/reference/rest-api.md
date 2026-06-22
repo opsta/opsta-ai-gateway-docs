@@ -1,189 +1,181 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# ข้อมูลอ้างอิง REST API
 
-# REST API reference
+ตัวระบบ control plane มีการเปิดให้บริการระบบ REST API สำหรับทุกส่วนงานที่หน้าเว็บ console ทำงานได้ เช่น การจัดการองค์กร โครงการ ผู้ให้บริการ การจัดเส้นทาง งบประมาณ ขีดจำกัดการใช้งาน ระบบ guardrails คีย์ API เซิร์ฟเวอร์ MCP ระบบระบุตัวตน สถิติการใช้งาน และประวัติการตรวจสอบความปลอดภัย ซึ่งคุณสามารถเขียนสคริปต์อัตโนมัติมาสั่งการระบบผ่านทาง API นี้แทนการกดผ่านหน้าเว็บได้ทันที
 
-The control plane exposes a REST API for everything the console does — managing organizations, projects,
-providers, routing, budgets, limits, guardrails, keys, MCP servers, identity, usage, and audit. Anything you can
-do in the console you can automate here.
-
-::: info Authentication & roles
-Calls are authenticated with a verified OIDC token and authorized by [role](/th/security/rbac): **platform admin**,
-**org admin** (own organization only), or **member** (self-service). Endpoints marked **internal** are for
-in-cluster components (data-plane ingest, probes) and are gated by internal tokens. Paths use `{org}`,
-`{project}`, `{user}` for the tenant tuple.
+::: info การยืนยันตัวตนและบทบาทสิทธิ์การใช้งาน
+การเรียกใช้ API ทั้งหมดจำเป็นต้องยืนยันตัวตนด้วย OIDC โทเค็นที่ถูกต้อง และควบคุมสิทธิ์การเข้าถึงตาม [โมเดลบทบาทผู้ใช้ (RBAC)](/th/security/rbac) ได้แก่ platform_admin, org_admin ที่มีสิทธิ์เฉพาะองค์กรตนเอง และ member ที่มีสิทธิ์เฉพาะบริการตนเอง ส่วนปลายทาง API ที่ระบุกำเป็น **internal** จะใช้สำหรับบริการภายในคลัสเตอร์เองเท่านั้น เช่น บริการรับส่งสถิติการใช้งานหรือตัวตรวจสอบสุขภาพระบบ โดยจำกัดสิทธิ์ผ่านโทเค็นภายในระบบ และพอร์ต URL จะใช้ตัวแปร `{org}`, `{project}`, `{user}` เพื่อระบุโครงสร้างตัวตนผู้ใช้
 :::
 
-::: tip This reference describes capability, not a network contract
-Exact base paths and request/response shapes can evolve between versions. Treat the console as the supported
-surface and this list as the map of what's available; pin to a product version for automation.
+::: tip เอกสารนี้แสดงฟังก์ชันความสามารถโดยรวมเท่านั้น ไม่ใช่เอกสารข้อตกลงเครือข่ายที่ตายตัว
+เนื่องจากที่อยู่ base paths และรูปแบบการรับส่งข้อมูลจริงอาจมีการปรับเปลี่ยนไปตามรุ่นซอฟต์แวร์ที่เปลี่ยนไป ขอแนะนำให้ยึดการทำงานของหน้าเว็บ console เป็นหลัก และใช้ตารางนี้เป็นเพียงแผนที่แสดงรายการปลายทาง API ที่มีให้ใช้งานในระบบ พร้อมทั้งแนะนำให้ระบุรุ่นซอฟต์แวร์ที่แน่นอนหากจะเขียนโปรแกรมทำงานอัตโนมัติร่วมกับระบบ
 :::
 
-## Health & metrics
+## สุขภาพและข้อมูลตัววัด (Health & metrics)
 
-| Method · Path | Purpose | Auth |
+| วิธีและลิงก์เชื่อมต่อ (Method & Path) | วัตถุประสงค์ | การยืนยันสิทธิ์ |
 |---|---|---|
-| `GET /healthz` | Liveness probe | public |
-| `GET /readyz` | Readiness (gates on first reconcile) | public |
-| `GET /metrics` | Prometheus metrics | internal |
+| `GET /healthz` | ตัวตรวจสอบ Liveness probe | public |
+| `GET /readyz` | ตัวตรวจสอบ Readiness probe โดยจะผ่านด่านเมื่อระบบควบคุมพร้อมทำงาน | public |
+| `GET /metrics` | ข้อมูลตัววัดสำหรับ Prometheus | internal |
 
-## Organizations
+## การจัดการองค์กร (Organizations)
 
-| Method · Path | Purpose | Role |
+| วิธีและลิงก์เชื่อมต่อ (Method & Path) | วัตถุประสงค์ | บทบาทสิทธิ์ที่รองรับ |
 |---|---|---|
-| `GET /api/orgs` | List organizations | platform admin / console |
-| `GET /api/orgs/{org}` | Get an organization | org admin |
-| `POST /api/orgs` | Create organization | platform admin |
-| `DELETE /api/orgs/{org}` | Delete organization | platform admin |
-| `POST /api/orgs/{org}/admins` | Appoint org admin | platform admin |
-| `GET /api/orgs/{org}/memberships` | List members | org admin |
-| `POST /api/orgs/{org}/memberships` | Invite a member | org admin |
-| `DELETE /api/orgs/{org}/memberships/{email}` | Remove a member | org admin |
-| `GET /api/orgs/{org}/groups` | List groups | org admin |
-| `POST /api/orgs/{org}/groups` | Create a group | org admin |
-| `POST /api/orgs/{org}/groups/{group}/projects/{project}` | Assign a group to a project | org admin |
+| `GET /api/orgs` | แสดงรายการองค์กรทั้งหมด | platform admin / console |
+| `GET /api/orgs/{org}` | ดึงข้อมูลรายละเอียดองค์กร | org admin |
+| `POST /api/orgs` | สร้างองค์กรใหม่ | platform admin |
+| `DELETE /api/orgs/{org}` | ลบองค์กรออกจากระบบ | platform admin |
+| `POST /api/orgs/{org}/admins` | แต่งตั้งสิทธิ์ผู้ดูแลระบบองค์กร | platform admin |
+| `GET /api/orgs/{org}/memberships` | แสดงรายการสมาชิกในองค์กร | org admin |
+| `POST /api/orgs/{org}/memberships` | เชิญสมาชิกใหม่เข้าร่วมองค์กร | org admin |
+| `DELETE /api/orgs/{org}/memberships/{email}` | นำสมาชิกออกจากองค์กร | org admin |
+| `GET /api/orgs/{org}/groups` | แสดงรายการกลุ่มผู้ใช้ | org admin |
+| `POST /api/orgs/{org}/groups` | สร้างกลุ่มผู้ใช้ใหม่ | org admin |
+| `POST /api/orgs/{org}/groups/{group}/projects/{project}` | กำหนดกลุ่มผู้ใช้เข้ากับโครงการ | org admin |
 
-## Projects
+## การจัดการโครงการ (Projects)
 
-| Method · Path | Purpose | Role |
+| วิธีและลิงก์เชื่อมต่อ (Method & Path) | วัตถุประสงค์ | บทบาทสิทธิ์ที่รองรับ |
 |---|---|---|
-| `GET /api/projects` | List all projects | internal |
-| `POST /api/orgs/{org}/projects` | Create a project | org admin |
-| `PATCH /api/orgs/{org}/projects/{project}` | Rename a project | org admin |
-| `DELETE /api/orgs/{org}/projects/{project}` | Delete a project | org admin |
+| `GET /api/projects` | แสดงรายการโครงการทั้งหมด | internal |
+| `POST /api/orgs/{org}/projects` | สร้างโครงการใหม่ | org admin |
+| `PATCH /api/orgs/{org}/projects/{project}` | เปลี่ยนชื่อโครงการ | org admin |
+| `DELETE /api/orgs/{org}/projects/{project}` | ลบโครงการออกจากระบบ | org admin |
 
-## Consumers (users)
+## ผู้ใช้ระบบ (Consumers)
 
-| Method · Path | Purpose | Role |
+| วิธีและลิงก์เชื่อมต่อ (Method & Path) | วัตถุประสงค์ | บทบาทสิทธิ์ที่รองรับ |
 |---|---|---|
-| `GET /api/orgs/{org}/projects/{project}/consumers` | List consumers in a project | org admin |
-| `POST /api/orgs/{org}/projects/{project}/consumers` | Create a consumer | org admin |
-| `DELETE /api/orgs/{org}/projects/{project}/consumers/{user}` | Delete a consumer | org admin |
-| `PUT /api/orgs/{org}/projects/{project}/consumers/{user}/budget` | Set a consumer's USD budget | org admin |
+| `GET /api/orgs/{org}/projects/{project}/consumers` | แสดงรายการผู้ใช้ (consumers) ในโครงการ | org admin |
+| `POST /api/orgs/{org}/projects/{project}/consumers` | สร้างผู้ใช้ (consumer) ใหม่ | org admin |
+| `DELETE /api/orgs/{org}/projects/{project}/consumers/{user}` | ลบผู้ใช้ออกจากโครงการ | org admin |
+| `PUT /api/orgs/{org}/projects/{project}/consumers/{user}/budget` | กำหนดงบประมาณใช้งานหน่วยดอลลาร์สหรัฐสำหรับผู้ใช้ | org admin |
 
-## API keys
+## คีย์ API
 
-| Method · Path | Purpose | Role |
+| วิธีและลิงก์เชื่อมต่อ (Method & Path) | วัตถุประสงค์ | บทบาทสิทธิ์ที่รองรับ |
 |---|---|---|
-| `GET /api/me/keys` | List my keys | member |
-| `POST /api/me/consumers/{name}/key` | Issue a key for my consumer | member |
-| `DELETE /api/me/keys/{id}` | Revoke my key | member |
-| `POST /api/orgs/{org}/projects/{project}/consumers/{user}/key` | Issue/rotate a consumer key | org admin |
-| `DELETE /api/orgs/{org}/projects/{project}/consumers/{user}/keys/{id}` | Revoke a consumer key | org admin |
+| `GET /api/me/keys` | แสดงรายการคีย์ API ของฉัน | member |
+| `POST /api/me/consumers/{name}/key` | ออกคีย์ API ใหม่สำหรับผู้ใช้ของฉัน | member |
+| `DELETE /api/me/keys/{id}` | เพิกถอนสิทธิ์คีย์ API ของฉัน | member |
+| `POST /api/orgs/{org}/projects/{project}/consumers/{user}/key` | ออกคีย์ API ใหม่หรือหมุนเวียนคีย์ให้ผู้ใช้ | org admin |
+| `DELETE /api/orgs/{org}/projects/{project}/consumers/{user}/keys/{id}` | เพิกถอนสิทธิ์คีย์ API ของผู้ใช้ | org admin |
 
-## Providers
+## ผู้ให้บริการโมเดล (Providers)
 
-| Method · Path | Purpose | Role |
+| วิธีและลิงก์เชื่อมต่อ (Method & Path) | วัตถุประสงค์ | บทบาทสิทธิ์ที่รองรับ |
 |---|---|---|
-| `GET /api/orgs/{org}/projects/{project}/providers` | List providers | org admin |
-| `POST /api/orgs/{org}/projects/{project}/providers` | Add a provider (config + key) | org admin |
-| `POST /api/orgs/{org}/projects/{project}/providers/{id}/test` | Test connectivity | org admin |
-| `DELETE /api/orgs/{org}/projects/{project}/providers/{id}` | Remove a provider | org admin |
+| `GET /api/orgs/{org}/projects/{project}/providers` | แสดงรายการผู้ให้บริการโมเดล | org admin |
+| `POST /api/orgs/{org}/projects/{project}/providers` | เพิ่มผู้ให้บริการโมเดลใหม่พร้อมบันทึกคีย์เชื่อมต่อ | org admin |
+| `POST /api/orgs/{org}/projects/{project}/providers/{id}/test` | ทดสอบการเชื่อมต่อไปยังผู้ให้บริการ | org admin |
+| `DELETE /api/orgs/{org}/projects/{project}/providers/{id}` | นำผู้ให้บริการโมเดลออกจากระบบ | org admin |
 
-## Models & routing
+## โมเดลและการจัดเส้นทาง (Models & routing)
 
-| Method · Path | Purpose | Role |
+| วิธีและลิงก์เชื่อมต่อ (Method & Path) | วัตถุประสงค์ | บทบาทสิทธิ์ที่รองรับ |
 |---|---|---|
-| `GET /api/orgs/{org}/projects/{project}/models` | List model routes | org admin |
-| `POST /api/orgs/{org}/projects/{project}/models` | Create a route (logical → provider) | org admin |
-| `DELETE /api/orgs/{org}/projects/{project}/models/{logical}` | Delete a route | org admin |
+| `GET /api/orgs/{org}/projects/{project}/models` | แสดงรายการเส้นทางจัดส่งโมเดล | org admin |
+| `POST /api/orgs/{org}/projects/{project}/models` | สร้างเส้นทางใหม่ระบุการแมปจากชื่อเล่นไปยังคีย์จริง | org admin |
+| `DELETE /api/orgs/{org}/projects/{project}/models/{logical}` | ลบเส้นทางจัดส่งโมเดล | org admin |
 
-## Budgets & limits
+## งบประมาณและขีดจำกัดการใช้งาน (Budgets & limits)
 
-| Method · Path | Purpose | Role |
+| วิธีและลิงก์เชื่อมต่อ (Method & Path) | วัตถุประสงค์ | บทบาทสิทธิ์ที่รองรับ |
 |---|---|---|
-| `GET /api/orgs/{org}/projects/{project}/limits` | List project/group/user limits | org admin |
-| `PUT /api/orgs/{org}/projects/{project}/limits` | Set the project limit | org admin |
-| `PUT /api/orgs/{org}/projects/{project}/groups/{group}/limits` | Set a group limit | org admin |
-| `PUT /api/orgs/{org}/projects/{project}/users/{user}/limits` | Set a user limit | org admin |
-| `GET /api/orgs/{org}/projects/{project}/effective-config` | Effective merged limits + guardrails | org admin |
+| `GET /api/orgs/{org}/projects/{project}/limits` | แสดงรายการขีดจำกัดการใช้งานโครงการ กลุ่ม หรือผู้ใช้ | org admin |
+| `PUT /api/orgs/{org}/projects/{project}/limits` | กำหนดขีดจำกัดการใช้งานในระดับโครงการ | org admin |
+| `PUT /api/orgs/{org}/projects/{project}/groups/{group}/limits` | กำหนดขีดจำกัดการใช้งานในระดับกลุ่ม | org admin |
+| `PUT /api/orgs/{org}/projects/{project}/users/{user}/limits` | กำหนดขีดจำกัดการใช้งานในระดับผู้ใช้ | org admin |
+| `GET /api/orgs/{org}/projects/{project}/effective-config` | แสดงผลสรุปกฎการจำกัดปริมาณและนโยบาย guardrails ที่มีผลบังคับใช้งานจริง | org admin |
 
-## Guardrails
+## ระบบควบคุมความปลอดภัย (Guardrails)
 
-| Method · Path | Purpose | Role |
+| วิธีและลิงก์เชื่อมต่อ (Method & Path) | วัตถุประสงค์ | บทบาทสิทธิ์ที่รองรับ |
 |---|---|---|
-| `GET /api/orgs/{org}/projects/{project}/guardrails` | List guardrail patterns | org admin |
-| `POST /api/orgs/{org}/projects/{project}/guardrails` | Add a pattern | org admin |
-| `DELETE /api/orgs/{org}/projects/{project}/guardrails/{pattern}` | Remove a pattern | org admin |
+| `GET /api/orgs/{org}/projects/{project}/guardrails` | แสดงรายการกฎและแพทเทิร์นของ guardrails | org admin |
+| `POST /api/orgs/{org}/projects/{project}/guardrails` | เพิ่มกฎความปลอดภัยใหม่ในโครงการ | org admin |
+| `DELETE /api/orgs/{org}/projects/{project}/guardrails/{pattern}` | นำกฎความปลอดภัยออกจากระบบ | org admin |
 
-## Semantic cache
+## ระบบแคชด้านความหมาย (Semantic cache)
 
-| Method · Path | Purpose | Role |
+| วิธีและลิงก์เชื่อมต่อ (Method & Path) | วัตถุประสงค์ | บทบาทสิทธิ์ที่รองรับ |
 |---|---|---|
-| `GET /api/orgs/{org}/projects/{project}/semantic-cache` | Get cache settings | org admin |
-| `PUT /api/orgs/{org}/projects/{project}/semantic-cache` | Update cache settings | org admin |
-| `POST /api/cache-hits` | Ingest cache-hit events | internal |
+| `GET /api/orgs/{org}/projects/{project}/semantic-cache` | ดึงข้อมูลการตั้งค่าแคชด้านความหมาย | org admin |
+| `PUT /api/orgs/{org}/projects/{project}/semantic-cache` | อัปเดตการตั้งค่าแคชด้านความหมาย | org admin |
+| `POST /api/cache-hits` | ส่งข้อมูลสถิติประวัติการใช้งานแคช | internal |
 
-## Semantic guard
+## ระบบควบคุมความปลอดภัยด้านความหมาย (Semantic guard)
 
-| Method · Path | Purpose | Role |
+| วิธีและลิงก์เชื่อมต่อ (Method & Path) | วัตถุประสงค์ | บทบาทสิทธิ์ที่รองรับ |
 |---|---|---|
-| `GET /api/orgs/{org}/projects/{project}/semantic-guard` | Get guard config | org admin |
-| `PUT /api/orgs/{org}/projects/{project}/semantic-guard` | Update guard config | org admin |
-| `GET /api/orgs/{org}/projects/{project}/semantic-guard/prompts` | Get sample prompts | org admin |
-| `PUT /api/orgs/{org}/projects/{project}/semantic-guard/prompts` | Update sample prompts | org admin |
+| `GET /api/orgs/{org}/projects/{project}/semantic-guard` | ดึงข้อมูลตั้งค่าควบคุมความปลอดภัยด้านความหมาย | org admin |
+| `PUT /api/orgs/{org}/projects/{project}/semantic-guard` | อัปเดตการตั้งค่าควบคุมความปลอดภัยด้านความหมาย | org admin |
+| `GET /api/orgs/{org}/projects/{project}/semantic-guard/prompts` | แสดงตัวอย่างคำสั่งที่ใช้ในการเปรียบเทียบ | org admin |
+| `PUT /api/orgs/{org}/projects/{project}/semantic-guard/prompts` | อัปเดตตัวอย่างคำสั่งที่ใช้ในการเปรียบเทียบ | org admin |
 
-## MCP servers
+## เซิร์ฟเวอร์ MCP (MCP servers)
 
-| Method · Path | Purpose | Role |
+| วิธีและลิงก์เชื่อมต่อ (Method & Path) | วัตถุประสงค์ | บทบาทสิทธิ์ที่รองรับ |
 |---|---|---|
-| `GET /api/orgs/{org}/projects/{project}/mcp-servers` | List MCP servers | org admin |
-| `POST /api/orgs/{org}/projects/{project}/mcp-servers` | Register an MCP server | org admin |
-| `PUT /api/orgs/{org}/projects/{project}/mcp-servers/{id}` | Update an MCP server | org admin |
-| `DELETE /api/orgs/{org}/projects/{project}/mcp-servers/{id}` | Unregister an MCP server | org admin |
-| `POST /api/mcp-calls` | Ingest MCP call metrics | internal |
+| `GET /api/orgs/{org}/projects/{project}/mcp-servers` | แสดงรายการเซิร์ฟเวอร์ MCP ทั้งหมด | org admin |
+| `POST /api/orgs/{org}/projects/{project}/mcp-servers` | ลงทะเบียนเซิร์ฟเวอร์ MCP ใหม่ในโครงการ | org admin |
+| `PUT /api/orgs/{org}/projects/{project}/mcp-servers/{id}` | อัปเดตข้อมูลเซิร์ฟเวอร์ MCP | org admin |
+| `DELETE /api/orgs/{org}/projects/{project}/mcp-servers/{id}` | ยกเลิกการลงทะเบียนเซิร์ฟเวอร์ MCP | org admin |
+| `POST /api/mcp-calls` | ส่งสถิติการใช้งานคำสั่งเครื่องมือ MCP | internal |
 
-## Identity providers
+## ผู้ให้บริการยืนยันตัวตน (Identity providers)
 
-| Method · Path | Purpose | Role |
+| วิธีและลิงก์เชื่อมต่อ (Method & Path) | วัตถุประสงค์ | บทบาทสิทธิ์ที่รองรับ |
 |---|---|---|
-| `GET /api/orgs/{org}/idp` | List IdP connections | org admin |
-| `POST /api/orgs/{org}/idp` | Add an IdP (OIDC/SAML) | org admin |
-| `GET /api/orgs/{org}/idp/{id}` | Get an IdP connection | org admin |
-| `DELETE /api/orgs/{org}/idp/{id}` | Remove an IdP | org admin |
+| `GET /api/orgs/{org}/idp` | แสดงรายการผู้ให้บริการระบุตัวตนภายนอก IdP ทั้งหมด | org admin |
+| `POST /api/orgs/{org}/idp` | เพิ่มการเชื่อมต่อ IdP ใหม่ระบบ OIDC หรือ SAML | org admin |
+| `GET /api/orgs/{org}/idp/{id}` | ดึงข้อมูลรายละเอียดผู้ให้บริการระบุตัวตน | org admin |
+| `DELETE /api/orgs/{org}/idp/{id}` | นำผู้ให้บริการระบุตัวตนออกจากระบบ | org admin |
 
-## Pricing
+## อัตราค่าบริการ (Pricing)
 
-| Method · Path | Purpose | Role |
+| วิธีและลิงก์เชื่อมต่อ (Method & Path) | วัตถุประสงค์ | บทบาทสิทธิ์ที่รองรับ |
 |---|---|---|
-| `GET /api/prices` | List model prices | internal / admin |
-| `POST /api/prices` | Set a price override | platform admin |
-| `POST /api/prices/sync` | Sync the price catalog | platform admin |
+| `GET /api/prices` | แสดงรายการราคาของโมเดลทั้งหมด | internal / admin |
+| `POST /api/prices` | กำหนดอัตราค่าบริการพิเศษด้วยตนเอง | platform admin |
+| `POST /api/prices/sync` | ซิงก์ราคากับคลังราคาทางการของโมเดลภายนอก | platform admin |
 
-## Usage
+## ข้อมูลการใช้งาน (Usage)
 
-| Method · Path | Purpose | Role |
+| วิธีและลิงก์เชื่อมต่อ (Method & Path) | วัตถุประสงค์ | บทบาทสิทธิ์ที่รองรับ |
 |---|---|---|
-| `GET /api/usage` | Query my/scope usage (tokens, cost, MTD) | member / org admin |
-| `GET /api/usage/history` | Usage time series | member / org admin |
-| `GET /api/usage/months` | Available month windows | member / org admin |
-| `GET /api/orgs/{org}/usage` | Org-wide usage | org admin |
-| `GET /api/orgs/{org}/projects/{project}/usage` | Project usage | org admin |
-| `POST /api/usage/ingest` | Ingest per-request token events | internal |
+| `GET /api/usage` | ตรวจสอบยอดการใช้งานของตนเอง เช่น ปริมาณโทเค็นและจำนวนเงินสะสมรายเดือน | member / org admin |
+| `GET /api/usage/history` | ประวัติการใช้งานแบบเรียงลำดับเวลา | member / org admin |
+| `GET /api/usage/months` | ช่วงเวลาเดือนที่ระบบมีข้อมูลจัดเก็บไว้ | member / org admin |
+| `GET /api/orgs/{org}/usage` | ข้อมูลการใช้งานระดับองค์กรทั้งหมด | org admin |
+| `GET /api/orgs/{org}/projects/{project}/usage` | ข้อมูลการใช้งานระดับโครงการ | org admin |
+| `POST /api/usage/ingest` | ส่งสถิติโทเค็นใช้งานเป็นรายคำขอ | internal |
 
-## Blocked requests
+## คำขอที่ถูกบล็อก (Blocked requests)
 
-| Method · Path | Purpose | Role |
+| วิธีและลิงก์เชื่อมต่อ (Method & Path) | วัตถุประสงค์ | บทบาทสิทธิ์ที่รองรับ |
 |---|---|---|
-| `GET /api/me/blocks` | List my blocked requests | member |
-| `POST /api/me/blocks/{id}/report` | Flag a block as a false positive | member |
-| `GET /api/orgs/{org}/blocks` | List the org's blocks (for tuning) | org admin |
-| `POST /api/guardrail-blocks` | Ingest block events | internal |
+| `GET /api/me/blocks` | แสดงรายการคำขอที่ติดกฎการบล็อกของฉัน | member |
+| `POST /api/me/blocks/{id}/report` | แจ้งเรื่องกรณีเป็นการตรวจจับผิดพลาด (false positive) | member |
+| `GET /api/orgs/{org}/blocks` | แสดงรายการบล็อกขององค์กรทั้งหมดเพื่อปรับแต่งกฎเพิ่มเติม | org admin |
+| `POST /api/guardrail-blocks` | ส่งสถิติและตัวอย่างข้อความกรณีคำสั่งถูกบล็อก | internal |
 
-## Audit
+## ประวัติการตรวจสอบ (Audit)
 
-| Method · Path | Purpose | Role |
+| วิธีและลิงก์เชื่อมต่อ (Method & Path) | วัตถุประสงค์ | บทบาทสิทธิ์ที่รองรับ |
 |---|---|---|
-| `GET /api/audit` | Platform-wide audit trail | platform admin |
-| `GET /api/orgs/{org}/audit` | Org audit trail | org admin |
+| `GET /api/audit` | บันทึกประวัติการตรวจสอบของทุกส่วนในระบบหลัก | platform admin |
+| `GET /api/orgs/{org}/audit` | บันทึกประวัติการตรวจสอบเฉพาะองค์กร | org admin |
 
-## Onboarding & console config
+## ขั้นตอนนำเข้าและข้อมูลตั้งค่า Console (Onboarding & console config)
 
-| Method · Path | Purpose | Role |
+| วิธีและลิงก์เชื่อมต่อ (Method & Path) | วัตถุประสงค์ | บทบาทสิทธิ์ที่รองรับ |
 |---|---|---|
-| `POST /api/self-enroll` | First-login enrollment into the default org | member |
-| `GET /api/console-config` | Tenant view for the web console | console (SSO-gated) |
+| `POST /api/self-enroll` | ลงทะเบียนตนเองในองค์กรเริ่มต้นสำหรับการเข้าใช้งานระบบครั้งแรก | member |
+| `GET /api/console-config` | แสดงรายละเอียดและสิทธิ์เข้าใช้ระบบสำหรับหน้าเว็บ console | console (SSO-gated) |
 
-## Next steps
+## ขั้นตอนต่อไป
 
-- [Configuration reference](/th/reference/configuration) — operator values.
-- [RBAC model](/th/security/rbac) — what each role can call.
+- [ข้อมูลอ้างอิงการกำหนดค่าระบบ (Configuration reference)](/th/reference/configuration)
+- [โมเดล RBAC (RBAC model)](/th/security/rbac)

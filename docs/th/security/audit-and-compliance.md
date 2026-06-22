@@ -1,70 +1,61 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# การตรวจสอบระบบและการปฏิบัติตามข้อกำหนด
 
-# Audit & compliance
+ทุกการดำเนินการแก้ไขตั้งค่าระบบโดยผู้ดูแลระบบจะถูกบันทึกเก็บไว้ใน**บันทึกการตรวจสอบ (Audit log)** ที่มีมาตรการป้องกันการแก้ไขประวัติ ซึ่งครอบคลุมถึงกรณีการสั่งงานที่**ถูกปฏิเสธ**ด้วย โดยประวัติระบบจะบันทึกข้อมูลอย่างครบถ้วน ได้แก่ ผู้ดำเนินการ การดำเนินการกับส่วนใด และผลลัพธ์ของการดำเนินการนั้นๆ เพื่อใช้เป็นหลักฐานประกอบตามข้อกำหนดนโยบายความปลอดภัยองค์กร
 
-Every mutating administrative action is recorded in a tamper-evident **audit log** — including actions that were
-**denied**. The trail captures who did what, to what, with what outcome, giving you the evidence regulated
-environments require.
-
-::: info Who this is for
-Compliance, audit, and security stakeholders, and the administrators who review the trail.
+::: info เอกสารนี้เหมาะสำหรับใคร
+ผู้ดูแลการปฏิบัติตามข้อกำหนด ผู้ตรวจสอบบัญชี ผู้ดูแลความมั่นคงปลอดภัย และผู้ดูแลระบบหลักที่ต้องทำหน้าที่ตรวจสอบประวัติการทำงานของระบบ
 :::
 
-## What's recorded
+## ข้อมูลที่ถูกบันทึก
 
-Each entry captures:
+ในแต่ละรายการบันทึกจะแสดงข้อมูลดังนี้
 
-- **Actor** — the email and group membership of the person who acted.
-- **Organization** — the tenant the action belongs to (stored as a stable slug, so it survives even if the org is
-  later deleted).
-- **Action** — a structured name, e.g. `provider.create`, `key.revoke`, `org.delete`.
-- **Target** — what was acted on.
-- **Outcome** — allowed or denied.
-- **Status** — the HTTP result.
+- **ผู้ดำเนินการ (Actor)** ได้แก่ อีเมลและกลุ่มสมาชิกของผู้ใช้งานที่สั่งการ
+- **องค์กร (Organization)** ได้แก่ ข้อมูลองค์กรที่เกี่ยวข้องกับการดำเนินการดังกล่าว ซึ่งจัดเก็บในรูปแบบรหัสเฉพาะ (slug) ที่คงอยู่ตลอดเพื่อเป็นข้อมูลอ้างอิงแม้กรณีองค์กรถูกลบออกภายหลัง
+- **การดำเนินการ (Action)** ได้แก่ รหัสประเภทการกระทำ เช่น `provider.create`, `key.revoke`, `org.delete`
+- **เป้าหมาย (Target)** ได้แก่ ส่วนของระบบหรือรายการที่ถูกดำเนินการ
+- **ผลลัพธ์ (Outcome)** ได้แก่ การอนุญาต (allowed) หรือการปฏิเสธการเข้าถึง (denied)
+- **สถานะ (Status)** ได้แก่ รหัส HTTP ที่ตอบกลับจากการรันคำสั่ง
 
-Denied attempts are recorded too — useful for detecting attempts to act outside one's permissions.
+การสั่งงานที่ถูกปฏิเสธเนื่องจากไม่มีสิทธิ์จะถูกจัดเก็บบันทึกด้วยเช่นกัน ซึ่งเป็นประโยชน์อย่างยิ่งในการสืบหาเหตุการณ์การพยายามเข้าใช้ฟังก์ชันโดยไม่ได้รับอนุญาต
 
-::: tip No secrets in the trail
-The audit record captures the action, target, and outcome — never request bodies or credentials. The log itself
-cannot leak the secrets it governs.
+::: tip ไม่มีข้อมูลคีย์ความลับปะปนในประวัติการตรวจสอบ
+บันทึกข้อมูลประวัติจะจัดเก็บเพียงข้อมูลประเภทการทำงาน เป้าหมาย และผลลัพธ์เท่านั้น โดยจะไม่มีการเก็บเนื้อหาคำสั่งใช้งานโมเดลหรือคีย์ความลับใดๆ ลงในไฟล์ประวัติ ส่งผลให้ระบบบันทึกนี้มีความปลอดภัยสูงและไม่มีโอกาสที่คีย์ความลับจะรั่วไหลออกทางช่องทางนี้
 :::
 
-## Who can read it
+## ผู้ที่สามารถอ่านบันทึกประวัติได้
 
-- **Org admins** read **their organization's** trail.
-- **Platform admins** read **every** organization's trail, with an org filter.
+- **ผู้ดูแลระบบระดับองค์กร (org_admin)** สามารถอ่านประวัติการทำงานเฉพาะของ**องค์กรตนเอง**เท่านั้น
+- **ผู้ดูแลระบบแพลตฟอร์ม (platform_admin)** สามารถอ่านประวัติการทำงานของ**ทุกองค์กร**ในระบบ โดยเลือกตัวกรองแยกองค์กรได้
 
-Filter by actor, action prefix (e.g. `org.`, `key.`, `limit.`), and date range. See the admin-facing
-[Audit log](/th/admin/audit-log) page for the console workflow.
+ผู้ใช้งานสามารถใช้ตัวกรองเพื่อค้นหาข้อมูลตามอีเมลผู้ดำเนินการ คำนำหน้าการกระทำ เช่น `org.`, `key.`, `limit.` และช่วงวันเวลาได้ โดยศึกษาขั้นตอนการค้นหาผ่านหน้าเว็บได้ที่หน้า [บันทึกการตรวจสอบ (Audit log)](/th/admin/audit-log)
 
-## Retention
+## ระยะเวลาการเก็บรักษาข้อมูล
 
-Audit retention is set centrally and defaults to a long window suited to on-prem compliance:
+ระยะเวลาจัดเก็บประวัติการตรวจสอบจะถูกควบคุมการตั้งค่าจากจุดศูนย์กลาง และมีค่าเริ่มต้นในระดับการดูแลที่สอดคล้องกับข้อกำหนดความปลอดภัยของระบบภายในองค์กรดังนี้
 
 ```yaml
 audit:
   retentionDays: 365
 ```
 
-The control plane prunes entries older than the window on a daily schedule. Set it to match your regulatory
-requirement.
+ระบบควบคุมหลักจะทำความสะอาดลบข้อมูลเก่าที่มีอายุเกินค่ากำหนดออกโดยอัตนัติในทุกๆ วัน โปรดตั้งค่าระยะเวลาดังกล่าวให้สอดคล้องตามข้อกำหนดขององค์กรคุณ
 
-## Supporting compliance
+## การตอบโจทย์ข้อกำหนดนโยบายความมั่นคงปลอดภัย
 
-The platform gives you the building blocks auditors look for:
+ตัวแพลตฟอร์มมีโครงสร้างและการควบคุมที่ผู้ตรวจสอบความปลอดภัยระบุถึง ได้แก่
 
-- **Access control** — least-privilege [RBAC](/th/security/rbac) with verified identity.
-- **Accountability** — this audit trail, including denials.
-- **Data residency** — everything stays in your cluster ([Data sovereignty](/th/security/data-sovereignty)).
-- **Encryption in transit** — TLS terminated in-cluster ([TLS & domains](/th/operate/tls-and-domains)).
-- **Recoverability** — database backups and DR ([Backup & DR](/th/operate/backup-and-dr)).
-- **Supply-chain assurance** — pinned, scanned images ([Hardening](/th/security/hardening)).
+- **การควบคุมสิทธิ์ (Access control)** มาตรการกำหนดสิทธิ์แบบขั้นต่ำ [โมเดล RBAC](/th/security/rbac) พร้อมการยืนยันสิทธิ์ตัวตนที่ถูกต้อง
+- **การมีหลักฐานตรวจสอบ (Accountability)** ระบบจัดเก็บประวัติการตรวจสอบนี้ที่รวมถึงกรณีการสั่งการที่โดนปฏิเสธสิทธิ์ด้วย
+- **พื้นที่เก็บข้อมูลของตนเอง (Data residency)** ข้อมูลทั้งหมดจะถูกจัดเก็บอยู่ภายในคลัสเตอร์ของคุณเองตามข้อกำหนด [อธิปไตยของข้อมูล](/th/security/data-sovereignty)
+- **การเข้ารหัสข้อมูลระหว่างส่ง (Encryption in transit)** การเข้ารหัส TLS ที่ระดับคลัสเตอร์โดยตรงตามข้อกำหนด [TLS และโดเมน](/th/operate/tls-and-domains)
+- **การกู้คืนระบบ (Recoverability)** ระบบกู้คืนและสำรองฐานข้อมูลตามข้อกำหนด [การสำรองข้อมูลและการกู้คืน (Backup & DR)](/th/operate/backup-and-dr)
+- **ความมั่นคงปลอดภัยห่วงโซ่อุปทาน (Supply-chain assurance)** อิมเมจระบบที่สแกนช่องโหว่และล็อกรุ่นเวอร์ชันชัดเจนตามแนวทาง [การเพิ่มความปลอดภัยให้ระบบ (Hardening)](/th/security/hardening)
 
-The platform supports your compliance program; certification against a specific framework depends on how you
-operate the surrounding environment.
+แพลตฟอร์มนี้ทำหน้าที่เป็นกลไกที่ช่วยให้คุณบรรลุมาตรฐานความปลอดภัยและได้รับการรับรองตามมาตรฐานต่างๆ ซึ่งการรับรองอย่างเป็นทางการระดับองค์กรจะขึ้นกับแนวทางการรันระบบในสภาพแวดล้อมโดยรวมของคุณเองด้วย
 
-## Next steps
+## ขั้นตอนต่อไป
 
-- [Audit log](/th/admin/audit-log) — read and filter the trail in the console.
-- [RBAC model](/th/security/rbac) — the roles whose actions are audited.
-- [Hardening](/th/security/hardening) — the controls behind the trail.
+- [บันทึกการตรวจสอบ (Audit log)](/th/admin/audit-log)
+- [โมเดล RBAC (RBAC model)](/th/security/rbac)
+- [การเพิ่มความปลอดภัยให้ระบบ (Hardening)](/th/security/hardening)
