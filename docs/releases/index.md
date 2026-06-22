@@ -8,7 +8,15 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.20.5 — Project page polish + dashboard budget fix _(latest)_
+## v1.20.6 — MCP usability: real connect URL + modal forms _(latest)_
+
+- **MCP "Copy URL" now copies the real address.** Each MCP server's connect URL shows and
+  copies your actual gateway domain (e.g. `https://mcp.your-domain/<org>.<project>/<name>`)
+  instead of a `<domain>` placeholder.
+- **Add/Edit moved into a focused dialog.** Registering or editing an MCP server now opens
+  a clean modal instead of a cramped inline form — less clutter, more room.
+
+## v1.20.5 — Project page polish + dashboard budget fix
 
 - **Project page layout fixed and polished.** A wide table on a project's tab (LLM
   Providers, MCP Servers) could be cut off at the right edge after the v1.20.4 layout
@@ -20,7 +28,7 @@ the full configuration surface see the [Configuration reference](/reference/conf
   the console now resolves the full project → group → user limit hierarchy, so the number
   you see is the number actually enforced.
 
-## v1.20.4 — Project settings, reorganized + flexible service accounts _(latest)_
+## v1.20.4 — Project settings, reorganized + flexible service accounts
 
 Two improvements to project administration:
 
