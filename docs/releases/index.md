@@ -8,7 +8,16 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.20.12 — Streaming usage is metered again _(latest)_
+## v1.20.13 — Edit a provider in place + test before saving _(latest)_
+
+- **Edit an LLM provider.** Each provider row now has an **Edit** button that opens the form
+  prefilled — change the base URL or **rotate the API key in place** (leave the key blank to keep
+  the current one). No more delete-and-re-add, which previously risked orphaning a model route.
+- **Test the connection from inside the dialog.** The Add/Edit provider dialog has a **Test
+  connection** button that probes the upstream with the values you've entered (or the stored key
+  when editing) and shows **✓ Connection OK** or a clear reason — so you can verify before saving.
+
+## v1.20.12 — Streaming usage is metered again
 
 - **Token usage from streaming requests is now counted.** Most clients (opencode, IDE
   assistants, chat UIs) stream their responses, and a parser bug meant the usage reported at the
