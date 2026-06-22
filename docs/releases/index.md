@@ -8,7 +8,14 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.20.2 — Smoother member onboarding _(latest)_
+## v1.20.3 — Group list reflects deletions _(latest)_
+
+The **Group** picker on a project's Users/Agents tabs now lists exactly your
+organization's groups (plus **default**). Previously a group could keep appearing in the
+picker after you deleted it; it now disappears as soon as it's removed under
+**Organization → Groups**.
+
+## v1.20.2 — Smoother member onboarding
 
 Three rough edges in member management are gone:
 
