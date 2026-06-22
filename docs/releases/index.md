@@ -8,7 +8,17 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.20.10 — Clearer, tidier in-app messages _(latest)_
+## v1.20.11 — Key expiry + self-serve key management _(latest)_
+
+- **Set an expiry when you issue a key.** Your **API keys** page now has an **Expires** choice —
+  Never, 30/90/180 days, or 1 year — so you can mint short-lived keys instead of only permanent
+  ones. (The gateway already enforced expiry; now you can set it.)
+- **Members manage their own keys.** The misleading **Rotate key** button is gone from member
+  rows on a project — it didn't rotate (it just piled up extra keys) and members already manage
+  their keys (issue, set expiry, revoke) on their own **Keys** page. Service accounts, which have
+  no login, keep admin key management.
+
+## v1.20.10 — Clearer, tidier in-app messages
 
 - **Saves now confirm themselves.** Saving a setting — Semantic Cache, providers, routing,
   budgets, members, and the rest of a project's tabs — shows a green **✓ Saved** confirmation
