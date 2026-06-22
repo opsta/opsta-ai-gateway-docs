@@ -8,7 +8,24 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.20.8 — Clearer provider test results _(latest)_
+## v1.20.10 — Clearer, tidier in-app messages _(latest)_
+
+- **Saves now confirm themselves.** Saving a setting — Semantic Cache, providers, routing,
+  budgets, members, and the rest of a project's tabs — shows a green **✓ Saved** confirmation
+  instead of appearing to do nothing.
+- **Messages can be closed and don't linger.** Every error, success, and provider-test result
+  now has a **×** to dismiss it, and switching tabs or projects clears stale messages — so a
+  message never follows you onto an unrelated screen. Messages also appear **inside the content
+  area**, next to the setting they relate to, rather than floating above the page.
+- **Guidance reads as guidance, not errors.** Helpful empty-state hints (e.g. "add a provider
+  first" on the Routing tab before any provider exists) now show as a calm blue note instead of
+  an alarming red error.
+- **Semantic Cache has a "coding" preset.** One click fills in conservative settings tuned for
+  coding — high similarity, full-conversation key, shorter TTL — so a similar-but-different
+  prompt never returns the wrong code (with a note to prefer leaving the cache off for
+  tool-calling/streaming agents).
+
+## v1.20.8 — Clearer provider test results
 
 - **A failed provider test now names the real cause.** When the **Test** button reached a
   provider that rejected the credentials, the result mislabeled it as "your session has
