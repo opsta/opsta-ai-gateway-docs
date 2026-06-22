@@ -1,43 +1,35 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# การใช้งาน MCP server
 
-# Use MCP servers
+gateway สามารถช่วยให้ AI agent ของคุณเข้าถึงเครื่องมือภายใต้การควบคุมอย่างปลอดภัย ผ่านโปรโตคอล Model Context Protocol (MCP) โดยผู้ดูแลระบบจะลงทะเบียนเซิร์ฟเวอร์ MCP ที่ได้รับการอนุมัติให้ใช้งานสำหรับโปรเจกต์ของคุณ และคุณสามารถเชื่อมต่อไปยังเซิร์ฟเวอร์เหล่านั้นผ่าน gateway โดยใช้ API key เดียวกันกับที่คุณใช้สำหรับบริการแชท
 
-The gateway can give your AI agents **governed access to tools** through the Model Context Protocol (MCP). Your
-administrator registers approved MCP servers for your project; you connect to them through the gateway using the
-same project API key you use for chat.
-
-::: info Prerequisites
-- Your administrator has registered one or more MCP servers for your project — see
-  [MCP servers (admin)](/th/admin/mcp-servers).
-- You have a project API key ([Manage API keys](/th/user/api-keys)).
+::: info สิ่งที่ต้องเตรียมความพร้อม
+- ผู้ดูแลระบบได้ลงทะเบียนเซิร์ฟเวอร์ MCP ตั้งแต่หนึ่งเครื่องขึ้นไปสำหรับโปรเจกต์ของคุณแล้ว ดูข้อมูลเพิ่มเติมได้ที่ [เซิร์ฟเวอร์ MCP สำหรับผู้ดูแลระบบ](/th/admin/mcp-servers)
+- มี API key ประจำโปรเจกต์เรียบร้อยแล้ว ([การจัดการ API key](/th/user/api-keys))
 :::
 
-## Connect to a governed MCP server
+## การเชื่อมต่อไปยังเซิร์ฟเวอร์ MCP ภายใต้การดูแล
 
-Each registered server is reachable at a per-project URL:
+เซิร์ฟเวอร์แต่ละเครื่องที่ลงทะเบียนไว้จะสามารถเข้าถึงได้ผ่าน URL ประจำโปรเจกต์ ดังนี้
 
 ```
 https://mcp.<your-domain>/<organization>.<project>/<server-name>
 ```
 
-Point your MCP-capable agent or IDE at that URL (over **Streamable HTTP**) and authenticate with your project
-**API key** — the same key you use for the chat API. The gateway authenticates the connection, enforces that
-you can only reach **your own project's** servers, and records the activity.
+ตั้งค่า agent หรือ IDE ที่รองรับ MCP ของคุณให้ชี้ไปยัง URL ดังกล่าวในรูปแบบ Streamable HTTP จากนั้นยืนยันตัวตนด้วย API key ของโปรเจกต์คุณ ซึ่งเป็นคีย์เดียวกันกับที่ใช้ในการเชื่อมต่อแชท API โดย gateway จะทำการยืนยันสิทธิ์การเชื่อมต่อ บังคับใช้มาตรการความปลอดภัยเพื่อให้คุณสามารถเข้าถึงได้เฉพาะเซิร์ฟเวอร์ในโปรเจกต์ของคุณเท่านั้น และบันทึกกิจกรรมการใช้งานทั้งหมด
 
 ![The MCP Servers tab and connect URL](/images/mcp-servers.png)
 
-::: tip One key for chat and tools
-You don't manage a separate credential for tools. Your project API key works for both the LLM chat API and your
-project's MCP servers.
+::: tip ใช้คีย์เดียวกันสำหรับทั้งบริการแชทและเครื่องมือ
+คุณไม่จำเป็นต้องจัดการข้อมูลสิทธิ์การใช้งานแยกต่างหากสำหรับส่วนที่เป็นเครื่องมือ เนื่องจาก API key ของโปรเจกต์จะสามารถใช้งานได้ทั้งบริการ LLM chat API และเซิร์ฟเวอร์ MCP ประจำโปรเจกต์ของคุณ
 :::
 
-## What's governed
+## สิ่งที่อยู่ภายใต้การกำกับดูแล
 
-- **Authentication** — every connection is authenticated with your project key.
-- **Isolation** — a key from another project cannot reach your project's MCP servers (you'll get `403`).
-- **Visibility** — tool-call activity is recorded for your organization.
+- **การยืนยันตัวตน:** ทุกการเชื่อมต่อจะได้รับการยืนยันตัวตนผ่านคีย์ของโปรเจกต์คุณ
+- **การแยกส่วนข้อมูล:** คีย์จากโปรเจกต์อื่นจะไม่สามารถเข้าถึงเซิร์ฟเวอร์ MCP ของโปรเจกต์คุณได้ ซึ่งระบบจะส่งกลับสถานะ `403`
+- **ความโปร่งใส:** ทุกกิจกรรมการเรียกใช้งานเครื่องมือ (tool call) จะถูกบันทึกไว้ในระบบขององค์กรคุณ
 
-## Next steps
+## ขั้นตอนต่อไป
 
-- [Connect a client](/th/user/connect-a-client) — the chat API.
-- Administrators register servers in [MCP servers](/th/admin/mcp-servers).
+- [เชื่อมต่อฝั่งไคลเอนต์](/th/user/connect-a-client) — วิธีการนำคีย์ไปใช้งานจริงกับแชท API
+- สำหรับผู้ดูแลระบบ สามารถลงทะเบียนเซิร์ฟเวอร์ได้ที่ [เซิร์ฟเวอร์ MCP](/th/admin/mcp-servers)

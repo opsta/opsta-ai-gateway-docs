@@ -1,44 +1,37 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# การจัดการ API key
 
-# Manage API keys
+**API key** ทำหน้าที่ยืนยันตัวตนสำหรับคำร้องขอของคุณ โดยจะผูกคำร้องเหล่านั้นเข้ากับบัญชีของคุณเพื่อใช้ในการจัดการงบประมาณ ขีดจำกัด และปริมาณการใช้งาน คุณสามารถจัดการคีย์ของตนเองได้จากหน้า **API key** บน console โดยไม่จำเป็นต้องผ่านผู้ดูแลระบบ
 
-An **API key** authenticates your requests and ties them to you for budgets, limits, and usage. You manage your
-own keys from the **API keys** page in the console — no admin needed.
-
-::: info Prerequisite
-You're signed in and your account is linked to a consumer ([Get access](/th/user/get-access)).
+::: info สิ่งที่ต้องเตรียมความพร้อม
+เข้าสู่ระบบเรียบร้อยแล้วและบัญชีของคุณได้รับการผูกเข้ากับผู้บริโภคเรียบร้อยแล้ว ([วิธีการเข้าใช้งาน](/th/user/get-access))
 :::
 
-## Issue a key
+## การออกคีย์ใหม่
 
-1. Open **API keys** in the console.
-2. Click **Create key**.
-3. **Copy the key immediately** — it is shown **once** and cannot be retrieved later.
-4. Use it as the `Authorization: Bearer` token when you [connect a client](/th/user/connect-a-client).
+1. เปิดหน้า **API key** บน console
+2. คลิก **Create key**
+3. คัดลอกและเก็บคีย์ไว้ทันที เนื่องจากคีย์จะถูกแสดงเพียง**ครั้งเดียว**และไม่สามารถเรียกดูได้อีกหลังจากนี้
+4. นำไปใช้เป็น token สำหรับ `Authorization: Bearer` เมื่อคุณต้องการ [เชื่อมต่อฝั่งไคลเอนต์](/th/user/connect-a-client)
 
 ![The API keys page — issue, list, and revoke your own keys](/images/api-keys.png)
 
-::: warning Treat keys as secrets
-A key carries your identity and spends against your budget. Store it in a secret manager or environment
-variable — never commit it to source control.
+::: warning จัดการคีย์เหมือนข้อมูลที่เป็นความลับ
+คีย์นี้จะแสดงข้อมูลระบุตัวตนของคุณและมีผลต่อการหักงบประมาณของคุณโดยตรง โปรดจัดเก็บไว้ในโปรแกรมจัดการความลับ (secret manager) หรือตัวแปรสภาพแวดล้อม (environment variable) และห้ามบันทึกคีย์ลงในระบบจัดการโค้ดต้นทางอย่างเด็ดขาด
 :::
 
-## Rotate a key
+## การหมุนเวียนคีย์ (Rotate key)
 
-Create a new key, switch your clients to it, then revoke the old one. This lets you roll credentials with no
-downtime.
+ออกคีย์ใหม่ ปรับแต่งไคลเอนต์ของคุณให้เปลี่ยนมาใช้คีย์ใหม่ จากนั้นยกเลิกคีย์เก่า การดำเนินการลักษณะนี้ช่วยให้คุณเปลี่ยนข้อมูลสิทธิ์การเข้าใช้งานได้โดยระบบไม่ต้องหยุดทำงานชั่วคราว
 
-## Revoke a key
+## การยกเลิกคีย์ (Revoke key)
 
-Click **Revoke** next to a key to disable it immediately. Any client still using it will start receiving
-`401 Unauthorized`.
+คลิก **Revoke** ถัดจากคีย์ที่ต้องการเพื่อปิดการใช้งานคีย์ดังกล่าวในทันที ไคลเอนต์ใด ๆ ที่ยังคงใช้คีย์นั้นอยู่จะเริ่มได้รับสถานะกลับไปเป็น `401 Unauthorized`
 
-## Activity
+## กิจกรรมการใช้งาน
 
-The page shows whether your consumer has been **active this month** and a last-used summary, so you can spot
-unused or leaked keys.
+หน้านี้จะแสดงข้อมูลว่าผู้บริโภคของคุณมี**กิจกรรมการใช้งานในเดือนนี้**หรือไม่ พร้อมทั้งแสดงสรุปเวลาการใช้งานล่าสุด เพื่อให้คุณสามารถตรวจสอบคีย์ที่ไม่ได้ใช้งานหรือคีย์ที่อาจเกิดข้อมูลรั่วไหลได้
 
-## Next steps
+## ขั้นตอนต่อไป
 
-- [Connect a client](/th/user/connect-a-client) — use your key.
-- [Usage & budget](/th/user/usage-and-budget) — see what your keys are spending.
+- [เชื่อมต่อฝั่งไคลเอนต์](/th/user/connect-a-client) — วิธีการนำคีย์ไปใช้งานจริง
+- [ปริมาณการใช้งานและงบประมาณ](/th/user/usage-and-budget) — ตรวจสอบยอดใช้จ่ายของแต่ละคีย์

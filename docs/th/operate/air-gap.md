@@ -1,78 +1,62 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# การติดตั้งในระบบปิด (Air-gapped install)
 
-# Air-gapped install
+แพลตฟอร์มนี้ได้รับการออกแบบมาให้สามารถทำงานได้โดย**ไม่ต้องมีการเชื่อมต่อเครือข่ายขาออกไปยังอินเทอร์เน็ต (no internet egress)** คอนเทนเนอร์อิมเมจทั้งหมดที่จำเป็นต้องใช้งานสามารถคัดลอก (mirror) ไปยัง registry ภายในของคุณเองได้ ส่วนการเชื่อมต่อ TLS สามารถใช้ใบรับรองแบบลงนามด้วยตนเอง (self-signed) จาก CA ภายในองค์กร และระบบจัดการตัวตนจะทำงานอยู่ภายในเครือข่ายของคุณเท่านั้น หน้านี้จะครอบคลุมรายละเอียดการตั้งค่าเฉพาะสำหรับการติดตั้งในระบบปิด
 
-The platform is designed to run with **no internet egress**. Every image it needs can be mirrored into your own
-registry, TLS can be self-signed from an internal CA, and identity stays inside your network. This page covers
-the air-gap-specific settings.
-
-::: info Who this is for
-Platform engineers deploying into disconnected or tightly-egress-controlled environments (regulated industries,
-on-prem data centers).
+::: info เอกสารนี้เหมาะสำหรับใคร
+วิศวกรแพลตฟอร์ม (platform engineer) ที่ต้องติดตั้งระบบลงในสภาพแวดล้อมที่ตัดการเชื่อมต่อจากอินเทอร์เน็ต หรือสภาพแวดล้อมที่มีการควบคุมเครือข่ายขาออกอย่างเข้มงวด เช่น กลุ่มธุรกิจภายใต้การควบคุมตามกฎหมาย หรือศูนย์ข้อมูลภายในองค์กร (on-prem data center)
 :::
 
-## 1. Mirror the images
+## 1. การทำสำเนาคอนเทนเนอร์อิมเมจ (Mirror images)
 
-Every image — the gateway, control plane, console, databases, identity, observability, and the built-in plugins —
-is pinned to an explicit version. Mirror them into your registry, then tell the chart to pull from there.
+อิมเมจทั้งหมด ได้แก่ gateway, control plane, console, ฐานข้อมูล, ระบบระบุตัวตน, ระบบตรวจสอบสถานะการทำงาน และปลั๊กอินในตัว จะถูกระบุเวอร์ชันที่แน่นอนไว้เสมอ โปรดทำสำเนาอิมเมจเหล่านี้ไปยัง registry ของคุณ จากนั้นกำหนดค่าใน chart ให้ดาวน์โหลดอิมเมจจากแหล่งดังกล่าวแทน
 
 ```yaml
 global:
-  registry: registry.internal/opsta-ai-gateway   # your registry for Opsta-built images
-  imageMirror: registry.internal/mirror           # mirror for upstream third-party images
-  imageMirrorFlatten: true                         # collapse all images under one project/repo
+  registry: registry.internal/opsta-ai-gateway   # registry ของคุณสำหรับเก็บอิมเมจที่พัฒนาโดย Opsta
+  imageMirror: registry.internal/mirror           # registry ภายในสำหรับทำสำเนาอิมเมจภายนอก
+  imageMirrorFlatten: true                         # ปรับโครงสร้างชื่ออิมเมจให้อยู่ในระดับชั้นเดียวร่วมกัน
   imagePullSecrets:
     - name: internal-registry
 ```
 
-::: tip Flatten to avoid repo sprawl
-`imageMirrorFlatten: true` rewrites every upstream image to `<imageMirror>/<leaf>:<tag>`, so you don't have to
-create dozens of nested repositories in Harbor/ECR/Artifactory. The chart rewrites image references
-automatically; you don't edit manifests.
+::: tip แนะนำการทำโครงสร้างแบบแบนเพื่อหลีกเลี่ยงจำนวน repository ที่มากเกินไป
+การกำหนดค่า `imageMirrorFlatten: true` จะปรับเขียนชื่ออิมเมจต้นทางทั้งหมดให้อยู่ในรูปแบบ `<imageMirror>/<leaf>:<tag>` เพื่อให้คุณไม่ต้องสร้าง repository ย่อยจำนวนมากใน Harbor, ECR หรือ Artifactory โดยตัว chart จะคอยแปลงตำแหน่งอิมเมจให้คุณโดยอัตโนมัติ คุณจึงไม่จำเป็นต้องแก้ไข manifest ใด ๆ เอง
 :::
 
-The exact image list and tested versions live in the chart's component matrix — see [Upgrades](/th/operate/upgrades)
-and the [Configuration reference](/th/reference/configuration#images). Mirror the whole set for the product version
-you're installing; the set is tested together.
+คุณสามารถตรวจสอบรายการอิมเมจและเวอร์ชันที่ผ่านการทดสอบแล้วได้ในคอมโพเนนต์เมทริกซ์ (component matrix) ของ chart ดูรายละเอียดเพิ่มเติมได้ที่ [การอัปเกรดระบบ](/th/operate/upgrades) และ [เอกสารอ้างอิงการกำหนดค่า](/th/reference/configuration#images) โปรดทำสำเนาอิมเมจทั้งหมดตามชุดเวอร์ชันผลิตภัณฑ์ที่คุณกำลังจะติดตั้ง เนื่องจากเป็นชุดอิมเมจที่ผ่านการทดสอบการทำงานร่วมกันมาเรียบร้อยแล้ว
 
-## 2. Self-signed or internal-CA TLS
+## 2. การใช้งาน TLS แบบลงนามด้วยตนเองหรือผ่าน CA ภายในองค์กร
 
-Public ACME providers aren't reachable in an air-gap, so use a certificate source you control:
+เนื่องจากผู้ให้บริการ ACME สาธารณะจะไม่สามารถเข้าถึงได้ในสภาพแวดล้อมระบบปิด โปรดใช้แหล่งใบรับรองที่คุณควบคุมจัดการได้เองดังนี้
 
 ```yaml
 tls:
-  mode: selfsigned     # cert-manager issues a self-signed wildcard
+  mode: selfsigned     # cert-manager จะออกใบรับรอง wildcard แบบลงนามด้วยตนเองให้
 ```
 
-…or `tls.mode: provided` with a wildcard certificate from your **internal CA**, which your clients already
-trust. See [TLS & domains](/th/operate/tls-and-domains).
+หรือกำหนดค่า `tls.mode: provided` พร้อมกับระบุใบรับรอง wildcard จาก **CA ภายในองค์กรของคุณ** ซึ่งแอปพลิเคชันหรือไคลเอนต์ยอมรับความน่าเชื่อถืออยู่แล้ว ดูรายละเอียดเพิ่มเติมได้ที่ [TLS และโดเมน](/th/operate/tls-and-domains)
 
-## 3. Reuse in-cluster operators if you have them
+## 3. ใช้ Operator เดิมที่มีอยู่แล้วบนคลัสเตอร์
 
-If your platform already runs cert-manager, a Redis operator, or CloudNativePG, reuse them instead of installing
-duplicates — see [Reuse existing operators](/th/operate/byo-operators). This also means fewer images to mirror.
+หากคลัสเตอร์ของคุณมีการเปิดใช้งาน cert-manager, Redis operator หรือ CloudNativePG อยู่ก่อนแล้ว คุณสามารถระบุให้ใช้งานระบบเดิมดังกล่าวแทนการติดตั้งใหม่ซ้ำซ้อนได้ ดูรายละเอียดเพิ่มเติมได้ที่ [การใช้งาน operator เดิมบนคลัสเตอร์](/th/operate/byo-operators) ซึ่งจะช่วยลดจำนวนอิมเมจที่ต้องทำสำเนาลงด้วย
 
-## 4. Identity stays internal
+## 4. ระบบจัดการตัวตนทำงานอยู่ภายในเครือข่าย
 
-Keycloak runs in-cluster as the identity broker, so sign-in never leaves your network. Organizations connect
-their corporate IdP to Keycloak over your internal network — see [SSO & IdP brokering](/th/admin/sso-and-idp). Avoid
-the `google` SSO mode in a true air-gap; broker an internal OIDC/SAML provider instead.
+Keycloak จะทำงานอยู่ภายในคลัสเตอร์เพื่อทำหน้าที่เป็นระบบเชื่อมต่อตัวตน ทำให้ทราฟฟิกของการลงชื่อเข้าใช้งานไม่มีการส่งออกนอกเครือข่ายของคุณ โดยแต่ละองค์กรจะเชื่อมต่อ IdP ของตนเข้ากับ Keycloak ผ่านเครือข่ายภายในองค์กร ดูรายละเอียดเพิ่มเติมได้ที่ [SSO และ IdP](/th/admin/sso-and-idp) ทั้งนี้โปรดหลีกเลี่ยงการใช้งานโหมด SSO แบบ `google` ในระบบปิด และให้เชื่อมต่อกับผู้ให้บริการ OIDC หรือ SAML ภายในองค์กรแทน
 
-## 5. Observability is self-hosted
+## 5. ระบบตรวจสอบสถานะการทำงานติดตั้งภายในระบบตัวเอง
 
-The bundled metrics/logs/traces stack runs entirely in-cluster — nothing is shipped to a third-party cloud. In
-HA, point it at your internal object storage. See [Platform observability](/th/operate/observability-platform).
+ชุดซอฟต์แวร์ระบบตรวจสอบสถานะการทำงาน (observability stack) ทั้งข้อมูลชี้วัด ล็อก และประวัติการทำงานจะทำงานอยู่ภายในคลัสเตอร์ทั้งหมดโดยไม่มีการส่งออกไปยังระบบคลาวด์ภายนอก ในโหมด HA โปรดตั้งค่าให้ชี้ไปยังที่จัดเก็บข้อมูลแบบวัตถุ (object storage) ภายในเครือข่ายของคุณเอง ดูรายละเอียดเพิ่มเติมได้ที่ [ระบบตรวจสอบสถานะการทำงานของแพลตฟอร์ม](/th/operate/observability-platform)
 
-## What never leaves the cluster
+## ข้อมูลที่ไม่มีวันหลุดออกนอกคลัสเตอร์
 
-- LLM request and response **content** (the gateway proxies to the providers _you_ configure).
-- **Telemetry** — metrics, logs, traces.
-- **Identity** — sign-in and tokens.
-- **Configuration and audit** — stored in your PostgreSQL.
+- **เนื้อหาการร้องขอและการตอบกลับของ LLM:** gateway จะทำหน้าที่รับส่งต่อ (proxy) ข้อมูลไปยังผู้ให้บริการต้นทางที่คุณเป็นผู้กำหนดไว้เท่านั้น
+- **ข้อมูลวัดระยะไกล (Telemetry):** ข้อมูลชี้วัด ล็อก และประวัติการทำงานของระบบ
+- **ข้อมูลตัวตน:** ข้อมูลการเข้าสู่ระบบและโทเค็นความปลอดภัย
+- **ค่ากำหนดและประวัติการทำงาน:** ซึ่งจะจัดเก็บไว้ในฐานข้อมูล PostgreSQL ของคุณเอง
 
-See [Data sovereignty](/th/security/data-sovereignty) for the full statement.
+ดูรายละเอียดเพิ่มเติมได้ที่คู่มือ [ความเป็นเอกราชของข้อมูล](/th/security/data-sovereignty) สำหรับข้อแถลงฉบับเต็ม
 
-## Next steps
+## ขั้นตอนต่อไป
 
-- [Reuse existing operators](/th/operate/byo-operators) · [Upgrades](/th/operate/upgrades) ·
-  [Data sovereignty](/th/security/data-sovereignty)
+- [การใช้งาน operator เดิมบนคลัสเตอร์](/th/operate/byo-operators) · [การอัปเกรดระบบ](/th/operate/upgrades) · [ความเป็นเอกราชของข้อมูล](/th/security/data-sovereignty)

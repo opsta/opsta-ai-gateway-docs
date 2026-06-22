@@ -1,9 +1,6 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# ระบบหลายผู้เช่า (Multi-tenancy)
 
-# Multi-tenancy model
-
-Opsta AI Gateway is multi-tenant by design. One platform serves many organizations, each fully isolated, and
-within each organization a clear hierarchy controls configuration, budgets, and access.
+Opsta AI Gateway ถูกออกแบบมาให้รองรับสถาปัตยกรรมแบบหลายผู้เช่า (multi-tenant) ตั้งแต่เริ่มต้น โดยระบบเดียวสามารถให้บริการแก่หลากหลายองค์กรได้อย่างแยกส่วนเป็นเอกเทศอย่างสมบูรณ์ และภายใต้แต่ละองค์กรจะมีระบบจัดลำดับขั้นการควบคุมค่ากำหนด งบประมาณ และการสิทธิ์เข้าถึงอย่างชัดเจน
 
 ```mermaid
 flowchart TB
@@ -16,34 +13,28 @@ flowchart TB
   G2 --> U3[User: carol]
 ```
 
-## The hierarchy
+## โครงสร้างลำดับชั้นของระบบผู้เช่า
 
-- **Organization** — the isolation, billing, and SSO boundary. One enterprise customer. Each organization
-  connects its own identity provider and cannot see another's data, config, or telemetry.
-- **Project** — owns a routing configuration, providers, guardrails, budgets, and API keys. An organization has
-  many projects (for example, one per product or environment).
-- **Group** — a team within a project, usually mapped from an identity-provider group. Used for access rollups
-  and budget aggregation.
-- **User** — a member who signs in and/or calls the gateway.
+- **องค์กร (Organization):** ขอบเขตของการแยกข้อมูล การเรียกเก็บเงิน และระบบ Single Sign-On (SSO) สำหรับลูกค้าระดับองค์กรรายหนึ่ง โดยแต่ละองค์กรจะสามารถเชื่อมต่อกับผู้ให้บริการระบุตัวตนของตนเองได้ และไม่สามารถมองเห็นข้อมูล ค่ากำหนด หรือข้อมูลการวัดระยะไกล (telemetry) ขององค์กรอื่นได้
+- **โปรเจกต์ (Project):** เป็นส่วนจัดการโครงสร้างการจัดเส้นทาง (routing) ผู้ให้บริการ guardrail งบประมาณ และ API key โดยแต่ละองค์กรสามารถสร้างได้หลายโปรเจกต์ เช่น สร้างแยกเป็นรายผลิตภัณฑ์หรือรายสภาพแวดล้อมการทำงาน
+- **กลุ่ม (Group):** ทีมการทำงานภายในโปรเจกต์ ซึ่งมักจะถูกแมปมาจากกลุ่มของผู้ให้บริการระบุตัวตน ใช้สำหรับรวมสิทธิ์การเข้าถึงและงบประมาณ
+- **ผู้ใช้งาน (User):** สมาชิกที่ลงชื่อเข้าใช้งานระบบและเรียกใช้งาน gateway
 
-Every API key, budget, limit, usage record, and metric is keyed by the full tuple
-`organization.project.user` — so attribution and isolation are exact, never a flat shared key.
+ทุก ๆ API key งบประมาณ ขีดจำกัด บันทึกประวัติการใช้งาน และข้อมูลชี้วัด จะถูกอ้างอิงด้วยข้อมูล tuple `organization.project.user` แบบครบถ้วน ส่งผลให้การระบุผู้รับผิดชอบและการแยกส่วนข้อมูลมีความถูกต้องแม่นยำสูง และไม่มีการใช้งานคีย์ร่วมกันแบบแบน
 
-## Roles and access (RBAC)
+## บทบาทและสิทธิ์การเข้าถึง (RBAC)
 
-| Role | Can do |
+| บทบาท | สิ่งที่สามารถทำได้ |
 |---|---|
-| **Platform admin** | Manage every organization; set global model pricing; read the cross-organization audit log; configure platform login methods. |
-| **Org admin** | Manage one organization — members, projects, providers, routing, budgets, guardrails, MCP servers, and the organization's identity provider. |
-| **Member** | Use the gateway: issue and manage their own API keys, view their usage and budget, and review their blocked requests. |
+| **Platform admin** | จัดการได้ทุกองค์กร กำหนดราคาโมเดลในระดับโกลบอล อ่านบันทึกประวัติการใช้งานข้ามองค์กร และกำหนดค่าวิธีการเข้าสู่ระบบของแพลตฟอร์ม |
+| **Org admin** | จัดการดูแลองค์กรเดียว ได้แก่ สมาชิก โปรเจกต์ ผู้ให้บริการ การจัดเส้นทาง งบประมาณ guardrail เซิร์ฟเวอร์ MCP และผู้ให้บริการระบุตัวตนขององค์กรนั้น ๆ |
+| **Member** | เรียกใช้งาน gateway ได้แก่ ออกคีย์และจัดการ API key ของตนเอง ดูปริมาณการใช้งานและงบประมาณ และตรวจสอบรายการร้องขอของตนที่ถูกบล็อก |
 
-Members are global identities; membership in an organization carries a role, and a user can belong to more than
-one organization. See [Organizations & members](/th/admin/organizations-and-members).
+ผู้ใช้งานเป็นบัญชีตัวตนในระดับโกลบอล โดยการเป็นสมาชิกขององค์กรจะได้รับบทบาทสิทธิ์ที่กำหนดไว้ และผู้ใช้งานหนึ่งรายสามารถเป็นสมาชิกของหลายองค์กรได้ ดูข้อมูลเพิ่มเติมได้ที่ [องค์กรและสมาชิก](/th/admin/organizations-and-members)
 
-## Hierarchical budgets
+## งบประมาณแบบลำดับขั้น
 
-Budgets cascade down the hierarchy, and the **tightest cap always wins** — a user can never spend more than
-their group, project, or organization allows, even if their own cap is higher.
+งบประมาณจะส่งผลไล่ลงมาตามลำดับชั้น และระบบจะยึดเพดานงบประมาณที่เข้มงวดที่สุดเสมอ ซึ่งผู้ใช้งานจะไม่มีวันใช้งานเกินขีดจำกัดที่กลุ่ม โปรเจกต์ หรือองค์กรกำหนดไว้ แม้ว่าขีดจำกัดเฉพาะของผู้ใช้รายนั้นจะตั้งไว้สูงกว่าก็ตาม
 
 ```mermaid
 flowchart LR
@@ -52,10 +43,8 @@ flowchart LR
   G --> U["User cap<br/>$500 → enforced"]
 ```
 
-This lets platform owners set a hard ceiling at the top while delegating finer limits downward. See
-[Budgets & limits](/th/admin/budgets-and-limits).
+การทำงานลักษณะนี้ช่วยให้ผู้ดูแลแพลตฟอร์มสามารถกำหนดเพดานค่าใช้จ่ายสูงสุดเอาไว้ในระดับบนสุด พร้อมทั้งมอบอำนาจให้ผู้ดูแลระดับล่างกำหนดขีดจำกัดย่อยลงไปได้ ดูข้อมูลเพิ่มเติมได้ที่ [งบประมาณและขีดจำกัด](/th/admin/budgets-and-limits)
 
-## Isolation in observability
+## การแยกส่วนข้อมูลในระบบตรวจสอบสถานะการทำงาน
 
-Each organization gets its own isolated dashboards and metrics tenancy — one customer's usage and telemetry are
-never visible to another. See [Observability](/th/admin/observability).
+แต่ละองค์กรจะได้รับแดชบอร์ดและระบบเก็บข้อมูลชี้วัดที่แยกส่วนกันอย่างชัดเจน ทำให้อัตราการใช้งานและข้อมูลวัดระยะไกลของลูกค้าแต่ละรายไม่มีทางรั่วไหลหรือมองเห็นโดยรายอื่น ดูข้อมูลเพิ่มเติมได้ที่ [ระบบตรวจสอบสถานะการทำงาน](/th/admin/observability)

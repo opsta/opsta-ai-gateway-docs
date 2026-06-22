@@ -1,34 +1,28 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# การกำหนดราคาโมเดล (Pricing)
 
-# Pricing
+**การกำหนดราคาโมเดล (Pricing)** คือการตั้งเกณฑ์ค่าใช้จ่ายต่อ token ที่ gateway จะนำไปใช้ในการคำนวณงบประมาณและข้อมูลการใช้งานทั้งหมด โดยผู้ดูแลระบบแพลตฟอร์ม (platform admin) จะเป็นผู้ดูแลรักษาราคาโมเดลเหล่านี้จากส่วนกลาง เพื่อให้ข้อมูลตัวเลขการใช้จ่ายทั้งหมดมีความสอดคล้องตรงกันทั่วทั้งระบบ
 
-Model **pricing** is the per-token cost basis the gateway uses to calculate every budget and usage figure.
-Platform admins maintain it centrally so all spend numbers are consistent.
-
-::: info Who can do this
-**Platform admins** edit pricing on the **Pricing** screen (Platform section). Other roles see it read-only.
+::: info ผู้ที่มีสิทธิ์ในการดำเนินการนี้
+**Platform admin** สามารถแก้ไขราคาได้ที่หน้าจอ **Pricing** ภายใต้ส่วนข้อมูลแพลตฟอร์ม (Platform) สำหรับบทบาทสิทธิ์อื่น ๆ จะมองเห็นข้อมูลนี้ในรูปแบบสิทธิ์อ่านอย่างเดียวเท่านั้น
 :::
 
-## What pricing controls
+## สิ่งที่ขึ้นกับการกำหนดราคาโมเดล
 
-Every USD figure — budgets, remaining balance, per-model cost breakdowns — is derived from these rates. They
-include input, output, and (where the provider supports it) **cache-read** and **cache-write** rates, so
-cache-aware costs are accurate.
+ทุกตัวเลขในสกุลเงิน USD ไม่ว่าจะเป็นงบประมาณ ยอดคงเหลือ และข้อมูลค่าใช้จ่ายแยกตามโมเดล จะถูกคำนวณมาจากอัตราค่าบริการเหล่านี้ ซึ่งอัตราดังกล่าวจะครอบคลุมถึงค่าบริการสำหรับ token ขาเข้า ขาออก และอัตราค่าบริการการเขียนแคช (cache-write) หรือการอ่านแคช (cache-read) หากผู้ให้บริการต้นทางรองรับความสามารถนี้ เพื่อช่วยให้การคิดค่าบริการจากแคชมีความแม่นยำสูงสุด
 
 ![The platform Pricing table with input, output, and cache rates](/images/pricing.png)
 
-## Override a price
+## การกำหนดราคาด้วยตนเอง (Override price)
 
-1. Open **Pricing**.
-2. Find the model — by its logical routing name or the provider's real model ID.
-3. Enter the rate(s). A manual entry **overrides** any auto-synced value.
-4. Save. New requests are costed at the updated rate immediately — no redeploy.
+1. เปิดหน้า **Pricing**
+2. ค้นหารายการโมเดลที่ต้องการ โดยอาจค้นหาจากชื่อการจัดเส้นทางเชิงตรรกะหรือระบุรหัสโมเดลจริงของผู้ให้บริการ
+3. ระบุอัตราค่าบริการที่ต้องการ การระบุค่าด้วยตนเองนี้จะ**บังคับทับ (override)** ค่าที่ซิงก์มาโดยอัตโนมัติ
+4. คลิกบันทึก ซึ่งคำร้องขอใหม่ที่ส่งเข้ามาหลังจากนี้จะถูกคิดค่าบริการตามอัตราใหม่ทันทีโดยไม่จำเป็นต้องรีสตาร์ทหรือติดตั้งระบบใหม่
 
-::: tip Logical vs upstream names
-Pricing can key on a logical routing name (configured per project) or a provider's real model ID. Match what
-your providers return so cache-aware tiered pricing applies correctly.
+::: tip ข้อแนะนำเกี่ยวกับชื่อเชิงตรรกะเทียบกับชื่อต้นทาง
+การกำหนดราคาโมเดลสามารถผูกกับชื่อการจัดเส้นทางเชิงตรรกะที่ตั้งค่าไว้รายโปรเจกต์ หรือผูกกับรหัสโมเดลจริงของผู้ให้บริการได้ โปรดกำหนดค่าให้ตรงกับชื่อที่ทางผู้ให้บริการของคุณส่งกลับมา เพื่อให้การคิดราคาแบบลดหย่อนตามแคชทำงานได้อย่างถูกต้องเหมาะสม
 :::
 
-## Next steps
+## ขั้นตอนต่อไป
 
-[Budgets & limits](/th/admin/budgets-and-limits) — budgets are enforced against these prices.
+- [งบประมาณและขีดจำกัด](/th/admin/budgets-and-limits) — งบประมาณต่าง ๆ จะถูกประเมินและบังคับใช้โดยคำนวณอ้างอิงจากราคาโมเดลเหล่านี้

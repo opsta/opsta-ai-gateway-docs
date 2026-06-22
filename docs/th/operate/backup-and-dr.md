@@ -1,62 +1,51 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# การสำรองข้อมูลและการกู้คืนระบบจากภัยพิบัติ
 
-# Backup & disaster recovery
+ฐานข้อมูล **PostgreSQL** ของ control plane คือแหล่งข้อมูลความจริงหนึ่งเดียว (single source of truth) ของระบบ โดยจะเก็บข้อมูลองค์กร โปรเจกต์ ผู้ให้บริการ งบประมาณ ขีดจำกัด ค่ากำหนด guardrail, API key, ข้อมูลบัญชีการใช้งาน และประวัติการใช้งาน (audit log) ทั้งหมดไว้ที่นี่ ดังนั้นการปกป้องข้อมูลชุดนี้จึงเป็นหัวใจสำคัญอย่างยิ่งสำหรับแผนการกู้คืนระบบจากภัยพิบัติ (DR plan)
 
-The control-plane **PostgreSQL** database is the single source of truth — organizations, projects, providers,
-budgets, limits, guardrail config, API keys, usage ledger, and the audit log all live there. Protecting it is the
-core of your DR plan.
-
-::: info Who this is for
-Platform engineers responsible for data protection and recovery.
+::: info เอกสารนี้เหมาะสำหรับใคร
+วิศวกรแพลตฟอร์ม (platform engineer) ที่มีหน้าที่ดูแลปกป้องข้อมูลและกู้คืนระบบ
 :::
 
-## What to back up
+## สิ่งที่จำเป็นต้องสำรองข้อมูล
 
-| Data | Where it lives | Why it matters |
+| ข้อมูล | แหล่งจัดเก็บ | ความสำคัญ |
 |---|---|---|
-| Tenant & policy config | Control-plane PostgreSQL | Recreates all orgs, projects, budgets, providers, guardrails |
-| API keys | Control-plane PostgreSQL | Keys keep working after restore |
-| Usage ledger | Control-plane PostgreSQL | Month-to-date spend and history |
-| Audit log | Control-plane PostgreSQL | Compliance trail |
-| Identity | Keycloak PostgreSQL | Users, brokered-IdP config, group mappings |
-| Secrets | Kubernetes Secrets / your secret store | Provider keys, OIDC secrets, DB passwords |
+| ค่ากำหนดผู้เช่าและนโยบายความปลอดภัย | PostgreSQL ของ control plane | ใช้เพื่อจำลองข้อมูลองค์กร โปรเจกต์ งบประมาณ ผู้ให้บริการ และ guardrail ทั้งหมดขึ้นมาใหม่ |
+| API keys | PostgreSQL ของ control plane | เพื่อให้คีย์เดิมยังใช้งานได้ต่อเนื่องหลังกู้คืนระบบ |
+| ข้อมูลบัญชีการใช้งาน | PostgreSQL ของ control plane | ยอดใช้จ่ายสะสมประจำเดือนและประวัติย้อนหลัง |
+| ประวัติการใช้งาน (Audit log) | PostgreSQL ของ control plane | สำหรับตรวจสอบประวัติตามข้อกำหนด |
+| ระบบจัดการตัวตน | PostgreSQL ของ Keycloak | บัญชีผู้ใช้งาน ค่ากำหนดการเชื่อมต่อ IdP และการจับคู่กลุ่ม |
+| ข้อมูลที่เป็นความลับ (Secrets) | Kubernetes Secrets หรือระบบจัดเก็บความลับของคุณ | คีย์ของผู้ให้บริการ, OIDC secrets และรหัสผ่านฐานข้อมูล |
 
-Metrics, logs, and traces in the observability stack are operational telemetry — back them up only if your
-retention policy requires it. They can be reconstructed from live traffic; the config database cannot.
+ข้อมูลชี้วัด ล็อก และประวัติการทำงานในชุดระบบตรวจสอบสถานะการทำงานเป็นเพียงข้อมูลวัดระยะไกลในการปฏิบัติงาน (operational telemetry) โปรดสำรองข้อมูลเหล่านี้เฉพาะในกรณีที่นโยบายการจัดเก็บข้อมูลขององค์กรคุณระบุไว้เท่านั้น เนื่องจากข้อมูลเหล่านี้จะสามารถสร้างขึ้นมาใหม่ได้จากการรับส่งข้อมูลตามปกติ แต่ฐานข้อมูลกำหนดค่าไม่สามารถทดแทนได้เช่นนั้น
 
-## Backing up PostgreSQL
+## ขั้นตอนการสำรองข้อมูล PostgreSQL
 
-The control-plane database runs on CloudNativePG, which supports scheduled backups to object storage:
+ฐานข้อมูล control plane ทำงานอยู่บน CloudNativePG ซึ่งรองรับการตั้งเวลาสำรองข้อมูลไปยังที่จัดเก็บข้อมูลแบบวัตถุ (object storage) ดังนี้
 
 ```yaml
 postgres:
   backup:
     enabled: true
-    method: objectStore            # or volumeSnapshot
+    method: objectStore            # หรือ volumeSnapshot
     objectStore:
       destinationPath: s3://backups/opsta-ai-gateway/
       endpointURL: https://s3.internal:9000
 ```
 
-This produces base backups plus continuous WAL archiving, enabling **point-in-time recovery**. Apply the same
-approach to the Keycloak database cluster.
+ระบบจะสร้างการสำรองข้อมูลหลัก (base backup) ควบคู่กับประวัติการเขียนข้อมูลอย่างต่อเนื่อง (WAL archiving) ทำให้สามารถ**กู้คืนข้อมูลย้อนกลับไปยังเวลาที่เจาะจงได้ (point-in-time recovery)** โปรดใช้แนวทางเดียวกันนี้กับการสำรองข้อมูลคลัสเตอร์ฐานข้อมูลของ Keycloak ด้วยเช่นกัน
 
-::: tip Back up before every upgrade
-Always take a fresh backup immediately before an [upgrade](/th/operate/upgrades) so you can roll back a schema
-migration if needed.
+::: tip สำรองข้อมูลก่อนการอัปเกรดระบบทุกครั้ง
+โปรดสำรองข้อมูลล่าสุดทุกครั้งก่อนเริ่มขั้นตอน [การอัปเกรดระบบ](/th/operate/upgrades) เพื่อให้คุณสามารถย้อนกลับเวอร์ชันการย้ายฐานข้อมูลได้หากจำเป็น
 :::
 
-## Restoring
+## ขั้นตอนการกู้คืนข้อมูล
 
-1. Restore the PostgreSQL cluster from the most recent base backup (and replay WAL to a target time for
-   point-in-time recovery), following CloudNativePG's restore procedure.
-2. Ensure the Kubernetes **Secrets** are present (from your secret store or backup).
-3. Bring up the platform with `helm install`/`upgrade`. On start, the control plane connects to the restored
-   database and **reconciles** the gateway from it — providers, budgets, guardrails, and keys are projected back
-   onto the data plane automatically.
+1. กู้คืนข้อมูลคลัสเตอร์ PostgreSQL จากไฟล์สำรองข้อมูลล่าสุด และรันประมวลผล WAL ย้อนกลับไปยังช่วงเวลาที่ระบุในกรณีที่ทำ point-in-time recovery โดยทำงานตามขั้นตอนการกู้คืนของ CloudNativePG
+2. ตรวจสอบให้แน่ใจว่า Kubernetes **Secrets** ทั้งหมดพร้อมใช้งาน โดยดึงมาจากระบบจัดเก็บความลับหรือจากไฟล์สำรอง
+3. เริ่มเปิดระบบการทำงานของแพลตฟอร์มด้วยคำสั่ง `helm install` หรือ `upgrade` เมื่อระบบเริ่มทำงาน control plane จะทำการเชื่อมต่อไปยังฐานข้อมูลที่กู้คืนเสร็จแล้ว และดำเนิน**ปรับประสานสถานะ (reconcile)** ข้อมูลไปยัง gateway โดยอัตโนมัติ ซึ่งผู้ให้บริการ งบประมาณ guardrail และคีย์ต่าง ๆ จะถูกส่งกลับไปยัง data plane ทันที
 
-Because the gateway holds **no configuration of its own**, restoring the database restores the whole platform's
-behavior. There's no separate gateway state to recover.
+เนื่องจากเกตเวย์**ไม่มีการจัดเก็บค่ากำหนดใด ๆ ไว้ที่ตัวเอง** การกู้คืนฐานข้อมูลจึงเสมือนเป็นการกู้คืนพฤติกรรมการทำงานของแพลตฟอร์มทั้งหมด โดยไม่จำเป็นต้องแยกกู้คืนสถานะการทำงานใด ๆ ที่เกตเวย์เพิ่มเติม
 
 ```bash
 $ kubectl -n opsta-ai-gateway get backup
@@ -64,15 +53,14 @@ NAME                       AGE   CLUSTER    METHOD              PHASE       ERRO
 opsta-pg-backup-20260614   2m    opsta-pg   barmanObjectStore   completed
 ```
 
-## Disaster-recovery posture
+## รูปแบบการทำงานด้านการกู้คืนระบบจากภัยพิบัติ
 
-- **Database**: in [HA](/th/operate/high-availability), a 3-instance cluster tolerates node loss; object-store
-  backups protect against cluster loss.
-- **Reproducibility**: the platform rebuilds from the chart plus the restored database — no hand-built state.
-- **Secrets**: keep them in an external secret store so they survive cluster loss independently.
+- **ฐานข้อมูล:** ใน [โหมด HA](/th/operate/high-availability) คลัสเตอร์ขนาด 3 instances จะช่วยลดความเสียหายจากการหยุดทำงานของโหนดเดี่ยวได้ และระบบสำรองข้อมูลไปยัง object store จะช่วยป้องกันความเสียหายในระดับสูญเสียคลัสเตอร์ทั้งหมด
+- **การจำลองระบบ:** แพลตฟอร์มสามารถติดตั้งขึ้นใหม่ได้จาก Helm chart ควบคู่กับข้อมูลฐานข้อมูลที่กู้คืนมา โดยไม่ต้องดำเนินการใด ๆ ด้วยตนเอง
+- **ความลับ (Secrets):** แนะนำให้จัดเก็บไว้ในระบบจัดเก็บความลับภายนอก เพื่อให้ข้อมูลคงอยู่แยกต่างหากและพร้อมดึงข้อมูลมาใช้งานได้แม้สูญเสียคลัสเตอร์
 
-## Next steps
+## ขั้นตอนต่อไป
 
-- [High availability](/th/operate/high-availability) — survive node failures without restoring.
-- [Upgrades](/th/operate/upgrades) — back up first, every time.
-- [Data sovereignty](/th/security/data-sovereignty) — where your data lives.
+- [ระบบความพร้อมใช้งานสูง (High availability)](/th/operate/high-availability) — วิธีการรับมือโหนดหยุดทำงานโดยไม่ต้องดำเนินกระบวนการกู้คืนข้อมูล
+- [การอัปเกรดระบบ](/th/operate/upgrades) — ข้อแนะนำการสำรองข้อมูลล่วงหน้าก่อนทำการอัปเกรดระบบ
+- [ความเป็นเอกราชของข้อมูล](/th/security/data-sovereignty) — รายละเอียดสิทธิความเป็นเจ้าของข้อมูลและแหล่งจัดเก็บ

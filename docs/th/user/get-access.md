@@ -1,40 +1,30 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# วิธีการเข้าใช้งาน
 
-# Get access
+หน้านี้มีเนื้อหาสำหรับ**นักพัฒนา**ที่ต้องการเรียกใช้งาน gateway โดยจะครอบคลุมถึงวิธีการเข้าสู่ระบบ สิ่งที่คุณจะได้รับจากบัญชีของคุณ และขั้นตอนการทำงานถัดไป
 
-This page is for **developers** who want to use the gateway. It covers signing in, what your account gives you,
-and where to go next.
+## การเข้าสู่ระบบ
 
-## Sign in
+เปิด web console ที่ URL `https://console.<your-domain>` แล้วเข้าสู่ระบบด้วย**ระบบ Single Sign-On ขององค์กรคุณ** เช่น Google Workspace, Microsoft Entra หรือผู้ให้บริการยืนยันตัวตนขององค์กรคุณ โดยระบบนี้ไม่มีการจัดการรหัสผ่านแยกต่างหาก เนื่องจากข้อมูลระบุตัวตนของคุณจะดึงมาจากระบบลงชื่อเข้าใช้งานของบริษัทโดยตรง
 
-Open the web console at `https://console.<your-domain>` and sign in with your **corporate single sign-on**
-(Google Workspace, Microsoft Entra, or your organization's identity provider). There is no separate password to
-manage — your identity comes from your company login.
+เมื่อเข้าสู่ระบบเป็นครั้งแรก คุณจะเข้าสู่**องค์กร**และ**กลุ่ม**ที่ถูกต้องโดยอัตโนมัติ โดยอิงตามกลุ่มในระบบผู้ให้บริการระบุตัวตนของคุณ และไม่จำเป็นต้องตั้งค่าเพิ่มเติมเป็นรายผู้ใช้
 
-On first sign-in you are placed into the right **organization** and **group** automatically, based on your
-identity-provider groups. No per-user setup is required.
-
-::: info Prerequisite
-Your administrator must have invited your email to an organization (or configured your identity provider to
-provision members on first login). If you see an "account isn't linked" message, contact your org admin — see
-[Organizations & members](/th/admin/organizations-and-members).
+::: info สิ่งที่ต้องเตรียมความพร้อม
+ผู้ดูแลระบบของคุณต้องส่งคำเชิญไปยังอีเมลของคุณเพื่อเข้าร่วมองค์กร หรือตั้งค่าผู้ให้บริการระบุตัวตนเพื่อเตรียมสิทธิ์ของสมาชิกไว้ในการเข้าสู่ระบบครั้งแรก หากคุณพบข้อความ "account isn't linked" โปรดติดต่อผู้ดูแลระบบระดับองค์กร (org admin) ของคุณ โดยดูข้อมูลเพิ่มเติมได้ที่ [องค์กรและสมาชิก](/th/admin/organizations-and-members)
 :::
 
-## What your account gives you
+## สิ่งที่บัญชีของคุณจัดการได้
 
-Once signed in, the **Overview** is your dashboard. From the portal you can:
+เมื่อเข้าสู่ระบบแล้ว หน้า **ภาพรวม (Overview)** จะเป็นแดชบอร์ดของคุณ โดยคุณสามารถทำสิ่งต่าง ๆ ผ่านพอร์ทัลได้ดังนี้
 
-- See your **usage and budget** — tokens used and USD spent vs. your remaining budget, per model. See
-  [Usage & budget](/th/user/usage-and-budget).
-- View your **profile** — your name, email, team/group, and the models your group is allowed to use.
-- Issue and manage your own **[API keys](/th/user/api-keys)**.
-- Get the exact config to **[connect a client](/th/user/connect-a-client)** (opencode, Crush, or any
-  OpenAI-compatible SDK).
-- Review your **[blocked requests](/th/user/blocked-requests)** if a guardrail rejected something.
+- ตรวจสอบ**ปริมาณการใช้งานและงบประมาณ** ได้แก่ จำนวน token ที่ใช้ไปและยอดใช้จ่ายในหน่วย USD เทียบกับงบประมาณที่เหลืออยู่แยกตามรายโมเดล ดูรายละเอียดได้ที่ [ปริมาณการใช้งานและงบประมาณ](/th/user/usage-and-budget)
+- ดูข้อมูล**โปรไฟล์**ของคุณ ได้แก่ ชื่อ อีเมล ทีมหรือกลุ่ม และโมเดลที่กลุ่มของคุณได้รับอนุญาตให้เข้าใช้งานได้
+- ออกและจัดการ **[API key](/th/user/api-keys)** ของตนเอง
+- คัดลอกค่ากำหนดสำหรับการ **[เชื่อมต่อฝั่งไคลเอนต์](/th/user/connect-a-client)** เช่น opencode, Crush หรือ SDK ใด ๆ ที่เข้ากันได้กับมาตรฐาน OpenAI
+- ตรวจสอบรายการ **[การร้องขอที่ถูกบล็อก](/th/user/blocked-requests)** ในกรณีที่คำร้องขอของคุณถูกปฏิเสธจากระบบ guardrail
 
 ![The Profile page](/images/profile.png)
 
-## Next steps
+## ขั้นตอนต่อไป
 
-- [Connect a client](/th/user/connect-a-client) — start sending requests.
-- [Manage API keys](/th/user/api-keys) — issue your first key.
+- [เชื่อมต่อฝั่งไคลเอนต์](/th/user/connect-a-client) เพื่อเริ่มต้นส่งคำร้องขอ
+- [จัดการ API key](/th/user/api-keys) เพื่อออกคีย์แรกของคุณ

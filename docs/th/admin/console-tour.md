@@ -1,37 +1,31 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# แนะนำการใช้งาน Console
 
-# Console tour
+web console คือเครื่องมือหลักสำหรับผู้ดูแลระบบในการบริหารจัดการแพลตฟอร์ม โดยไม่จำเป็นต้องใช้ command line ไม่ต้องเข้าถึงระบบ Kubernetes และไม่ต้องเขียนไฟล์ YAML หน้านี้จะช่วยแนะนำการใช้งานเบื้องต้นแก่คุณ ส่วนรายละเอียดการกำหนดค่าต่าง ๆ จะมีอธิบายอย่างเจาะลึกในคู่มือสำหรับผู้ดูแลระบบฉบับนี้
 
-The web console is where administrators run the platform — no command line, no Kubernetes access, no editing
-YAML. This page orients you; the rest of the Administrator Guide covers each area in depth.
-
-::: info Who can see what
-The console shows different sections by role ([RBAC](/th/overview/multi-tenancy#roles-and-access-rbac)):
-**members** see the personal portal; **org admins** also see their organization's admin areas; **platform
-admins** see everything across all organizations.
+::: info ระดับสิทธิ์ในการมองเห็นข้อมูล
+หน้าจอ console จะแสดงเนื้อหาและส่วนต่าง ๆ แตกต่างกันไปตามบทบาทหน้าที่ (RBAC) ได้แก่ สมาชิกทั่วไป (member) จะมองเห็นเฉพาะพอร์ทัลส่วนตัว ผู้ดูแลระบบระดับองค์กร (org admin) จะมองเห็นส่วนการจัดการขององค์กรเพิ่มเติม และผู้ดูแลระบบแพลตฟอร์ม (platform admin) จะมองเห็นข้อมูลทั้งหมดของทุกองค์กร
 :::
 
-## Navigation
+## เมนูการใช้งาน (Navigation)
 
-The left navigation is grouped by scope:
+เมนูด้านซ้ายจะถูกจัดกลุ่มตามขอบเขตการใช้งาน ดังนี้
 
-- **Portal** (everyone) — Overview, Profile, API keys, Blocked requests, Connect a client.
-- **Organization** (org & platform admins) — Organization, Projects, Usage, Guardrail blocks, Audit log.
-- **Platform** (platform admins only) — Organizations, Users & access, Pricing.
+- **Portal (ผู้ใช้งานทุกคน):** ภาพรวม (Overview), โปรไฟล์ (Profile), API key, การร้องขอที่ถูกบล็อก (Blocked requests) และการเชื่อมต่อฝั่งไคลเอนต์ (Connect a client)
+- **Organization (ผู้ดูแลระบบองค์กรและแพลตฟอร์ม):** ข้อมูลองค์กร (Organization), โปรเจกต์ (Projects), ปริมาณการใช้งาน (Usage), การบล็อกของ Guardrail (Guardrail blocks) และประวัติการใช้งาน (Audit log)
+- **Platform (ผู้ดูแลระบบแพลตฟอร์มเท่านั้น):** รายชื่อองค์กร (Organizations), ผู้ใช้งานและสิทธิ์เข้าถึง (Users & access) และการกำหนดราคาโมเดล (Pricing)
 
 ![The console with its role-based left navigation](/images/console-overview.png)
 
-## First-time setup
+## การตั้งค่าระบบครั้งแรก
 
-A dismissible **setup guide** on the admin home walks a new platform through the path:
-**create an organization → connect its identity provider → invite org admins → users sign in → groups auto-map**.
+คู่มือการตั้งค่า (Setup guide) บนหน้าแรกของผู้ดูแลระบบจะนำคุณผ่านขั้นตอนต่าง ๆ ได้แก่ **สร้างองค์กร → เชื่อมต่อผู้ให้บริการระบุตัวตน → เชิญผู้ดูแลระบบระดับองค์กร → ผู้ใช้งานลงชื่อเข้าใช้งาน → ระบบแมปกลุ่มโดยอัตโนมัติ** ซึ่งคุณสามารถกดปิดหน้านี้ได้เมื่อดำเนินการเสร็จสิ้น
 
-## Where to go next
+## แนะนำขั้นตอนการทำงานถัดไป
 
-| To do this | Go to |
+| สิ่งที่ต้องการทำ | ไปที่หน้าจอ |
 |---|---|
-| Create orgs, invite members, set roles | [Organizations & members](/th/admin/organizations-and-members) |
-| Configure a project's providers, routing, guardrails, budgets, MCP | [Projects](/th/admin/projects) |
-| Connect a corporate identity provider | [SSO & IdP brokering](/th/admin/sso-and-idp) |
-| See usage and spend across the org | [Budgets & limits](/th/admin/budgets-and-limits) |
-| Review every administrative change | [Audit log](/th/admin/audit-log) |
+| สร้างองค์กร เชิญสมาชิก และกำหนดบทบาท | [องค์กรและสมาชิก](/th/admin/organizations-and-members) |
+| ตั้งค่าผู้ให้บริการ การจัดเส้นทาง guardrail งบประมาณ และ MCP ของโปรเจกต์ | [โปรเจกต์](/th/admin/projects) |
+| เชื่อมต่อผู้ให้บริการระบุตัวตนขององค์กร | [SSO และ IdP](/th/admin/sso-and-idp) |
+| ตรวจสอบปริมาณการใช้งานและยอดค่าใช้จ่ายภายในองค์กร | [งบประมาณและขีดจำกัด](/th/admin/budgets-and-limits) |
+| ตรวจสอบประวัติการเปลี่ยนแปลงของผู้ดูแลระบบทั้งหมด | [ประวัติการใช้งาน (Audit log)](/th/admin/audit-log) |

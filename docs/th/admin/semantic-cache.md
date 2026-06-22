@@ -1,37 +1,30 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# ระบบแคชตามความหมาย (Semantic cache)
 
-# Semantic cache
+**ระบบแคชตามความหมาย (Semantic cache)** จะทำหน้าที่ส่งคืนคำตอบที่จัดเก็บไว้ในแคชเมื่อพบว่า prompt ใหม่มีความหมายที่คล้ายคลึงกับคำร้องขอก่อนหน้า โดยข้ามขั้นตอนการเรียกใช้งานโมเดลไปทั้งหมดและช่วยประหยัดค่าใช้จ่าย token ทั้งหมด ระบบนี้ทำงานแยกเฉพาะรายโปรเจกต์ ต้องเลือกเปิดใช้งานเอง และมีการแยกข้อมูลอย่างเป็นเอกเทศตามแต่ละผู้เช่า
 
-The semantic cache returns a stored answer when a new prompt is **similar in meaning** to a previous one,
-skipping the model call entirely and saving the full token spend. It's per-project, opt-in, and tenant-isolated.
-
-::: info Who can do this
-**Org admins** (for their organization) and **platform admins**, on **Projects → Semantic Cache**.
+::: info ผู้ที่มีสิทธิ์ในการดำเนินการนี้
+**Org admin** (สิทธิ์เฉพาะในองค์กรของตนเอง) และ **Platform admin** โดยดำเนินการผ่านหน้าจอ **Projects → Semantic Cache**
 :::
 
-## Enable and tune
+## การเปิดใช้งานและการปรับจูน
 
-1. Open **Projects → Semantic Cache** and toggle it **on**.
-2. Set the **TTL** — how long a cached answer stays valid.
-3. Set the **similarity threshold** — how close a new prompt must be to a cached one to count as a hit (higher =
-   stricter, fewer but safer hits).
-4. Choose the **key strategy** — whether to match on the last question or the full conversation.
-5. Save.
+1. เปิดหน้า **Projects → Semantic Cache** และสลับสวิตช์เพื่อเปิดใช้งาน
+2. กำหนดค่า **TTL** เพื่อตั้งระยะเวลาที่คำตอบในแคชจะยังคงถูกต้องและใช้งานได้
+3. กำหนดค่า **ระดับความคล้ายคลึง (similarity threshold)** เพื่อระบุว่า prompt ใหม่ต้องมีความคล้ายคลึงกับข้อมูลในแคชมากเพียงใดจึงจะถือว่าตรวจพบข้อมูล โดยการตั้งค่าสูงจะมีความเข้มงวดมากขึ้น ส่งผลให้ตรวจพบข้อมูลน้อยลงแต่มีความปลอดภัยและแม่นยำสูงขึ้น
+4. เลือก **กลยุทธ์การตรวจจับคีย์ (key strategy)** ว่าจะจับคู่จากเฉพาะคำถามล่าสุดหรือจากบทสนทนาทั้งหมด
+5. คลิกบันทึก
 
 ![The Semantic Cache tab](/images/semantic-cache.png)
 
-## How it helps
+## ประโยชน์ของระบบแคชตามความหมาย
 
-A cache hit short-circuits before the provider, so it costs nothing against the project's
-[budget](/th/admin/budgets-and-limits). Cached responses are isolated per project — one project's answers are never
-served to another. Savings appear in the project's usage and dashboards.
+เมื่อตรวจพบข้อมูลในแคช (cache hit) ระบบจะตอบกลับข้อมูลทันทีก่อนจะส่งข้อมูลไปถึงผู้ให้บริการต้นทาง ดังนั้นจึงไม่มีการคิดค่าใช้จ่ายใด ๆ หักจากงบประมาณของโปรเจกต์ ข้อมูลตอบกลับในแคชจะถูกแยกส่วนเป็นเอกเทศในแต่ละโปรเจกต์ ซึ่งข้อมูลคำตอบของโปรเจกต์หนึ่งจะไม่มีวันถูกดึงไปแสดงให้แก่อีกโปรเจกต์หนึ่งอย่างเด็ดขาด โดยยอดประหยัดค่าใช้จ่ายดังกล่าวจะแสดงรายละเอียดให้เห็นบนหน้าจอข้อมูลการใช้งานและแดชบอร์ดของโปรเจกต์
 
-::: tip Tuning the threshold
-Start strict (high threshold) and lower it gradually while watching quality. Too low, and unrelated prompts may
-share an answer; too high, and you get few hits.
+::: tip แนะนำในการปรับจูนระดับความคล้ายคลึง
+เริ่มต้นโดยกำหนดค่าให้มีความเข้มงวดสูงไว้ก่อน จากนั้นค่อย ๆ ปรับลดค่าลงพร้อมกับคอยตรวจสอบคุณภาพคำตอบ หากกำหนดค่าต่ำเกินไป prompt ที่ไม่เกี่ยวข้องกันอาจถูกประเมินว่ามีคำตอบเดียวกัน แต่หากกำหนดค่าสูงเกินไปคุณจะตรวจพบข้อมูลในแคชน้อยลง
 :::
 
-## Next steps
+## ขั้นตอนต่อไป
 
-- [Semantic guard](/th/admin/semantic-guard) — the same vector approach applied to safety.
-- [Budgets & limits](/th/admin/budgets-and-limits) — see cache savings against spend.
+- [ระบบตรวจสอบคำสั่งที่ไม่ปลอดภัย (Semantic guard)](/th/admin/semantic-guard) เพื่อศึกษาวิธีการใช้งานเวกเตอร์ในลักษณะเดียวกันในการดูแลความปลอดภัยของระบบ
+- [งบประมาณและขีดจำกัด](/th/admin/budgets-and-limits) เพื่อตรวจสอบยอดประหยัดค่าใช้จ่ายที่เกิดขึ้นจริง

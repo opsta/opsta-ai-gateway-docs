@@ -1,55 +1,38 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# Opsta AI Gateway คืออะไร
 
-# What is Opsta AI Gateway
+**Opsta AI Gateway คือจุดควบคุมระดับองค์กรสำหรับทุกการรับส่งข้อมูลด้าน AI ขององค์กรคุณ** ทุกการร้องขอ (request) ของโมเดลภาษาขนาดใหญ่ (LLM) และทุกการเรียกใช้เครื่องมือของ AI-agent (MCP) จะต้องทำงานผ่าน gateway ที่ได้รับการควบคุมดูแลนี้ โดยระบบจะทำงาน**ภายในสภาพแวดล้อมของคุณทั้งหมด** ทำให้คุณควบคุมได้ทั้งค่าใช้จ่าย การเข้าถึง และความเสี่ยง โดยที่ข้อมูลของคุณไม่มีวันไหลออกนอกโครงสร้างพื้นฐานของตนเอง
 
-**Opsta AI Gateway is an enterprise control point for all of your organization's AI traffic.** Every large
-language model (LLM) request and every AI-agent (MCP) tool call passes through one governed gateway that runs
-**entirely in your own environment** — so you control the cost, the access, and the risk, and your data never
-leaves your infrastructure.
+## ทำไมต้องใช้ gateway
 
-## Why a gateway
+เมื่อทีมต่าง ๆ เริ่มนำ AI มาใช้งาน จะเกิดปัญหาหลักขึ้น 2 ประการพร้อมกัน ได้แก่
 
-As teams adopt AI, two problems appear at once:
+- **AI กลายเป็นภาระค่าใช้จ่ายหลัก:** ทุกทีมเรียกใช้งาน LLM โดยตรงโดยไม่มีการกำหนดขีดจำกัดและไม่มีการระบุผู้รับผิดชอบ ทำให้ยอดค่าใช้จ่ายรายเดือนเป็นเรื่องที่คาดเดาไม่ได้และไม่มีเจ้าของงบประมาณที่ชัดเจน
+- **AI กลายเป็นช่องทางของความเสี่ยง:** ไม่มีการควบคุมว่าใครจะใช้งานโมเดลใด ไม่มีการปิดบังข้อมูลที่ละเอียดอ่อน ไม่มีระบบป้องกันความปลอดภัยจากการป้อนคำสั่ง (prompt injection) และไม่มีการบันทึกประวัติ (audit trail) ว่ามีการส่งข้อมูลใดออกไปบ้าง ซึ่งบ่อยครั้งมักเป็นการส่งผ่านระบบคลาวด์ภายนอกที่คุณไม่สามารถควบคุมได้
 
-- **AI becomes a budget line.** Every team calls LLMs directly, with no caps and no attribution. The monthly
-  bill is a surprise, and no one owns it.
-- **AI becomes a risk surface.** There's no control over who uses which model, no masking of sensitive data, no
-  guardrails against prompt injection, and no audit trail of what was sent — often through a third-party cloud
-  you don't control.
+Opsta AI Gateway จึงเข้ามาทำหน้าที่เป็นจุดควบคุมที่ปลอดภัยเพียงจุดเดียวเพื่อจัดการปัญหาทั้งหมดนี้
 
-Opsta AI Gateway puts a single, governed control point in front of all of it.
+## สิ่งที่คุณจะได้รับ
 
-## What it gives you
+- **ควบคุมค่าใช้จ่าย:** กำหนดงบประมาณ USD แบบลำดับขั้นตั้งแต่ระดับองค์กร โปรเจกต์ กลุ่ม จนถึงผู้ใช้งาน พร้อมจำกัดจำนวน token ต่อนาที และใช้ระบบ semantic caching เพื่อลดค่าใช้จ่ายที่เกิดขึ้นจริง ดูข้อมูลเพิ่มเติมได้ที่ [งบประมาณและขีดจำกัด](/th/admin/budgets-and-limits)
+- **กำกับดูแลการเข้าถึงและความปลอดภัย:** ยืนยันตัวตนผ่าน API key กำหนดสิทธิ์ตามบทบาท (RBAC) ปิดบังข้อมูลส่วนบุคคล (PII masking) ป้องกันการทำ prompt injection ผ่าน [guardrail](/th/admin/guardrails) และเก็บบันทึก [ประวัติการใช้งานอย่างละเอียด](/th/admin/audit-log)
+- **กำกับดูแล AI agent:** ลงทะเบียนและควบคุมดูแล [MCP server](/th/admin/mcp-servers) ระยะไกล เพื่อช่วยให้การรับส่งข้อมูลของเครื่องมือ agent ได้รับการยืนยันตัวตน แยกส่วนตามโปรเจกต์ และถูกตรวจสอบ ซึ่งถือเป็นมาตรการควบคุมเดียวกันกับการรับส่งข้อมูลของ LLM
+- **ความเป็นเจ้าของข้อมูลอย่างแท้จริง:** ติดตั้งบนระบบของคุณเองและรองรับการทำงานแบบ air-gap โดยที่ data plane จะทำงานอยู่ภายในคลัสเตอร์ของคุณ ส่งผลให้ prompt และข้อมูลที่ละเอียดอ่อนไม่มีวันไหลออกนอกสภาพแวดล้อมของคุณ ดูข้อมูลเพิ่มเติมได้ที่ [ความเป็นเอกราชของข้อมูล](/th/security/data-sovereignty)
+- **ออกแบบมารองรับการใช้งานหลายทีม:** รองรับระบบหลายผู้เช่า [multi-tenancy](/th/overview/multi-tenancy) อย่างแท้จริง โดยระบบเดี่ยวสามารถให้บริการได้หลากหลายองค์กร โปรเจกต์ กลุ่ม และผู้ใช้งาน ซึ่งแต่ละส่วนจะมีโครงสร้างการกำหนดค่า งบประมาณ และแดชบอร์ดที่แยกจากกันโดยสิ้นเชิง
 
-- **Control the cost** — hierarchical USD budgets (organization → project → group → user), per-minute token
-  limits, and semantic caching that cuts spend. See [Budgets & limits](/th/admin/budgets-and-limits).
-- **Govern access & safety** — API-key authentication, role-based access control, PII masking,
-  prompt-injection [guardrails](/th/admin/guardrails), and a full [audit log](/th/admin/audit-log).
-- **Govern AI agents** — register and govern remote [MCP servers](/th/admin/mcp-servers) so your agents' tool
-  traffic is authenticated, isolated per project, and observed — the same controls as your LLM traffic.
-- **Keep it yours** — self-hosted and air-gap installable. The data plane runs in your cluster; sensitive
-  prompts and data never leave your environment. See [Data sovereignty](/th/security/data-sovereignty).
-- **Built for many teams** — true [multi-tenancy](/th/overview/multi-tenancy): one platform serves many
-  organizations, projects, groups, and users, each with isolated config, budgets, and dashboards.
+## กลุ่มผู้ใช้งานหลัก
 
-## Who it's for
+- **นักพัฒนา (Developer):** เรียกใช้งาน gateway ได้เหมือนกับ endpoint ทั่วไปที่รองรับมาตรฐาน OpenAI ดูข้อมูลเพิ่มเติมได้ที่ [คู่มือการใช้งาน](/th/user/get-access)
+- **ผู้ดูแลระบบองค์กรและแพลตฟอร์ม (Organization & Platform Administrator):** กำหนดค่าผู้ให้บริการ (provider) งบประมาณ guardrail ระบบ MCP และระบบ SSO ได้จาก web console ดูข้อมูลเพิ่มเติมได้ที่ [คู่มือสำหรับผู้ดูแลระบบ](/th/admin/console-tour)
+- **วิศวกรแพลตฟอร์ม (Platform Engineer):** ติดตั้ง ดูแลความปลอดภัย ขยายระบบ และควบคุมการทำงานบน Kubernetes ดูข้อมูลเพิ่มเติมได้ที่ [การติดตั้งและปฏิบัติการ](/th/operate/requirements)
 
-- **Developers** consume the gateway like any OpenAI-compatible endpoint — see the [User Guide](/th/user/get-access).
-- **Organization & platform administrators** configure providers, budgets, guardrails, MCP, and SSO from the web
-  console — see the [Administrator Guide](/th/admin/console-tour).
-- **Platform engineers** install, secure, scale, and operate it on Kubernetes — see [Deploy &
-  Operate](/th/operate/requirements).
+ระบบนี้เหมาะสำหรับแพลตฟอร์ม AI ภายในองค์กร ธุรกิจที่มีหลายหน่วยงาน และองค์กรที่มีข้อกำหนดด้านความเป็นเอกราชของข้อมูลหรือข้อกำหนดทางกฎหมายที่เข้มงวด
 
-It fits internal AI platforms, multi–business-unit enterprises, and organizations with strict data-sovereignty
-or regulatory requirements.
+## รูปแบบติดตั้งเองหรือให้เราดูแลแบบครบวงจร
 
-## Self-managed or fully managed
+คุณสามารถเลือกที่จะดูแลรักษา Opsta AI Gateway ด้วยตัวเอง หรือเลือกให้ทาง Opsta ช่วยติดตั้ง ควบคุมดูแล และสนับสนุนการใช้งานในรูปแบบ managed service ที่มาพร้อมระบบตรวจสอบสถานะตลอด 24 ชั่วโมงและข้อตกลงระดับการให้บริการ (SLA) ระดับเทียบเท่ากับธนาคาร
 
-Run Opsta AI Gateway yourself, or have Opsta deploy, run, and support it for you as a managed service with
-24×7 monitoring and a banking-grade SLA.
+## ขั้นตอนต่อไป
 
-## Next steps
-
-- [Key concepts & glossary](/th/overview/concepts) — the vocabulary used throughout these docs.
-- [Architecture](/th/overview/architecture) — how the pieces fit together.
-- [Request lifecycle](/th/overview/request-lifecycle) — what happens to a request as it passes through.
+- [แนวคิดสำคัญและคำศัพท์เฉพาะ](/th/reference/glossary) — คำศัพท์ที่ใช้ในเอกสารนี้ทั้งหมด
+- [สถาปัตยกรรม](/th/overview/architecture) — โครงสร้างและส่วนประกอบต่าง ๆ ของระบบ
+- [วงจรชีวิตของการร้องขอ](/th/overview/request-lifecycle) — กระบวนการที่เกิดขึ้นเมื่อมีการส่ง request ผ่าน gateway

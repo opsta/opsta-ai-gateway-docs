@@ -1,63 +1,46 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# ข้อกำหนดของระบบ
 
-# Requirements
+**Opsta AI Gateway** ทำงานอยู่บน**คลัสเตอร์ Kubernetes ของคุณเองทั้งหมด** โดยไม่มีการส่งข้อมูลใด ๆ ออกไปยังระบบคลาวด์ภายนอก และคุณสามารถสร้างระบบแพลตฟอร์มทั้งหมดขึ้นมาใหม่ได้จาก Helm chart หน้านี้จะแสดงรายละเอียดสิ่งที่คลัสเตอร์ของคุณจำเป็นต้องมีก่อนเริ่มต้นขั้นตอนการติดตั้ง
 
-Opsta AI Gateway runs entirely on **your own Kubernetes cluster**. Nothing is sent to a managed cloud, and the
-whole platform is reproducible from the Helm chart. This page lists what the cluster needs before you install.
-
-::: info Who this is for
-Platform engineers deploying and operating the gateway. If you only want to _use_ the gateway, start with
-[Get access](/th/user/get-access) instead.
+::: info เอกสารนี้เหมาะสำหรับใคร
+วิศวกรแพลตฟอร์ม (platform engineer) ที่ทำหน้าที่ติดตั้งและควบคุมดูแลระบบ gateway หากคุณต้องการเพียงแค่ใช้งาน gateway โปรดเริ่มต้นศึกษาที่คู่มือ [วิธีการเข้าใช้งาน](/th/user/get-access) แทน
 :::
 
-## Kubernetes
+## ระบบ Kubernetes
 
-- **Kubernetes ≥ 1.28** — the platform installs Gateway API CRDs and requires a recent control plane.
-- **Gateway API v1.4.x** — provides the `v1` and `v1alpha2` route types the gateway needs. The chart can install
-  these for you, or reuse what's already on the cluster.
-- A working **default StorageClass** (or set `global.storageClass`) — PostgreSQL, Redis, and the observability
-  stack all use persistent volumes.
-- A **CNI that enforces NetworkPolicy** if you want network isolation between components (recommended for
-  production). Lightweight CNIs such as k3d/flannel ignore NetworkPolicy — the platform still runs, but the
-  isolation guards become no-ops.
+- **Kubernetes ตั้งแต่เวอร์ชัน 1.28 ขึ้นไป:** เนื่องจากแพลตฟอร์มจะติดตั้ง Gateway API CRD และต้องการระบบ control plane เวอร์ชันปัจจุบัน
+- **Gateway API v1.4.x:** เพื่อให้บริการประเภทเส้นทางจัดส่งข้อมูล `v1` และ `v1alpha2` ที่เกตเวย์จำเป็นต้องใช้งาน โดยตัว chart สามารถติดตั้งสิ่งเหล่านี้ให้คุณได้โดยอัตโนมัติ หรือจะเลือกใช้งานส่วนที่มีอยู่แล้วบนคลัสเตอร์ก็ได้
+- **การกำหนด default StorageClass ที่ใช้งานได้ หรือกำหนดผ่านค่า `global.storageClass`:** เนื่องจากระบบ PostgreSQL, Redis และชุดระบบตรวจสอบสถานะการทำงานทั้งหมดจำเป็นต้องใช้งาน persistent volume ในการจัดเก็บข้อมูล
+- **CNI ที่รองรับการบังคับใช้ NetworkPolicy:** หากคุณต้องการให้มีการแยกส่วนระบบเครือข่ายระหว่างแต่ละส่วนประกอบเพื่อความปลอดภัย (แนะนำสำหรับสภาพแวดล้อมการใช้งานจริง) ทั้งนี้ CNI ขนาดเล็ก เช่น k3d หรือ flannel จะละเลยกฎ NetworkPolicy ซึ่งระบบแพลตฟอร์มจะยังคงทำงานได้ตามปกติ แต่มาตรการป้องกันการแยกส่วนเครือข่ายจะไม่มีผลบังคับใช้งานจริง
 
-## Compute
+## ทรัพยากรระบบประมวลผล (Compute)
 
-Size depends on which optional subsystems you enable. A reasonable production starting point:
+ขนาดของทรัพยากรจะขึ้นอยู่กับระบบย่อยที่คุณเลือกเปิดใช้งาน โดยมีเกณฑ์เริ่มต้นที่เหมาะสมสำหรับการใช้งานจริงดังนี้
 
-| Profile | Suitable for | Rough footprint |
+| รูปแบบโปรไฟล์ | เหมาะสำหรับ | ทรัพยากรระบบโดยประมาณ |
 |---|---|---|
-| **Standalone** (`global.highAvailability=false`) | Pilots, single-team, non-critical | 1 replica per component; ~6–8 vCPU, ~12–16 GiB RAM |
-| **High availability** (`global.highAvailability=true`) | Production, many teams | 2–3 replicas per component + PostgreSQL/Redis clusters; ~16+ vCPU, ~32+ GiB RAM |
+| Standalone (`global.highAvailability=false`) | โครงการนำร่อง, ทีมเดี่ยว, งานทั่วไปที่ไม่วิกฤต | 1 replica ต่อส่วนประกอบ, ทรัพยากรประมาณ 6 ถึง 8 vCPU และแรม 12 ถึง 16 GiB |
+| High availability (`global.highAvailability=true`) | สภาพแวดล้อมใช้งานจริง, รองรับหลายทีม | 2 ถึง 3 replicas ต่อส่วนประกอบ พร้อมคลัสเตอร์ PostgreSQL และ Redis, ทรัพยากรประมาณ 16 vCPU ขึ้นไป และแรม 32 GiB ขึ้นไป |
 
-Enabling the **semantic** features (cache and guard) adds a vector database (Qdrant) and an embedding service
-(Ollama), which need additional CPU/RAM and disk. See [High availability](/th/operate/high-availability) for how
-replica counts are derived.
+การเปิดใช้งานฟีเจอร์ด้านความหมาย (semantic) ได้แก่ แคชและ guardrail ป้องกันคำสั่ง จะมีการติดตั้งฐานข้อมูลเวกเตอร์ (Qdrant) และบริการฝังข้อมูลตัวแทน (Ollama) เพิ่มเติม ซึ่งต้องการทรัพยากร CPU แรม และพื้นที่ดิสก์เพิ่มขึ้น ดูรายละเอียดเพิ่มเติมเกี่ยวกับโครงสร้างจำนวน replica ได้ที่ [ระบบความพร้อมใช้งานสูง (High availability)](/th/operate/high-availability)
 
-## Networking & DNS
+## ระบบเครือข่ายและระบบ DNS
 
-- A **base domain** you control (e.g. `ai-gateway.example.com`). The platform serves several subdomains under it
-  — `api.`, `console.`, `grafana.`, `auth.`, and (if enabled) `mcp.`. See
-  [TLS & domains](/th/operate/tls-and-domains).
-- The ability to issue a **wildcard TLS certificate** for that domain — via Let's Encrypt (DNS-01), your own
-  certificate, or a self-signed issuer for air-gapped sites.
-- Inbound reachability to the gateway. You can expose it through your own ingress/load balancer, or use the
-  built-in **Cloudflare Tunnel** option for environments without inbound public IPs.
+- **โดเมนหลัก (base domain) ที่คุณเป็นผู้ควบคุม:** เช่น `ai-gateway.example.com` โดยแพลตฟอร์มจะให้บริการผ่านโดเมนย่อยหลายรายการภายใต้โดเมนหลักนี้ ได้แก่ `api.`, `console.`, `grafana.`, `auth.` และ `mcp.` ในกรณีเปิดใช้งาน ดูรายละเอียดเพิ่มเติมได้ที่ [TLS และโดเมน](/th/operate/tls-and-domains)
+- **ความสามารถในการออกใบรับรอง wildcard TLS สำหรับโดเมนดังกล่าว:** สามารถดำเนินการผ่าน Let's Encrypt ด้วยวิธี DNS-01 หรือใช้ใบรับรองของคุณเอง หรือสร้างตัวออกใบรับรองแบบลงนามด้วยตนเอง (self-signed) สำหรับการติดตั้งในระบบปิด (air-gapped)
+- **ความสามารถในการเข้าถึงเกตเวย์จากภายนอก (inbound reachability):** คุณสามารถเปิดให้เข้าถึงผ่านระบบ Ingress หรือ Load Balancer ของคุณเอง หรือเลือกใช้ตัวเลือก **Cloudflare Tunnel** ที่ติดตั้งมาให้ในตัวสำหรับสภาพแวดล้อมการทำงานที่ไม่มีไอพีสาธารณะขาเข้า
 
-## Identity
+## ระบบยืนยันตัวตน
 
-- An **OIDC identity provider** for console and dashboard sign-in. The platform ships Keycloak as an embedded
-  broker, so organizations can connect their own corporate IdP — see [SSO & IdP brokering](/th/admin/sso-and-idp).
-- At least one **bootstrap administrator** email, set at install time, so the first person can sign in and
-  configure everything else.
+- **ผู้ให้บริการยืนยันตัวตนแบบ OIDC สำหรับการลงชื่อเข้าใช้งาน console และแดชบอร์ด:** แพลตฟอร์มนี้มาพร้อมกับ Keycloak เป็นระบบเชื่อมต่อภายในตัว ทำให้แต่ละองค์กรสามารถนำ IdP ของตนเองมาเชื่อมต่อได้ ดูรายละเอียดเพิ่มเติมได้ที่ [SSO และ IdP](/th/admin/sso-and-idp)
+- **อีเมลผู้ดูแลระบบเริ่มต้น (bootstrap administrator) อย่างน้อยหนึ่งบัญชี:** ซึ่งกำหนดค่าในขั้นตอนติดตั้ง เพื่อให้บุคคลแรกสามารถลงชื่อเข้าใช้งานระบบและกำหนดค่าส่วนอื่น ๆ ทั้งหมดได้
 
-## Tooling
+## เครื่องมือการทำงาน
 
-- **Helm 3** and **kubectl**, configured against the target cluster.
-- Access to the container images — either pull from the public registry, or mirror them into your own registry
-  for [air-gapped installs](/th/operate/air-gap).
+- **Helm 3 และ kubectl:** กำหนดค่าการเชื่อมต่อเพื่อสั่งงานคลัสเตอร์เป้าหมายเรียบร้อยแล้ว
+- **สิทธิ์ในการเข้าถึงภาพคอนเทนเนอร์ (container images):** ไม่ว่าจะเป็นการดาวน์โหลดโดยตรงจาก registry สาธารณะ หรือการทำสำเนาภาพ (mirror) ไปยัง registry ของคุณเองสำหรับการติดตั้งในระบบปิด
 
-## Next steps
+## ขั้นตอนต่อไป
 
-- [Install](/th/operate/install) — deploy the chart.
-- [Configuration](/th/operate/configuration) — the one config surface and how it maps to environments.
+- [การติดตั้ง](/th/operate/install) — ขั้นตอนการติดตั้ง Helm chart
+- [การกำหนดค่า](/th/operate/configuration) — รายละเอียดโครงสร้างการกำหนดค่าและการแมปค่าไปยังแต่ละสภาพแวดล้อม

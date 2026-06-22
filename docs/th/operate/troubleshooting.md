@@ -1,80 +1,65 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# การแก้ไขปัญหา
 
-# Troubleshooting
+คู่มือการแก้ไขปัญหาเบื้องต้นที่พบบ่อยที่สุด โดยจัดแบ่งตามอาการแสดงที่คุณจะตรวจพบ ปัญหาของระบบเกตเวย์ส่วนใหญ่มักเกิดขึ้นจาก**นโยบายความปลอดภัยของ Gate ทำงานอย่างถูกต้อง** ซึ่ง status code ที่ส่งกลับมาจะเป็นตัวบอกว่าเกิดขึ้นจาก Gate ใด
 
-A field guide to the most common issues, organized by the symptom you'll see. Most gateway problems are a
-**policy gate doing its job** — the status code tells you which one.
-
-::: info Who this is for
-Platform engineers diagnosing a running installation. For what each gate means to a developer, see
-[When a request is blocked](/th/user/blocked-requests).
+::: info เอกสารนี้เหมาะสำหรับใคร
+วิศวกรแพลตฟอร์ม (platform engineer) ที่ต้องการวิเคราะห์ตรวจสอบระบบติดตั้งปัจจุบัน สำหรับรายละเอียดความหมายของแต่ละ Gate ในมุมมองของนักพัฒนา โปรดดูคู่มือ [เมื่อการร้องขอถูกบล็อก](/th/user/blocked-requests) แทน
 :::
 
-## Gateway returns an unexpected status
+## เกตเวย์ส่งกลับสถานะที่ไม่คาดคิด
 
-Requests pass through an ordered chain of gates; the status code identifies which one stopped the request. See
-the [Request lifecycle](/th/overview/request-lifecycle) for the full chain.
+คำร้องขอจะทำงานผ่านการคัดกรองความปลอดภัยของ Gate ต่าง ๆ ตามลำดับที่กำหนดไว้ ซึ่ง HTTP status code จะเป็นตัวระบุว่า Gate ใดเป็นผู้หยุดคำร้องขอนั้น ดูรายละเอียดกระบวนการทั้งหมดได้ที่ [วงจรชีวิตของการร้องขอ](/th/overview/request-lifecycle)
 
-| Status | Gate | Likely cause | Where to look |
+| HTTP Status | Gate | สาเหตุที่น่าจะเป็นไปได้ | แหล่งตรวจสอบข้อมูล |
 |---|---|---|---|
-| `401 Unauthorized` | Key-auth | Missing/invalid/expired API key, or key not yet reconciled | Confirm the key exists in the console; check the key prefix/header config |
-| `403 Forbidden` | Guardrails / tenant guard | Prompt-injection or PII match; or an MCP key reaching another project | [Guardrails](/th/admin/guardrails); check the path tenant matches the key |
-| `404 Not Found` | Routing | Model name not mapped for the project | [Routing](/th/admin/routing) — add a model route |
-| `429 Too Many Requests` | Budget & limits | Over USD budget or over the token-per-minute limit | [Budgets & limits](/th/admin/budgets-and-limits) |
-| `413 Payload Too Large` | Gateway | Request body exceeds the buffered max (default 10 MiB) | Raise `gateway.maxRequestBytes` if you need larger multimodal payloads |
-| `503 Service Unavailable` | Upstream / reconcile | Provider unreachable, or gateway not yet reconciled | Check provider connectivity and control-plane readiness below |
+| `401 Unauthorized` | Key-auth | ไม่มี API key, คีย์ไม่ถูกต้อง, คีย์หมดอายุ หรือคีย์ยังไม่ได้รับการปรับประสานสถานะ | ตรวจสอบว่าคีย์ดังกล่าวมีอยู่ใน console หรือไม่ และตรวจสอบการกำหนดส่วนนำหน้าคีย์รวมถึงค่ากำหนดของ header |
+| `403 Forbidden` | Guardrails / tenant guard | ตรวจพบข้อมูลเข้าข่าย prompt-injection หรือข้อมูล PII หรือมีการใช้คีย์ MCP ไปเรียกเข้าถึงเซิร์ฟเวอร์ของโปรเจกต์อื่น | ตรวจสอบข้อมูลที่ [ระบบป้องกัน (Guardrails)](/th/admin/guardrails) และตรวจสอบว่าเส้นทางของผู้เช่าตรงกับคีย์ที่ใช้หรือไม่ |
+| `404 Not Found` | Routing | ไม่มีการแมปชื่อโมเดลดังกล่าวไว้ในโปรเจกต์ | ตรวจสอบที่หน้า [การจัดเส้นทาง (Routing)](/th/admin/routing) เพื่อเพิ่มเส้นทางการแมปโมเดล |
+| `429 Too Many Requests` | Budget & limits | ใช้งานเกินงบประมาณ USD หรือเกินขีดจำกัด token ต่อนาที | [งบประมาณและขีดจำกัด](/th/admin/budgets-and-limits) |
+| `413 Payload Too Large` | Gateway | ขนาดเนื้อหาของการร้องขอใหญ่เกินกว่าค่าสูงสุดของบัฟเฟอร์ โดยค่าเริ่มต้นคือ 10 MiB | ปรับเพิ่มค่า `gateway.maxRequestBytes` หากคุณจำเป็นต้องรับส่งข้อมูลขนาดใหญ่ประเภทมัลติโหมด |
+| `503 Service Unavailable` | Upstream / reconcile | ไม่สามารถเชื่อมต่อไปยังผู้ให้บริการต้นทางได้ หรือเกตเวย์ยังไม่ได้รับการปรับประสานสถานะ | ตรวจสอบการเชื่อมต่อของผู้ให้บริการและสถานะความพร้อมของ control-plane ตามรายละเอียดด้านล่าง |
 
-## A new key, budget, or provider hasn't taken effect
+## คีย์ใหม่ งบประมาณ หรือผู้ให้บริการที่ตั้งค่าใหม่ยังไม่มีผลบังคับใช้
 
-The control plane reconciles changes onto the gateway continuously, normally within seconds.
+control plane จะทำการปรับประสานการเปลี่ยนแปลงต่าง ๆ ไปยัง gateway อย่างต่อเนื่อง ซึ่งโดยปกติจะมีผลภายในเวลาไม่กี่วินาที
 
-- Confirm the **control plane is ready**:
+- **ตรวจสอบสถานะความพร้อมของ control plane:**
+
   ```bash
   kubectl -n opsta-ai-gateway get pods -l app=control-plane
   kubectl -n opsta-ai-gateway logs deploy/control-plane | tail -50
   ```
-- The first reconcile runs at startup and **gates readiness** — if `control-plane` isn't `Ready`, the gateway may
-  still be serving the previous configuration. Wait for rollout to complete.
-- A periodic reconcile also runs as a self-healing backstop, so transient drift corrects itself.
 
-## Certificate or DNS problems
+- **การปรับประสานสถานะครั้งแรกจะเริ่มทำเมื่อระบบเริ่มทำงานและคอยควบคุมความพร้อมทำงาน (gates readiness):** หาก `control-plane` ยังไม่เปลี่ยนสถานะเป็น `Ready` ตัว gateway อาจจะยังคงให้บริการอ้างอิงตามโครงสร้างกำหนดค่าก่อนหน้า โปรดรอให้กระบวนการติดตั้งและเริ่มระบบเสร็จสิ้นสมบูรณ์ก่อน
+- **ระบบการปรับประสานสถานะจะทำงานตามรอบเวลาเพิ่มเติมเพื่อเป็นตัวช่วยสมานสถานะระบบอัตโนมัติ (self-healing):** เพื่อให้ความคลาดเคลื่อนชั่วคราวได้รับการแก้ไขให้ถูกต้องเองโดยอัตโนมัติ
 
-- **Browser shows an untrusted/invalid certificate**: check the certificate was issued. For `letsencrypt`, look
-  at the cert-manager Certificate/Order resources; a stuck DNS-01 challenge usually means the DNS provider token
-  can't manage the configured `dnsZone`. See [TLS & domains](/th/operate/tls-and-domains).
-- **Hostname doesn't resolve**: confirm the `*.your-domain` wildcard DNS record points at the gateway (or that
-  the Cloudflare Tunnel hostnames are configured).
-- **Issuance rate-limited**: you're on `letsencrypt-prod` while still testing — switch to `letsencrypt-staging`
-  until it works, then back.
+## ปัญหาเกี่ยวกับใบรับรองความปลอดภัยหรือระบบ DNS
 
-## Sign-in fails on the console
+- **เบราว์เซอร์แสดงสถานะใบรับรองไม่ปลอดภัยหรือไม่ถูกต้อง:** ตรวจสอบว่าใบรับรองความปลอดภัยได้รับการออกเรียบร้อยแล้ว ในโหมด `letsencrypt` ให้ตรวจสอบที่ทรัพยากร Certificate หรือ Order ของ cert-manager หากการทดสอบด้วยวิธี DNS-01 เกิดค้าง มักมีสาเหตุมาจากโทเค็นผู้ให้บริการ DNS ไม่มีสิทธิ์ในการบริหารจัดการ `dnsZone` ที่ตั้งค่าไว้ ดูรายละเอียดเพิ่มเติมได้ที่ [TLS และโดเมน](/th/operate/tls-and-domains)
+- **ไม่สามารถแปลงชื่อโฮสต์ (hostname) ได้:** ตรวจสอบว่าระเบียน DNS wildcard เช่น `*.your-domain` ชี้มายัง gateway เรียบร้อยแล้ว หรือในกรณีใช้งาน Cloudflare Tunnel ให้ตรวจสอบว่าได้กำหนดค่าโฮสต์สาธารณะไว้ถูกต้องแล้ว
+- **การออกใบรับรองถูกจำกัดอัตรา (rate-limit):** อาจเกิดจากการที่คุณระบุค่าเป็น `letsencrypt-prod` ในระหว่างขั้นตอนทดลองติดตั้ง โปรดสลับมาใช้ค่า `letsencrypt-staging` ก่อนจนกว่าจะตั้งค่าได้ถูกต้อง จากนั้นจึงสลับกลับไปใช้ค่าเดิม
 
-- Confirm `sso.emailDomain` matches your users' email domain and `sso.mode` is correct for the environment
-  (`google` vs. an in-cluster mock for tests).
-- For per-organization SSO, verify the IdP connection and claim mappings — see
-  [SSO & IdP brokering](/th/admin/sso-and-idp).
-- Make sure a **bootstrap admin** email was set at install, or no one can reach the admin areas.
+## ไม่สามารถลงชื่อเข้าใช้งานหน้าจอ Console ได้
 
-## A pod won't start
+- ตรวจสอบว่า `sso.emailDomain` ตรงกับโดเมนอีเมลของผู้ใช้งานของคุณ และตรวจสอบว่าโหมด `sso.mode` ถูกตั้งค่าไว้อย่างเหมาะสมสำหรับสภาพแวดล้อมนั้น ๆ เช่น เลือกใช้ `google` หรือใช้ mock ภายในคลัสเตอร์สำหรับการทดสอบระบบ
+- สำหรับระบบ SSO แบบแยกตามรายองค์กร โปรดตรวจสอบความถูกต้องในการเชื่อมต่อ IdP และการจับคู่คุณลักษณะ ดูรายละเอียดเพิ่มเติมได้ที่ [SSO และ IdP](/th/admin/sso-and-idp)
+- ตรวจสอบให้แน่ใจว่าได้ระบุอีเมลผู้ดูแลระบบเริ่มต้น (bootstrap admin) เรียบร้อยแล้วในขั้นตอนติดตั้งระบบ มิฉะนั้นจะไม่มีใครสามารถเข้าถึงส่วนงานของผู้ดูแลระบบได้เลย
 
-- `kubectl -n opsta-ai-gateway describe pod <name>` — look for image-pull errors (check `imagePullSecrets` and,
-  in air-gap, that the image is mirrored), PVC binding issues (check `global.storageClass`), or readiness-probe
-  failures.
-- Database-dependent components wait for PostgreSQL — confirm the CloudNativePG cluster is healthy first.
+## Pod ไม่สามารถเริ่มทำงานได้
 
-## Telemetry looks empty or cross-tenant
+- รันคำสั่ง `kubectl -n opsta-ai-gateway describe pod <name>` เพื่อตรวจสอบรายละเอียดข้อผิดพลาด เช่น ข้อผิดพลาดการดาวน์โหลดอิมเมจ (โปรดเช็คค่า `imagePullSecrets` และในกรณีของระบบปิดโปรดเช็คว่าได้ทำสำเนาอิมเมจเรียบร้อยแล้ว), ปัญหาการผูก persistent volume (โปรดเช็คค่า `global.storageClass`) หรือการทำงานบกพร่องของ readiness-probe
+- สำหรับส่วนประกอบที่ขึ้นต่อกันกับฐานข้อมูลจะรอดำเนินการจนกว่าระบบ PostgreSQL จะพร้อมทำงาน โปรดตรวจสอบว่าคลัสเตอร์ CloudNativePG ทำงานอยู่ในสถานะสมบูรณ์ก่อนเป็นอันดับแรก
 
-- Dashboards scoped to the wrong tenant usually mean the **control plane is disabled** — per-org isolation needs
-  it. See [Platform observability](/th/operate/observability-platform).
-- No data at all: check the collector is scraping the gateway and that `observability.enabled` is `true`.
+## ข้อมูลวัดระยะไกลว่างเปล่าหรือแสดงข้อมูลข้ามผู้เช่า
 
-## Still stuck?
+- แดชบอร์ดแสดงข้อมูลจำกัดผิดขอบเขตผู้เช่า มักมีสาเหตุหลักมาจากการกำหนด**ปิดการทำงานของ control plane** เนื่องจากระบบการแยกส่วนข้อมูลเป็นรายองค์กรจำเป็นต้องพึ่งพาการประมวลผลของส่วนนี้ ดูรายละเอียดเพิ่มเติมได้ที่ [ระบบตรวจสอบสถานะการทำงานของแพลตฟอร์ม](/th/operate/observability-platform)
+- ไม่พบข้อมูลใด ๆ แสดงขึ้นมาเลย: ตรวจสอบว่าระบบเก็บข้อมูล (collector) มีการดึงข้อมูลจาก gateway หรือไม่ และตรวจสอบว่าคีย์ `observability.enabled` ถูกกำหนดค่าเป็น `true` เรียบร้อยแล้ว
 
-Gather the control-plane logs, the gateway pod logs, and the output of `kubectl get pods -A` for the platform
-namespaces before escalating. If you have an [Opsta Managed Service](https://www.opsta.co.th) agreement, contact
-support with those details.
+## หากปัญหายังคงไม่ได้รับการแก้ไข
 
-## Next steps
+โปรดรวบรวมไฟล์บันทึกการทำงานของ control plane, ไฟล์ล็อกของ gateway pod และผลลัพธ์ของคำสั่ง `kubectl get pods -A` ภายใน namespace ของแพลตฟอร์มทั้งหมดก่อนทำการยกระดับปัญหา และหากคุณมีข้อตกลงบริการดูแลระบบ [Opsta Managed Service](https://www.opsta.co.th) สามารถนำข้อมูลเหล่านี้แจ้งติดต่อฝ่ายสนับสนุนเทคนิคของเราได้ทันที
 
-- [Request lifecycle](/th/overview/request-lifecycle) — the gate chain behind the status codes.
-- [Configuration reference](/th/reference/configuration) — every value and its default.
+## ขั้นตอนต่อไป
+
+- [วงจรชีวิตของการร้องขอ](/th/overview/request-lifecycle) — กระบวนการคัดกรองของแต่ละ Gate ที่อยู่เบื้องหลัง status code ต่าง ๆ
+- [เอกสารอ้างอิงการกำหนดค่า](/th/reference/configuration) — รายการคีย์กำหนดค่าทั้งหมดพร้อมระบุค่าเริ่มต้น

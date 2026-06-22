@@ -1,40 +1,37 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# แนวคิดสำคัญและคำศัพท์เฉพาะ
 
-# Key concepts & glossary
+คำศัพท์เหล่านี้มีระบุอยู่ตลอดในเอกสารคู่มือ ซึ่งอธิบายโครงสร้างลำดับชั้นของระบบผู้เช่า (tenancy) และชุดความสามารถต่าง ๆ ที่ gateway ดำเนินการต่อการร้องขอ (request)
 
-These terms are used throughout the documentation. They form a hierarchy of **tenancy** (who) and a set of
-**capabilities** (what the gateway does to a request).
+## ระบบผู้เช่า (Tenancy)
 
-## Tenancy
-
-| Term | Meaning |
+| คำศัพท์ | ความหมาย |
 |---|---|
-| **Organization** | An enterprise customer — the top-level isolation, billing, and SSO boundary. Each organization connects its own identity provider and owns many projects. |
-| **Project** | A workspace that owns a routing configuration, providers, guardrails, budgets, and API keys. An organization has many projects. |
-| **Group** | A team inside a project. Used for role aggregation and budget rollups; typically mapped from an identity-provider group. |
-| **User** | A member — a person who signs in to the console and/or calls the gateway. |
-| **Consumer** | The identity a request is attributed to, expressed as the tuple `organization.project.user`. Every API key, budget, limit, and usage record is keyed by this tuple. |
-| **Role** | Access level: **platform admin** (manages everything), **org admin** (manages one organization), or **member** (uses the gateway, manages their own keys). |
+| **องค์กร (Organization)** | ลูกค้าในระดับองค์กร หรือขอบเขตระดับสูงสุดที่ใช้สำหรับแยกข้อมูล ระบบการเรียกเก็บเงิน และระบบ Single Sign-On (SSO) โดยแต่ละองค์กรจะสามารถเชื่อมต่อกับผู้ให้บริการระบุตัวตน (identity provider) ของตนเองและสามารถมีได้หลากหลายโปรเจกต์ |
+| **โปรเจกต์ (Project)** | พื้นที่ทำงานที่เป็นเจ้าของโครงสร้างการจัดเส้นทาง (routing) ผู้ให้บริการ (provider) guardrail งบประมาณ และ API key โดยองค์กรสามารถมีโปรเจกต์ได้หลายโปรเจกต์ |
+| **กลุ่ม (Group)** | ทีมภายในโปรเจกต์ ใช้สำหรับการรวมบทบาทและงบประมาณเข้าด้วยกัน ซึ่งโดยปกติแล้วจะถูกแมปมาจากกลุ่มของผู้ให้บริการยืนยันตัวตน (identity provider) |
+| **ผู้ใช้งาน (User)** | สมาชิกที่เป็นผู้ลงชื่อเข้าใช้งาน console หรือเรียกใช้งาน gateway |
+| **ผู้บริโภค (Consumer)** | ข้อมูลตัวตนที่เป็นเจ้าของยอดการร้องขอ โดยระบุอยู่ในรูปแบบ tuple คือ `organization.project.user` ซึ่ง API key งบประมาณ ขีดจำกัด และบันทึกประวัติการใช้งานทั้งหมดจะถูกผูกไว้ด้วยข้อมูลชุดนี้ |
+| **บทบาท (Role)** | ระดับการเข้าถึง ได้แก่ platform admin (ผู้ดูแลระบบแพลตฟอร์มที่จัดการทั้งหมด) org admin (ผู้ดูแลระบบระดับองค์กรที่จัดการระบบขององค์กรเดียว) และ member (สมาชิกที่สามารถเรียกใช้ gateway และจัดการคีย์ของตนเองได้) |
 
-## Capabilities
+## ความสามารถของระบบ (Capabilities)
 
-| Term | Meaning |
+| คำศัพท์ | ความหมาย |
 |---|---|
-| **Provider** | An upstream AI service (OpenAI-compatible, DeepSeek, Anthropic, or generic) added per project. Provider credentials are stored as per-organization secrets. |
-| **Logical model / route** | A stable alias clients use (e.g. `coding-default`, `bulk`) that the gateway maps to a real provider and upstream model. Clients never change when you re-point a route. |
-| **Budget** | A monthly USD spending cap. Budgets are **hierarchical** — organization ≥ project ≥ group ≥ user — and the tightest cap wins. |
-| **Token limit (TPM)** | A per-minute cap on tokens for a consumer, enforced at the gateway. |
-| **Guardrail** | A policy that screens a request before it reaches the model: **PII masking**, **prompt-injection** blocking (pattern-based), and **semantic** prompt-injection blocking (by meaning). |
-| **Semantic cache** | A vector-similarity response cache. A cache hit returns a stored answer and skips the model call, saving the full token spend. |
-| **MCP server** | A remote Model Context Protocol server that provides tools to AI agents. The gateway governs access to registered MCP servers per project. |
-| **API key** | A bearer credential bound to a consumer. Clients send it to authenticate; it is the identity everything else keys on. |
+| **ผู้ให้บริการ (Provider)** | บริการ AI ต้นทาง ได้แก่ แบบที่เข้ากันได้กับ OpenAI, DeepSeek, Anthropic หรือแบบทั่วไป ที่เพิ่มเข้ามาในแต่ละโปรเจกต์ โดยข้อมูลสำหรับยืนยันตัวตนของผู้ให้บริการ (provider credential) จะถูกจัดเก็บเป็นความลับ (secret) ในระดับองค์กร |
+| **โมเดลเชิงตรรกะหรือเส้นทาง (Logical model / route)** | ชื่อเรียกที่เสถียรสำหรับฝั่งไคลเอนต์ใช้ในการเรียกใช้งาน เช่น `coding-default` หรือ `bulk` ซึ่ง gateway จะนำไปแมปกับผู้ให้บริการและโมเดลจริงที่อยู่ต้นทาง ทำให้นักพัฒนาไม่จำเป็นต้องแก้ไขโค้ดที่ฝั่งไคลเอนต์เลยเมื่อมีการเปลี่ยนเส้นทางโมเดลต้นทาง |
+| **งบประมาณ (Budget)** | การกำหนดเพดานค่าใช้จ่ายรายเดือนในรูปแบบสกุลเงิน USD โดยงบประมาณจะทำงานเป็นลำดับชั้น ตั้งแต่องค์กร โปรเจกต์ กลุ่ม จนถึงผู้ใช้งาน ซึ่งระบบจะเลือกบังคับใช้เพดานงบประมาณที่เข้มงวดที่สุดที่มีผล |
+| **การจำกัดจำนวน Token (TPM)** | การกำหนดจำนวน token สูงสุดที่ผู้ใช้งานสามารถใช้ได้ต่อนาที ซึ่งจะถูกบังคับใช้ที่ระดับ gateway |
+| **ระบบป้องกัน (Guardrail)** | นโยบายความปลอดภัยที่ใช้คัดกรองการร้องขอก่อนจะส่งไปถึงโมเดล ได้แก่ การปิดบังข้อมูลส่วนบุคคล (PII masking) การป้องกันคำสั่งที่ไม่ปลอดภัย (prompt injection) แบบอิงตามรูปแบบ (pattern-based) และการป้องกัน prompt injection แบบอิงตามความหมาย (semantic) |
+| **ระบบแคชตามความหมาย (Semantic cache)** | ระบบแคชสำหรับคำตอบที่ทำงานด้วยความคล้ายคลึงของเวกเตอร์ (vector-similarity) หากพบข้อมูลในแคช ระบบจะดึงคำตอบที่บันทึกไว้กลับไปทันทีโดยไม่ต้องส่งไปถามโมเดลต้นทาง ช่วยประหยัดค่าใช้จ่าย token ทั้งหมด |
+| **เซิร์ฟเวอร์ MCP (MCP server)** | เซิร์ฟเวอร์ Model Context Protocol ระยะไกลที่ให้บริการเครื่องมือต่าง ๆ แก่ AI agent โดย gateway จะควบคุมการเข้าถึงเซิร์ฟเวอร์ MCP ที่ลงทะเบียนไว้เป็นรายโปรเจกต์ |
+| **คีย์ API (API key)** | ข้อมูลรับรองการเข้าใช้งานที่ผูกกับบัญชีผู้ใช้งาน โดยฝั่งไคลเอนต์จะส่งคีย์นี้มาเพื่อยืนยันตัวตน และเป็นข้อมูลตัวตนหลักที่ระบบอื่น ๆ นำไปใช้อ้างอิง |
 
-## Architecture terms
+## คำศัพท์เฉพาะด้านสถาปัตยกรรมระบบ
 
-| Term | Meaning |
+| คำศัพท์ | ความหมาย |
 |---|---|
-| **Control plane** | The management service backed by PostgreSQL. It is the **single source of truth** for all tenant configuration and exposes the console's API. |
-| **Data plane** | The gateway itself, which handles live request traffic and enforces every policy. |
-| **Reconcile** | The control plane continuously projects the configuration from PostgreSQL onto the data plane — there is no hand-edited gateway config and no drift. |
+| **ระบบควบคุม (Control plane)** | บริการส่วนการจัดการที่ทำงานร่วมกับฐานข้อมูล PostgreSQL ซึ่งเป็นแหล่งข้อมูลความจริงหนึ่งเดียว (single source of truth) สำหรับการกำหนดค่าผู้เช่าทั้งหมด และทำหน้าที่ให้บริการ console API |
+| **ระบบประมวลผลข้อมูล (Data plane)** | ตัว gateway เองที่คอยประมวลผลการรับส่งข้อมูลการร้องขอจริง และเป็นตัวบังคับใช้นโยบายความปลอดภัยและข้อกำหนดต่าง ๆ |
+| **การปรับประสานสถานะ (Reconcile)** | กระบวนการที่ control plane จะฉายค่ากำหนดจาก PostgreSQL ไปยัง data plane อย่างต่อเนื่อง เพื่อไม่ให้เกิดการแก้ไขค่ากำหนดที่ gateway โดยตรงและป้องกันความคลาดเคลื่อนของข้อมูล (drift) |
 
-See [Architecture](/th/overview/architecture) for how these fit together.
+ดูข้อมูลเพิ่มเติมได้ที่ [สถาปัตยกรรม](/th/overview/architecture) เพื่อเรียนรู้ว่าองค์ประกอบต่าง ๆ เหล่านี้ทำงานร่วมกันอย่างไร

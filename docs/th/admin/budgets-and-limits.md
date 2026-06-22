@@ -1,47 +1,40 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# งบประมาณและขีดจำกัด
 
-# Budgets & limits
+**งบประมาณและขีดจำกัด** คือเครื่องมือควบคุมค่าใช้จ่ายในการใช้งาน AI โดย gateway จะบังคับใช้**งบประมาณ USD รายเดือนแบบลำดับขั้น** และ**การจำกัดจำนวน token ต่อนาที** เพื่อป้องกันไม่ให้มีทีมใดใช้งานจนมียอดใช้จ่ายส่วนเกินเกิดขึ้นโดยไม่ตั้งใจ
 
-Budgets and limits are how you control AI spend. The gateway enforces **hierarchical monthly USD budgets** and
-**per-minute token limits**, so no team can run up a surprise bill.
-
-::: info Who can do this
-**Org admins** (for their organization) and **platform admins**, on **Projects → Budgets & Limits**.
+::: info ผู้ที่มีสิทธิ์ในการดำเนินการนี้
+**Org admin** (สิทธิ์เฉพาะในองค์กรของตนเอง) และ **Platform admin** โดยดำเนินการผ่านหน้าจอ **Projects → Budgets & Limits**
 :::
 
-## The hierarchy
+## โครงสร้างลำดับชั้น
 
-Budgets cascade: **organization ≥ project ≥ group ≥ user**, and the **tightest cap always wins**. A platform
-owner sets a hard ceiling at the top and delegates finer caps downward.
+งบประมาณจะส่งผลไล่ลงมาตามลำดับขั้น ได้แก่ องค์กร ≥ โปรเจกต์ ≥ กลุ่ม ≥ ผู้ใช้งาน ซึ่งระบบจะบังคับใช้**เพดานที่เข้มงวดที่สุดเสมอ** ช่วยให้ผู้ดูแลแพลตฟอร์มสามารถกำหนดเพดานสูงสุดเอาไว้ในระดับบนสุด และมอบหมายให้มีการกำหนดขีดจำกัดย่อยลงไปในระดับล่างได้
 
 ```mermaid
 flowchart LR
   O["Organization"] --> P["Project"] --> G["Group"] --> U["User → enforced minimum"]
 ```
 
-## Set a budget
+## วิธีการกำหนดงบประมาณ
 
-1. Open **Projects → Budgets & Limits**.
-2. Set a **project**, **group**, or **user** monthly USD budget.
-3. Optionally set a **per-minute token limit (TPM)** at the same level.
-4. Save. The control plane reconciles the limits to the gateway within seconds.
+1. เปิดหน้า **Projects → Budgets & Limits**
+2. กำหนดค่าของงบประมาณ USD รายเดือนในระดับ **โปรเจกต์** **กลุ่ม** หรือ**ผู้ใช้งาน**
+3. คุณสามารถเลือกกำหนดค่า**จำกัดจำนวน token ต่อนาที หรือ TPM** ในระดับเดียวกันเพิ่มเติมได้
+4. คลิกบันทึก ซึ่ง control plane จะทำการปรับประสานข้อจำกัดดังกล่าวไปยัง gateway ภายในไม่กี่วินาที
 
 ![The Budgets & Limits tab — project ceiling, group defaults, and per-user overrides](/images/budgets.png)
 
-## What happens at the cap
+## สิ่งที่เกิดขึ้นเมื่อใช้งานถึงเพดานที่กำหนด
 
-When a consumer reaches the tightest applicable budget or token limit, further requests are rejected with
-`429 Too Many Requests` until the monthly reset (calendar month, UTC) or until you raise the cap. Semantic
-caching reduces spend against budgets by serving similar prompts from cache.
+เมื่อผู้บริโภครายใดรายหนึ่งใช้งานถึงงบประมาณหรือขีดจำกัดจำนวน token ที่เข้มงวดที่สุดที่มีผลบังคับใช้ คำร้องขอเพิ่มเติมหลังจากนั้นจะถูกปฏิเสธพร้อมสถานะกลับมาเป็น `429 Too Many Requests` จนกว่าจะถึงรอบการรีเซ็ตรายเดือน (รอบเดือนตามปฏิทินในเขตเวลา UTC) หรือจนกว่าคุณจะขยายเพดานขีดจำกัดให้สูงขึ้น นอกจากนี้ระบบ semantic caching ยังช่วยลดค่าใช้จ่ายที่หักจากงบประมาณลงได้ โดยจะดึงข้อมูลตอบกลับจากแคชสำหรับคำสั่งที่คล้ายกันมาแสดงแทน
 
-## See where spend goes
+## การตรวจสอบรายละเอียดค่าใช้จ่าย
 
-The **Usage** screen (Organization section) breaks down token and cached-token usage by project and consumer,
-so you can find the heavy users before they hit a cap.
+หน้าจอ **ปริมาณการใช้งาน (Usage)** ภายใต้ส่วนข้อมูลองค์กร (Organization) จะจำแนกข้อมูลการใช้งาน token และ cached-token แยกตามรายโปรเจกต์และผู้บริโภค เพื่อช่วยให้คุณค้นหาผู้ใช้งานที่มีการใช้งานปริมาณมากได้ล่วงหน้าก่อนที่การใช้งานจะถึงเพดานที่กำหนดไว้
 
 ![Organization usage — token totals per project and per consumer](/images/org-usage.png)
 
-## Next steps
+## ขั้นตอนต่อไป
 
-- [Pricing](/th/admin/pricing) — the per-model rates budgets are calculated from.
-- [Semantic cache](/th/admin/semantic-cache) — cut spend with caching.
+- [การกำหนดราคาโมเดล](/th/admin/pricing) เพื่อศึกษาอัตราค่าบริการของแต่ละโมเดลที่จะนำมาใช้คำนวณงบประมาณ
+- [ระบบแคชตามความหมาย (Semantic cache)](/th/admin/semantic-cache) เพื่อช่วยลดค่าใช้จ่ายจริงด้วยระบบแคช

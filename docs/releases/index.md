@@ -8,7 +8,16 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.20.13 — Edit a provider in place + test before saving _(latest)_
+## v1.20.14 — Per-route reasoning effort _(latest)_
+
+- **Set a default reasoning effort on a model route.** On a project's **Routing** tab, each route
+  now has a **Reasoning effort** (none / low / medium / high). When set, the gateway adds a default
+  `reasoning_effort` to requests for that logical model — so you can make `coding-pro` think hard
+  and `coding-fast` stay light without changing client code. A value sent in the request always
+  wins. Applies to **OpenAI-compatible** providers (DeepSeek, etc.) for now; native Claude/Gemini
+  thinking-budget support is planned.
+
+## v1.20.13 — Edit a provider in place + test before saving
 
 - **Edit an LLM provider.** Each provider row now has an **Edit** button that opens the form
   prefilled — change the base URL or **rotate the API key in place** (leave the key blank to keep

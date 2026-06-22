@@ -1,32 +1,25 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# ระบบตรวจสอบสถานะการทำงาน (Observability)
 
-# Observability
+แพลตฟอร์มนี้มาพร้อมกับชุดซอฟต์แวร์ระบบตรวจสอบสถานะการทำงาน (observability stack) ประกอบไปด้วยข้อมูลชี้วัด (metrics) ล็อก (logs) และประวัติการร้องขอ (traces) แบบ**ติดตั้งภายในระบบตัวเอง (self-hosted)** ซึ่งถูกพัฒนาให้มี**การแยกส่วนข้อมูลเป็นรายองค์กร**อย่างสมบูรณ์ ข้อมูลการวัดระยะไกล (telemetry) ของลูกค้ารายหนึ่งจะไม่มีทางมองเห็นได้โดยลูกค้ารายอื่นอย่างเด็ดขาด โดยผู้ดูแลระบบสามารถตรวจสอบรายละเอียดผ่านแดชบอร์ดต่าง ๆ ได้โดยไม่มีการส่งข้อมูลใด ๆ ออกไปยังระบบคลาวด์ภายนอก
 
-The platform ships a **self-hosted** observability stack (metrics, logs, traces) with **per-organization
-isolation** — one customer's telemetry is never visible to another. Administrators read dashboards; nothing is
-sent to a third-party cloud.
-
-::: info Who can see this
-**Org admins** see their organization's dashboards; **platform admins** see all. Dashboards open from the
-console (or directly in Grafana if your platform exposes it).
+::: info ผู้ที่มีสิทธิ์ในการเข้าถึงข้อมูลนี้
+**Org admin** สามารถเข้าถึงแดชบอร์ดเฉพาะขององค์กรของตนเองได้ ส่วน **Platform admin** จะสามารถเข้าถึงแดชบอร์ดทั้งหมดได้ โดยสามารถเปิดแดชบอร์ดได้โดยตรงผ่าน console หรือเข้าใช้งานผ่าน Grafana หากผู้ดูแลแพลตฟอร์มเปิดช่องทางให้เข้าใช้งาน
 :::
 
-## What you can see
+## ข้อมูลที่คุณสามารถตรวจสอบได้
 
-- **Usage & cost** — tokens and USD by organization, project, group, user, and model.
-- **Cache savings** — semantic-cache hit rate and the spend it avoided.
-- **MCP activity** — tool-call volume per project (when MCP is in use).
-- **Request health** — throughput and error/blocked rates.
+- **ปริมาณการใช้งานและค่าใช้จ่าย:** ปริมาณ token และยอดเงิน USD แยกตามรายองค์กร โปรเจกต์ กลุ่ม ผู้ใช้งาน และโมเดล
+- **ยอดประหยัดจากการใช้งานแคช:** อัตราการตรวจพบข้อมูลในแคช (hit rate) และยอดค่าใช้จ่ายที่ประหยัดไปได้จริง
+- **กิจกรรมการใช้งาน MCP:** ปริมาณการเรียกใช้งานเครื่องมือแยกตามรายโปรเจกต์ เมื่อมีการใช้ระบบ MCP
+- **ประสิทธิภาพการทำงานของการร้องขอ:** ปริมาณการรับส่งข้อมูล (throughput) และอัตราการเกิดข้อผิดพลาดหรือการร้องขอที่ถูกบล็อก
 
 ![The self-hosted observability dashboard — token throughput by model and by route](/images/grafana-overview.png)
 
-## Per-organization isolation
+## การแยกส่วนข้อมูลในแต่ละองค์กร
 
-Each organization's metrics, logs, and traces are kept in an isolated tenant, and dashboards are scoped to the
-viewer's organization. This keeps multi-tenant telemetry private by construction. Retention for metrics, logs,
-and traces is set by the platform operator — see [Platform observability](/th/operate/observability-platform).
+ข้อมูลชี้วัด ล็อก และประวัติการร้องขอของแต่ละองค์กร จะถูกแยกเก็บเป็นรายผู้เช่า (isolated tenant) และแดชบอร์ดจะถูกกำหนดขีดความสามารถการมองเห็นตามระดับองค์กรของผู้รับชมเท่านั้น โครงสร้างการจัดเก็บข้อมูลลักษณะนี้ช่วยรักษาสิทธิความเป็นส่วนตัวของข้อมูลระบบผู้เช่าได้อย่างสมบูรณ์ โดยระยะเวลาการจัดเก็บข้อมูลชี้วัด ล็อก และประวัติการร้องขอ จะถูกกำหนดโดยวิศวกรระบบแพลตฟอร์ม ดูรายละเอียดเพิ่มเติมได้ที่ [ระบบตรวจสอบสถานะการทำงานของแพลตฟอร์ม](/th/operate/observability-platform)
 
-## Next steps
+## ขั้นตอนต่อไป
 
-- [Budgets & limits](/th/admin/budgets-and-limits) — act on what the dashboards show.
-- [Audit log](/th/admin/audit-log) — who changed what.
+- [งบประมาณและขีดจำกัด](/th/admin/budgets-and-limits) — นำข้อมูลจากแดชบอร์ดไปกำหนดขีดจำกัดงบประมาณ
+- [ประวัติการใช้งาน (Audit log)](/th/admin/audit-log) — ตรวจสอบประวัติว่าใครเป็นผู้ดำเนินการแก้ไขค่าใดบ้าง

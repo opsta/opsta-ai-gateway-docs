@@ -1,17 +1,12 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# การติดตั้ง
 
-# Install
+แพลตฟอร์มทั้งหมดสามารถติดตั้งได้ง่ายผ่าน **Helm chart เพียงตัวเดียว** และใช้**ไฟล์ values เพียงไฟล์เดียว** โดยคุณเพียงแค่กำหนดโดเมนหลัก เลือกโหมด TLS ปรับแต่งสวิตช์การทำงานระดับสูงเล็กน้อย แล้วเริ่มกระบวนการติดตั้งได้ทันที ซึ่งตัว chart จะทำการเริ่มระบบการทำงานของ gateway, control plane, ฐานข้อมูล, ระบบยืนยันตัวตน, ระบบตรวจสอบสถานะการทำงาน และ console ขึ้นมาพร้อมกันทั้งหมด
 
-The whole platform is **one Helm chart** with **one values file**. You set a base domain, choose a TLS mode,
-pick a few high-level toggles, and install. The chart brings up the gateway, control plane, database, identity,
-observability, and console together.
-
-::: info Prerequisite
-Make sure your cluster meets the [Requirements](/th/operate/requirements) first — Kubernetes ≥ 1.28, a default
-StorageClass, a base domain, and a way to issue a wildcard certificate.
+::: info สิ่งที่ต้องเตรียมความพร้อม
+โปรดตรวจสอบให้แน่ใจว่าคลัสเตอร์ของคุณเป็นไปตาม [ข้อกำหนดของระบบ](/th/operate/requirements) เรียบร้อยแล้ว ได้แก่ Kubernetes ตั้งแต่เวอร์ชัน 1.28 ขึ้นไป, มีการกำหนด default StorageClass, มีโดเมนหลัก และมีระบบออกใบรับรอง wildcard TLS
 :::
 
-## Deployment topology
+## โครงสร้างการติดตั้งระบบ (Deployment topology)
 
 ```mermaid
 flowchart TB
@@ -40,25 +35,23 @@ flowchart TB
   DNS --> OBS
 ```
 
-## 1. Add the chart repository
+## 1. เพิ่ม Chart repository
 
-The chart is published as an OCI artifact. Authenticate to the registry if required, then you can install
-directly from the OCI reference.
+ตัว Helm chart จะถูกเผยแพร่ในรูปแบบ OCI artifact หาก registry ของคุณจำเป็นต้องยืนยันสิทธิ์ ให้ลงชื่อเข้าใช้งานก่อน จากนั้นคุณจะสามารถติดตั้งได้โดยตรงจากลิงก์อ้างอิง OCI
 
 ```bash
-helm registry login ghcr.io   # if your registry requires auth
+helm registry login ghcr.io   # หาก registry ต้องการการยืนยันสิทธิ์
 ```
 
-## 2. Write your values file
+## 2. เขียนไฟล์ Values ของคุณ
 
-Create a `values.yaml` that captures the decisions for this environment. The minimum is your domain, a TLS mode,
-identity, and a bootstrap admin:
+สร้างไฟล์ `values.yaml` เพื่อระบุการกำหนดค่าต่าง ๆ สำหรับสภาพแวดล้อมนี้ โดยข้อมูลขั้นต่ำที่จำเป็นต้องระบุ ได้แก่ โดเมนของคุณ โหมด TLS ระบบยืนยันตัวตน และอีเมลผู้ดูแลระบบเริ่มต้น ดังนี้
 
 ```yaml
 global:
   baseDomain: ai-gateway.example.com
-  subdomainSeparator: "."        # "." for two-level names, "-" for single-level under a parent wildcard
-  highAvailability: false        # true for production multi-replica
+  subdomainSeparator: "."        # "." สำหรับชื่อสองระดับ, "-" สำหรับระดับเดียวภายใต้ parent wildcard
+  highAvailability: false        # true สำหรับระบบ HA ที่ใช้หลาย replica ในสภาพแวดล้อมจริง
 
 tls:
   mode: letsencrypt              # letsencrypt | provided | selfsigned
@@ -69,28 +62,25 @@ tls:
       dnsZone: example.com
 
 sso:
-  mode: google                   # google | mock (mock is dev/test only)
+  mode: google                   # google | mock (mock ใช้สำหรับพัฒนา/ทดสอบเท่านั้น)
   emailDomain: example.com
 
 controlPlane:
   enabled: true
   bootstrapAdmin:
     enabled: true
-    email: admin@example.com     # the first person who can sign in and configure everything
+    email: admin@example.com     # บุคคลแรกที่สามารถลงชื่อเข้าใช้งานและตั้งค่าระบบอื่น ๆ ได้
 postgres:
-  enabled: true                  # control plane needs its database
+  enabled: true                  # control plane จำเป็นต้องใช้งานฐานข้อมูลนี้
 ```
 
-Secrets (provider keys, OIDC client secret, database passwords) live in a **separate, git-ignored** values file
-or in pre-existing Kubernetes Secrets — never in the file you commit. See
-[Configuration](/th/operate/configuration#secrets) and [Hardening](/th/security/hardening).
+ข้อมูลที่เป็นความลับ เช่น คีย์ผู้ให้บริการ, OIDC client secret และรหัสผ่านฐานข้อมูล จะต้องจัดเก็บแยกในไฟล์ values อีกไฟล์หนึ่งที่ถูกระบุในไฟล์ `.gitignore` หรือจัดเก็บใน Kubernetes Secrets ที่มีอยู่แล้วในระบบ และต้องไม่มีการบันทึกข้อมูลเหล่านี้ลงในไฟล์หลักที่คุณทำการคอมมิตอย่างเด็ดขาด ดูรายละเอียดเพิ่มเติมได้ที่คู่มือ [การกำหนดค่า](/th/operate/configuration#secrets) และ [การเสริมสร้างความปลอดภัย](/th/security/hardening)
 
-::: warning Keep secrets out of git
-Set `secrets.createFromValues: true` and supply a local secrets file, **or** set it to `false` and reference
-existing Secrets managed by Vault/sealed-secrets. Do not put credentials in your main `values.yaml`.
+::: warning ห้ามบันทึกความลับลงใน Git
+กำหนดค่า `secrets.createFromValues: true` และระบุไฟล์เก็บความลับภายในเครื่อง หรือกำหนดค่าเป็น `false` และระบุอ้างอิงไปยัง Secrets เดิมที่มีอยู่แล้วซึ่งจัดการโดย Vault หรือ sealed-secrets โดยตรง และห้ามระบุข้อมูลสิทธิ์การใช้งานเหล่านี้ลงในไฟล์ `values.yaml` หลักเป็นอันขาด
 :::
 
-## 3. Install
+## 3. ติดตั้งระบบ
 
 ```bash
 helm install opsta-ai-gateway oci://ghcr.io/opsta/charts/opsta-ai-gateway \
@@ -98,13 +88,11 @@ helm install opsta-ai-gateway oci://ghcr.io/opsta/charts/opsta-ai-gateway \
   -f values.yaml -f secrets-values.yaml
 ```
 
-The chart installs the required operators (cert-manager, CloudNativePG, Redis operator) unless you tell it to
-[reuse existing ones](/th/operate/byo-operators).
+ตัว chart จะทำการติดตั้ง operator ที่จำเป็น ได้แก่ cert-manager, CloudNativePG และ Redis operator ให้โดยอัตโนมัติ เว้นแต่ว่าคุณจะกำหนดค่าให้ [ใช้ระบบเดิมที่มีอยู่แล้วบนคลัสเตอร์](/th/operate/byo-operators)
 
-## 4. Wait for readiness
+## 4. รอให้ระบบพร้อมทำงาน
 
-The control plane runs database migrations and a first reconcile before it reports ready — this guarantees the
-gateway is never half-configured.
+control plane จะทำการย้ายฐานข้อมูล (database migrations) และดำเนินการปรับประสานสถานะครั้งแรกก่อนที่จะเปลี่ยนสถานะเป็นพร้อมทำงาน (ready) ซึ่งช่วยรับประกันได้ว่า gateway จะไม่มีวันทำงานในสถานะที่กำหนดค่าไม่เสร็จสิ้นอย่างแน่นอน
 
 ```bash
 kubectl -n opsta-ai-gateway rollout status deploy/control-plane
@@ -123,13 +111,12 @@ opsta-pg-1                              1/1     Running   0          13m
 redis-0                                 1/1     Running   0          13m
 ```
 
-## 5. Point DNS and sign in
+## 5. ตั้งค่า DNS และลงชื่อเข้าใช้งาน
 
-Create a wildcard DNS record for `*.your-domain` pointing at the gateway's ingress (or configure the Cloudflare
-Tunnel). Then open `https://console.your-domain` and sign in as the bootstrap admin.
+สร้างระเบียน DNS แบบ wildcard สำหรับ `*.your-domain` ชี้มายัง ingress ของ gateway หรือปรับแต่งค่า Cloudflare Tunnel จากนั้นเปิด URL `https://console.your-domain` และลงชื่อเข้าใช้งานเป็นผู้ดูแลระบบเริ่มต้น
 
-## Next steps
+## ขั้นตอนต่อไป
 
-- [Configuration](/th/operate/configuration) — the full config surface, grouped by concern.
-- [TLS & domains](/th/operate/tls-and-domains) — certificates and subdomains in detail.
-- [High availability](/th/operate/high-availability) — turn on multi-replica production mode.
+- [การกำหนดค่า](/th/operate/configuration) — รายละเอียดโครงสร้างการกำหนดค่าทั้งหมดแยกตามหัวข้อการใช้งาน
+- [TLS และโดเมน](/th/operate/tls-and-domains) — ข้อมูลรายละเอียดของใบรับรองและโดเมนย่อย
+- [ระบบความพร้อมใช้งานสูง (High availability)](/th/operate/high-availability) — การเปิดใช้งานโหมดรองรับหลาย replica สำหรับใช้งานจริง

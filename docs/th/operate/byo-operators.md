@@ -1,57 +1,45 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# การใช้งาน Operator เดิมบนคลัสเตอร์
 
-# Reuse existing operators
+แพลตฟอร์มนี้จำเป็นต้องใช้งาน Kubernetes operator จำนวน 3 ตัว ได้แก่ **cert-manager** **Redis operator** และ **CloudNativePG** โดยค่าเริ่มต้นตัว chart จะทำหน้าที่ติดตั้งสิ่งเหล่านี้ให้คุณโดยอัตโนมัติ หากคลัสเตอร์ของคุณมีการเปิดใช้งานเวอร์ชันที่เข้ากันได้อยู่ก่อนแล้ว คุณสามารถเลือกสั่งให้ใช้งานระบบเดิมเหล่านั้นแทนเพื่อหลีกเลี่ยงการติดตั้งซ้ำซ้อนได้
 
-The platform depends on three Kubernetes operators — **cert-manager**, a **Redis operator**, and
-**CloudNativePG**. By default the chart installs them for you. If your cluster already runs compatible versions,
-you can reuse them instead and avoid duplicates.
-
-::: info Who this is for
-Platform engineers integrating the gateway into an existing cluster that already has shared operators.
+::: info เอกสารนี้เหมาะสำหรับใคร
+วิศวกรแพลตฟอร์ม (platform engineer) ที่ต้องการติดตั้งและเชื่อมโยง gateway เข้ากับคลัสเตอร์เดิมที่มีการใช้งาน operator ร่วมกันอยู่แล้ว
 :::
 
-## The three toggles
+## สวิตช์ควบคุมทั้งสามตัว
 
 ```yaml
 certManager:
-  enabled: false     # reuse the cert-manager already on the cluster
+  enabled: false     # ใช้งาน cert-manager เดิมที่มีอยู่แล้วบนคลัสเตอร์
 redisOperator:
-  enabled: false     # reuse an existing Redis operator
+  enabled: false     # ใช้งาน Redis operator เดิมที่มีอยู่แล้ว
 cnpg:
-  enabled: false     # reuse an existing CloudNativePG operator
+  enabled: false     # ใช้งาน CloudNativePG operator เดิมที่มีอยู่แล้ว
 ```
 
-Each toggle controls only whether the **operator** is installed. The platform's own custom resources (the
-certificate, the Redis instance, the PostgreSQL clusters) are always created by the chart and run against the
-operator that's present.
+แต่ละสวิตช์จะทำหน้าที่ควบคุมเฉพาะส่วนของ**ตัวโปรแกรม operator** เท่านั้น ว่าต้องการให้ติดตั้งใหม่หรือไม่ ส่วนทรัพยากรที่กำหนดเองเฉพาะของแพลตฟอร์ม เช่น ใบรับรอง, ตัว Redis instance หรือคลัสเตอร์ PostgreSQL จะยังคงถูกสร้างขึ้นโดยตัว chart และทำงานภายใต้ระบบ operator ที่อยู่บนคลัสเตอร์เช่นเดิม
 
-| Toggle | Reuses | Required when |
+| สวิตช์ | ระบบเดิมที่จะใช้งาน | จำเป็นต้องใช้เมื่อ |
 |---|---|---|
-| `certManager.enabled` | cert-manager | `tls.mode` is `letsencrypt` or `selfsigned` |
-| `redisOperator.enabled` | Redis operator | `redis.enabled: true` |
-| `cnpg.enabled` | CloudNativePG | `postgres.enabled: true` or `keycloak.enabled: true` |
+| `certManager.enabled` | cert-manager | กำหนดโหมด `tls.mode` เป็น `letsencrypt` หรือ `selfsigned` |
+| `redisOperator.enabled` | Redis operator | กำหนดค่า `redis.enabled: true` |
+| `cnpg.enabled` | CloudNativePG | กำหนดค่า `postgres.enabled: true` หรือ `keycloak.enabled: true` |
 
-::: warning Match the tested versions
-A reused operator must be a version compatible with the one the chart would have installed. The tested versions
-are part of the product's component matrix — check them against what's on your cluster before disabling a toggle.
-See [Upgrades](/th/operate/upgrades).
+::: warning ตรวจสอบเวอร์ชันที่ผ่านการทดสอบ
+operator เดิมที่อยู่บนคลัสเตอร์จะต้องเป็นเวอร์ชันที่เข้ากันได้ดีกับเวอร์ชันที่ระบุใน chart ซึ่งข้อมูลเวอร์ชันที่ผ่านการทดสอบจะแสดงอยู่ในส่วนคอมโพเนนต์เมทริกซ์ (component matrix) ของผลิตภัณฑ์ โปรดเปรียบเทียบข้อมูลเวอร์ชันดังกล่าวกับระบบบนคลัสเตอร์ของคุณก่อนที่จะปิดการใช้งานสวิตช์ควบคุม ดูรายละเอียดเพิ่มเติมได้ที่ [การอัปเกรดระบบ](/th/operate/upgrades)
 :::
 
-## When to reuse vs. let the chart install
+## เปรียบเทียบระหว่างการใช้งานระบบเดิมกับการสั่งติดตั้งใหม่ผ่าน chart
 
-- **Reuse** when these operators are shared cluster infrastructure managed by another team, or when you're
-  minimizing the image set for an [air-gapped install](/th/operate/air-gap).
-- **Let the chart install** (the default) when this is a dedicated cluster or you want the platform to be fully
-  self-contained and reproducible from one chart.
+- **เลือกใช้งานระบบเดิม:** เมื่อ operator เหล่านี้เป็นโครงสร้างพื้นฐานที่ใช้งานร่วมกันบนคลัสเตอร์ซึ่งดูแลโดยทีมอื่น หรือเมื่อคุณต้องการลดจำนวนชุดอิมเมจสำหรับการติดตั้งใน [ระบบปิด (air-gapped)](/th/operate/air-gap)
+- **สั่งติดตั้งผ่าน chart (ค่าเริ่มต้น):** เมื่อคลัสเตอร์นี้จัดเตรียมไว้เพื่อใช้รันเกตเวย์โดยเฉพาะ หรือเมื่อคุณต้องการให้แพลตฟอร์มนี้ทำหน้าที่จบครบในตัวเองทั้งหมดและสามารถจำลองการติดตั้งระบบใหม่ขึ้นมาได้จาก chart เพียงตัวเดียว
 
-## Custom resources still belong to the platform
+## ทรัพยากรที่กำหนดเองยังคงอยู่ภายใต้การบริหารจัดการของแพลตฟอร์ม
 
-Even with all three toggles off, the chart still owns and reconciles its certificate, Redis instance, and
-PostgreSQL clusters. You manage the **operators**; the platform manages **its resources**. This keeps the
-gateway reproducible from the chart while fitting into your existing operator landscape.
+แม้จะมีการกำหนดให้ปิดสวิตช์ควบคุมทั้งสามตัวแล้วก็ตาม ตัว chart จะยังคงทำหน้าที่เป็นเจ้าของและดำเนินกระบวนการปรับประสานสถานะ (reconcile) ให้แก่ใบรับรอง, Redis instance และคลัสเตอร์ PostgreSQL ของตนเองตามปกติ โดยคุณมีหน้าที่คอยดูแลโปรแกรม **operator** ส่วนตัวแพลตฟอร์มจะคอยดูแล**ทรัพยากรภายในระบบของตนเอง** โครงสร้างลักษณะนี้จะช่วยรักษารูปแบบที่จำลองระบบใหม่ขึ้นมาจาก chart ได้อย่างสมบูรณ์ ในขณะเดียวกันก็เข้ากันได้ดีกับโครงสร้าง operator ที่คุณมีอยู่แล้ว
 
-## Next steps
+## ขั้นตอนต่อไป
 
-- [Air-gapped install](/th/operate/air-gap) — fewer operators means fewer images to mirror.
-- [High availability](/th/operate/high-availability) — how the database and Redis clusters scale.
-- [Backup & DR](/th/operate/backup-and-dr) — protecting CloudNativePG data.
+- [การติดตั้งในระบบปิด (Air-gapped install)](/th/operate/air-gap) — การลดจำนวน operator จะช่วยลดจำนวนอิมเมจที่ต้องทำสำเนาลงด้วย
+- [ระบบความพร้อมใช้งานสูง (High availability)](/th/operate/high-availability) — โครงสร้างการขยายระบบฐานข้อมูลและคลัสเตอร์ Redis
+- [การสำรองข้อมูลและการกู้คืน (Backup & DR)](/th/operate/backup-and-dr) — การดูแลความปลอดภัยของข้อมูลใน CloudNativePG

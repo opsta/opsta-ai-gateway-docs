@@ -1,86 +1,73 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# ระบบตรวจสอบสถานะการทำงานของแพลตฟอร์ม
 
-# Platform observability
+แพลตฟอร์มนี้มาพร้อมกับชุดซอฟต์แวร์ระบบตรวจสอบสถานะการทำงาน (observability stack) ซึ่งรวบรวมข้อมูลชี้วัด (metrics) ล็อก (logs) และประวัติการทำงาน (traces) แบบ**ติดตั้งภายในระบบตัวเอง (self-hosted)** พร้อมทั้งมี**การแยกส่วนข้อมูลเป็นรายผู้เช่าในระดับองค์กร**อย่างสมบูรณ์ ทุกส่วนประกอบทำงานอยู่ภายในคลัสเตอร์ของคุณเองโดยไม่มีการส่งข้อมูลการวัดระยะไกล (telemetry) ใด ๆ ออกไปยังระบบคลาวด์ภายนอก หน้านี้จะครอบคลุมขั้นตอนการบริหารจัดการชุดซอฟต์แวร์ดังกล่าว สำหรับผู้ดูแลระบบที่ต้องการศึกษาเรื่องการเข้าใช้งานแดชบอร์ด โปรดดูคู่มือ [ระบบตรวจสอบสถานะการทำงาน (Observability)](/th/admin/observability) แทน
 
-The platform ships a **self-hosted** metrics, logs, and traces stack with **per-organization tenant isolation**.
-Everything runs in your cluster; no telemetry is sent to a third-party cloud. This page covers operating that
-stack — administrators reading dashboards should see [Observability](/th/admin/observability) instead.
-
-::: info Who this is for
-Platform engineers operating the telemetry backend (retention, storage, isolation).
+::: info เอกสารนี้เหมาะสำหรับใคร
+วิศวกรแพลตฟอร์ม (platform engineer) ที่ทำหน้าที่บริหารจัดการระบบหลังบ้านของการวัดระยะไกล เช่น ระยะเวลาจัดเก็บข้อมูล ที่จัดเก็บข้อมูล และการแยกส่วนข้อมูล
 :::
 
-## What's in the stack
+## รายละเอียดส่วนประกอบในชุดซอฟต์แวร์
 
-A self-hosted stack handles each signal:
+ชุดซอฟต์แวร์ระบบติดตั้งในตัวจะคอยประมวลผลข้อมูลแต่ละประเภทดังนี้
 
-- **Metrics** — token and USD usage, cache hit rates, request health.
-- **Logs** — gateway and platform logs.
-- **Traces** — request traces (available for deep debugging).
-- A **collector** scrapes the gateway and tails logs, labeling each record with the tenant it belongs to.
-- **Grafana** renders dashboards as code.
+- **ข้อมูลชี้วัด (Metrics):** ปริมาณการใช้งาน token และยอดใช้จ่าย USD, อัตราตรวจพบข้อมูลในแคช และประสิทธิภาพความพร้อมทำงานของการร้องขอ
+- **ล็อก (Logs):** ไฟล์บันทึกการทำงานของ gateway และแพลตฟอร์ม
+- **ประวัติการทำงาน (Traces):** ข้อมูลประวัติการร้องขอเพื่อนำไปใช้ในการวิเคราะห์ปัญหาเชิงลึก
+- **ตัวเก็บรวบรวมข้อมูล (Collector):** ทำหน้าที่ดึงข้อมูลจาก gateway และคอยเก็บรวบรวมล็อก พร้อมทั้งระบุป้ายกำกับของแต่ละเรกคอร์ดตามผู้เช่าที่เป็นเจ้าของข้อมูลนั้น ๆ
+- **Grafana:** ทำหน้าที่แสดงผลแดชบอร์ดตามที่เขียนกำหนดค่าไว้
 
 ```yaml
 observability:
   enabled: true
-  storage: local        # local volumes (standalone) | object (HA, S3-compatible)
+  storage: local        # local volume สำหรับ standalone หรือ object storage สำหรับ HA ที่เข้ากันได้กับ S3
 ```
 
-## Retention
+## ระยะเวลาการจัดเก็บข้อมูล (Retention)
 
-Retention is set per signal, with defaults tuned for a long-running on-prem product:
+ระยะเวลาจัดเก็บข้อมูลจะถูกกำหนดแยกตามประเภทของข้อมูล โดยมีค่าเริ่มต้นที่เหมาะสมสำหรับการรันระบบภายในองค์กรเป็นระยะเวลานานดังนี้
 
 ```yaml
 observability:
-  metricsRetention: "8760h"   # 365 days — keep usage stats for long-term cost reporting
-  logsRetention:    "4320h"   # 180 days
-  tracesRetention:  "2160h"   # 90 days
+  metricsRetention: "8760h"   # 365 วัน — เก็บสถิติใช้งานสำหรับรายงานค่าใช้จ่ายระยะยาว
+  logsRetention:    "4320h"   # 180 วัน
+  tracesRetention:  "2160h"   # 90 วัน
 ```
 
-::: tip Metrics drive cost reporting
-Usage and spend dashboards read from metrics, so the metrics retention is the longest by default — it determines
-how far back usage and budget history goes.
+::: tip ข้อมูลชี้วัดเป็นตัวขับเคลื่อนรายงานค่าใช้จ่าย
+แดชบอร์ดปริมาณการใช้งานและยอดค่าใช้จ่ายจะอ่านข้อมูลมาจากส่วน metrics ดังนั้นระยะเวลาการจัดเก็บข้อมูลชี้วัดจึงได้รับการตั้งค่าให้เก็บรักษาได้ยาวนานที่สุดตามค่าเริ่มต้น เพื่อใช้กำหนดขอบเขตย้อนหลังของประวัติการใช้งานและงบประมาณ
 :::
 
-## Storage backend
+## ระบบจัดเก็บข้อมูลส่วนหลัง (Storage backend)
 
-- **Standalone** uses `storage: local` — filesystem-backed volumes. Simple, single-replica.
-- **High availability** uses `storage: object` — an S3-compatible object store — so the telemetry backends can
-  run multiple replicas. Pair this with [High availability](/th/operate/high-availability).
+- **โหมด Standalone:** ใช้งานค่ากำหนด `storage: local` เป็นที่จัดเก็บข้อมูลในรูปแบบวอลุ่มภายในเครื่อง มีรูปแบบการทำงานที่เรียบง่ายและใช้เพียง 1 replica
+- **โหมด High availability:** ใช้งานค่ากำหนด `storage: object` เป็นที่จัดเก็บข้อมูลแบบวัตถุที่เข้ากันได้กับ S3 เพื่อช่วยให้ระบบหลังบ้านของการวัดระยะไกลสามารถใช้งานหลาย replica ได้ ควรตั้งค่านี้ควบคู่กับ [ระบบความพร้อมใช้งานสูง (High availability)](/th/operate/high-availability)
 
-## Per-organization isolation
+## การแยกส่วนข้อมูลเป็นรายองค์กร
 
-Each organization's telemetry is kept in an **isolated tenant**. The collector derives the organization from the
-request's consumer identity and routes each org's records to its own tenant. When a dashboard or the console
-queries telemetry, an authenticating proxy forces the caller's tenant scope, so one organization can never read
-another's data — even though the backend is shared.
+ข้อมูลการวัดระยะไกลของแต่ละองค์กรจะถูกจัดเก็บแยกไว้ในขอบเขตผู้เช่าที่เป็นเอกเทศ (isolated tenant) และแดชบอร์ดจะถูกกำหนดขีดความสามารถการมองเห็นตามระดับองค์กรของผู้รับชมเท่านั้น โครงสร้างการจัดเก็บข้อมูลในลักษณะนี้ช่วยรักษาสิทธิความเป็นส่วนตัวของข้อมูลระบบผู้เช่าได้อย่างสมบูรณ์ โดยระยะเวลาการจัดเก็บข้อมูลชี้วัด ล็อก และประวัติการทำงานจะถูกกำหนดโดยวิศวกรระบบแพลตฟอร์ม ดูรายละเอียดเพิ่มเติมได้ที่ [ระบบตรวจสอบสถานะการทำงานของแพลตฟอร์ม](/th/operate/observability-platform)
 
-This isolation depends on the control plane being enabled (it resolves each caller's organization). Without it,
-the stack runs single-tenant.
+ระบบการแยกส่วนข้อมูลนี้จำเป็นต้องเปิดใช้งาน control plane ควบคู่ไปด้วยเนื่องจากทำหน้าที่ระบุขอบเขตองค์กรของผู้เรียกใช้งาน หากไม่มีระบบดังกล่าว ชุดซอฟต์แวร์นี้จะทำงานในรูปแบบผู้เช่าเดี่ยว (single-tenant)
 
-## Network isolation
+## การแยกส่วนระบบเครือข่าย
 
 ```yaml
 observability:
   networkPolicy:
-    enabled: true   # default: deny-by-default, only the auth proxy may reach the telemetry backends
+    enabled: true   # ค่าเริ่มต้น: ปฏิเสธการเข้าถึงทั้งหมด และอนุญาตเฉพาะ auth proxy เท่านั้นที่เข้าถึงระบบหลังบ้านของการวัดระยะไกลได้
 ```
 
-The backends are locked down so only the authenticating proxy can reach them, preventing direct, unscoped access.
+ระบบส่วนหลังจะถูกปิดกั้นเพื่อให้เข้าถึงได้เฉพาะผ่านทาง proxy ที่ทำหน้าที่ยืนยันตัวตนเท่านั้น เพื่อป้องกันการเข้าถึงระบบโดยตรงภายนอกขอบเขตสิทธิ์การใช้งาน
 
-::: warning NetworkPolicy needs an enforcing CNI
-This guard relies on a CNI that enforces NetworkPolicy. Lightweight CNIs (k3d/flannel) ignore it — the platform
-still runs, but you don't get network-level isolation. Use an enforcing CNI in production.
+::: warning นโยบาย NetworkPolicy จำเป็นต้องทำงานร่วมกับ CNI ที่รองรับการบังคับใช้จริง
+มาตรการป้องกันความปลอดภัยนี้ต้องพึ่งพา CNI ที่มีระบบบังคับใช้กฎ NetworkPolicy สำหรับ CNI ขนาดเล็ก เช่น k3d หรือ flannel จะละเลยกฎข้อจำกัดนี้ ซึ่งแพลตฟอร์มยังคงทำงานได้ปกติแต่ระบบจะไม่มีการแยกส่วนการเชื่อมต่อในระดับเครือข่าย โปรดเลือกใช้งาน CNI ที่มีการบังคับใช้กฎในระบบใช้งานจริง
 :::
 
-## Dashboard access
+## การเข้าถึงแดชบอร์ด
 
-Platform operators reach Grafana directly at `grafana.your-domain`, gated by SSO and restricted to the admin
-group. Organization users read their own scoped telemetry through the **console** rather than Grafana — see
-[Observability](/th/admin/observability).
+วิศวกรแพลตฟอร์มสามารถเข้าใช้งาน Grafana ได้โดยตรงที่ URL `grafana.your-domain` ซึ่งจะถูกคัดกรองความปลอดภัยด้วยระบบ SSO และจำกัดให้เข้าถึงเฉพาะกลุ่มผู้ดูแลระบบแพลตฟอร์มเท่านั้น สำหรับผู้ใช้งานทั่วไปในระดับองค์กรสามารถตรวจสอบข้อมูลการวัดระยะไกลเฉพาะส่วนของตนเองได้ผ่านทาง **console** แทนการเข้าใช้งาน Grafana ดูรายละเอียดเพิ่มเติมได้ที่ [ระบบตรวจสอบสถานะการทำงาน (Observability)](/th/admin/observability)
 
-## Next steps
+## ขั้นตอนต่อไป
 
-- [Observability](/th/admin/observability) — the admin/user-facing view.
-- [High availability](/th/operate/high-availability) — object storage and replicas.
-- [Hardening](/th/security/hardening) — network posture and isolation.
+- [ระบบตรวจสอบสถานะการทำงาน (Observability)](/th/admin/observability) — หน้าจอการแสดงผลข้อมูลที่ผู้ดูแลระบบและสมาชิกเข้าใช้งาน
+- [ระบบความพร้อมใช้งานสูง (High availability)](/th/operate/high-availability) — รายละเอียดระบบการจัดเก็บข้อมูลแบบวัตถุและ replicas
+- [การเสริมสร้างความปลอดภัย (Hardening)](/th/security/hardening) — รายละเอียดนโยบายการเชื่อมต่อระดับเครือข่ายและการแยกส่วนข้อมูล

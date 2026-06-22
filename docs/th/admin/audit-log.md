@@ -1,34 +1,28 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# ประวัติการใช้งาน (Audit log)
 
-# Audit log
+**ประวัติการใช้งาน (Audit log)** จะบันทึก**ทุกการกระทำของผู้ดูแลระบบที่มีการเปลี่ยนแปลงค่ากำหนด** รวมถึงความพยายามดำเนินการที่ถูกปฏิเสธ ทำให้คุณมีประวัติการบันทึกการทำงานที่ละเอียดครบถ้วนและสามารถกรองเพื่อตรวจสอบได้ว่าใครเป็นผู้ดำเนินการเปลี่ยนแปลงค่าใดและเมื่อใดบ้าง
 
-The audit log records **every mutating administrative action** — including denied attempts — so you have a
-complete, filterable trail of who changed what, and when.
-
-::: info Who can see this
-**Org admins** see their organization's audit trail. **Platform admins** see every organization, with an org
-filter.
+::: info ผู้ที่มีสิทธิ์ในการเข้าถึงข้อมูลนี้
+**Org admin** สามารถเข้าถึงประวัติการใช้งานขององค์กรของตนเองได้ ส่วน **Platform admin** จะสามารถเข้าถึงประวัติของทุกองค์กรและสามารถกรองข้อมูลแยกตามรายองค์กรได้
 :::
 
-## What's recorded
+## ข้อมูลที่ถูกเก็บบันทึก
 
-Each entry captures the **actor** (email and groups), the **organization**, the **action** (e.g.
-`provider.create`, `key.revoke`, `org.delete`), the **target**, the **outcome** (allowed or denied), and the
-**HTTP status**. Denied attempts are recorded too — useful for spotting unauthorized activity.
+ข้อมูลในแต่ละรายการประกอบด้วย **ผู้ดำเนินการ (actor)** เช่น อีเมลและกลุ่ม **องค์กร (organization)** **การกระทำ (action)** เช่น `provider.create`, `key.revoke`, `org.delete` **เป้าหมาย (target)** **ผลลัพธ์ (outcome)** ว่าได้รับอนุญาตหรือถูกปฏิเสธ และ **HTTP status** นอกจากนี้ความพยายามใด ๆ ที่ถูกปฏิเสธก็จัดเก็บไว้เช่นกัน ซึ่งมีประโยชน์อย่างยิ่งในการตรวจสอบกิจกรรมที่เข้าข่ายไม่ได้รับอนุญาต
 
-## Filter and read
+## การกรองและตรวจสอบข้อมูล
 
-1. Open **Audit log** (Organization section; platform admins can add an org filter).
-2. Filter by **actor** (email), **action** prefix (e.g. `org.`, `key.`, `limit.`), and **date range**.
-3. Page through results.
+1. เปิดหน้า **Audit log** ภายใต้ส่วน Organization ทั้งนี้ผู้ดูแลระบบแพลตฟอร์มสามารถเลือกกรองแยกตามองค์กรเพิ่มเติมได้
+2. กรองข้อมูลโดยระบุ **ผู้ดำเนินการ (actor)** ผ่านอีเมล หรือระบุส่วนนำหน้าการกระทำ เช่น `org.`, `key.`, `limit.` และระบุ **ช่วงวันที่ (date range)**
+3. เลือกเปลี่ยนหน้าเพื่อตรวจสอบผลลัพธ์การค้นหา
 
 ![The audit log — filterable by actor, action, and date; every action with its outcome and status](/images/audit-log.png)
 
-## Retention
+## ระยะเวลาการจัดเก็บข้อมูล
 
-The platform operator sets how long audit entries are kept — see [Audit & compliance](/th/security/audit-and-compliance).
+วิศวกรระบบแพลตฟอร์มจะเป็นผู้กำหนดระยะเวลาจัดเก็บประวัติการทำงานเหล่านี้ ดูรายละเอียดเพิ่มเติมได้ที่ [การตรวจสอบประวัติและการปฏิบัติตามข้อกำหนด](/th/security/audit-and-compliance)
 
-## Next steps
+## ขั้นตอนต่อไป
 
-- [RBAC model](/th/security/rbac) — the roles whose actions are audited.
-- [Audit & compliance](/th/security/audit-and-compliance) — retention and compliance use.
+- [รูปแบบสิทธิ์การเข้าใช้งาน (RBAC)](/th/security/rbac) — บทบาทหน้าที่ต่าง ๆ ที่จะถูกตรวจสอบประวัติการทำงาน
+- [การตรวจสอบประวัติและการปฏิบัติตามข้อกำหนด](/th/security/audit-and-compliance) — รายละเอียดการเก็บรักษาข้อมูลและการปฏิบัติตามข้อกำหนดต่าง ๆ

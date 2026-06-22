@@ -1,37 +1,31 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# ปริมาณการใช้งานและงบประมาณ
 
-# Usage & budget
+แดชบอร์ด **ภาพรวม (Overview)** จะแสดงรายละเอียดปริมาณการใช้งานของคุณและยอดคงเหลือที่ใช้ได้ ทำให้หมดกังวลเรื่องค่าใช้จ่ายส่วนเกินที่คาดไม่ถึง
 
-The **Overview** dashboard shows what you've used and what you have left — so there are no billing surprises.
-
-::: info Prerequisite
-You're signed in and your account is linked to a consumer ([Get access](/th/user/get-access)).
+::: info สิ่งที่ต้องเตรียมความพร้อม
+เข้าสู่ระบบเรียบร้อยแล้วและบัญชีของคุณได้รับการผูกเข้ากับผู้บริโภคเรียบร้อยแล้ว ([วิธีการเข้าใช้งาน](/th/user/get-access))
 :::
 
-## What you see
+## ข้อมูลที่แสดงบนหน้าจอ
 
-- **Monthly budget** — your USD budget, the amount spent, and the amount remaining for the current calendar
-  month (UTC).
-- **Token usage** — input, output, and cached tokens.
-- **Per-model breakdown** — cost by model, so you can see where your spend goes.
+- **งบประมาณรายเดือน:** งบประมาณ USD ยอดที่ใช้จ่ายไปแล้ว และงบประมาณคงเหลือสำหรับเดือนปัจจุบัน อ้างอิงตามเวลามาตรฐานสากล (UTC)
+- **ปริมาณการใช้งาน Token:** จำนวน token ฝั่งขาเข้า (input) ฝั่งขาออก (output) และ token ที่ดึงมาจากแคช (cached tokens)
+- **การจำแนกตามรายโมเดล:** รายละเอียดค่าใช้จ่ายแยกตามแต่ละโมเดล เพื่อช่วยให้คุณทราบสัดส่วนการใช้งานและการใช้จ่ายจริง
 
 ![Your overview — monthly budget, spend, and a per-model cost breakdown](/images/usage-overview.png)
 
-## How budgets work
+## แนวทางการทำงานของระบบงบประมาณ
 
-Your budget is part of a hierarchy — organization ≥ project ≥ group ≥ user — and the **tightest cap applies**.
-When you reach a cap, further requests are rejected with `429 Too Many Requests` until the next month or until
-an administrator raises the limit.
+งบประมาณของคุณทำงานอยู่ภายใต้โครงสร้างลำดับชั้น ได้แก่ องค์กร ≥ โปรเจกต์ ≥ กลุ่ม ≥ ผู้ใช้งาน ซึ่งระบบจะนำ**เพดานที่เข้มงวดที่สุด**มาใช้บังคับจริง เมื่อปริมาณการใช้จ่ายของคุณถึงเกณฑ์ที่กำหนดไว้ การส่งคำร้องขอเพิ่มเติมหลังจากนั้นจะถูกปฏิเสธพร้อมสถานะกลับมาเป็น `429 Too Many Requests` จนกว่าจะขึ้นเดือนใหม่ หรือจนกว่าผู้ดูแลระบบจะขยายขีดจำกัดงบประมาณให้คุณ
 
-Semantic caching can stretch your budget: repeated or similar prompts may be served from cache, which costs
-nothing against your budget.
+ระบบ semantic caching จะช่วยประหยัดงบประมาณของคุณ โดยคำสั่งหรือ prompt ที่เหมือนหรือคล้ายคลึงกันจะถูกดึงคำตอบมาจากแคช ซึ่งไม่มีการหักงบประมาณใด ๆ ของคุณเพิ่ม
 
-## If you hit your limit
+## หากการใช้งานของคุณถึงขีดจำกัด
 
-- Wait for the monthly reset, or
-- Ask your org admin to adjust your [budget or limit](/th/admin/budgets-and-limits).
+- รอการรีเซ็ตยอดใช้งานใหม่เมื่อขึ้นเดือนใหม่ หรือ
+- ติดต่อผู้ดูแลระบบระดับองค์กร (org admin) ของคุณเพื่อปรับปรุง [งบประมาณหรือขีดจำกัด](/th/admin/budgets-and-limits)
 
-## Next steps
+## ขั้นตอนต่อไป
 
-- [Blocked requests](/th/user/blocked-requests) — if a request was rejected by a guardrail rather than a budget.
-- [Request lifecycle](/th/overview/request-lifecycle) — which gate produced a given status code.
+- [การร้องขอที่ถูกบล็อก](/th/user/blocked-requests) — กรณีที่คำร้องขอถูกปฏิเสธจากระบบ guardrail แทนเรื่องงบประมาณ
+- [วงจรชีวิตของการร้องขอ](/th/overview/request-lifecycle) — ทำความเข้าใจว่า Gate ใดที่เป็นผู้ส่ง status code กลับมา

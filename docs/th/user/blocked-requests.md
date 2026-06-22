@@ -1,38 +1,32 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# การร้องขอที่ถูกบล็อก
 
-# Blocked requests
+หากคำร้องขอถูกปฏิเสธโดย**ระบบป้องกัน (guardrail)** ซึ่งไม่ใช่เรื่องของงบประมาณ ระบบจะส่งสถานะ `403` กลับมา และจะแสดงข้อมูลดังกล่าวในหน้า **การร้องขอที่ถูกบล็อก (Blocked requests)** โดยคุณสามารถตรวจสอบเหตุผลที่ถูกบล็อกและรายงานในกรณีที่เป็นการตรวจจับผิดพลาด (false positive) ได้ที่หน้านี้
 
-If a request is rejected by a **guardrail** (not a budget), it returns `403` and appears on your **Blocked
-requests** page, where you can see why and report a false positive.
-
-::: info Prerequisite
-You're signed in ([Get access](/th/user/get-access)).
+::: info สิ่งที่ต้องเตรียมความพร้อม
+เข้าสู่ระบบเรียบร้อยแล้ว ([วิธีการเข้าใช้งาน](/th/user/get-access))
 :::
 
-## Why a request is blocked
+## เหตุผลที่คำร้องขอถูกบล็อก
 
-Guardrails screen each request before it reaches a model. A request is blocked when it matches:
+ระบบ guardrail จะทำการคัดกรองทุก ๆ คำร้องขอก่อนจะส่งไปถึงโมเดล คำร้องขอจะถูกบล็อกเมื่อตรวจพบข้อมูลที่ตรงกับเงื่อนไขดังต่อไปนี้
 
-- a **PII** rule (sensitive data like an email, phone number, or key), or
-- a **prompt-injection** rule (pattern-based or semantic) intended to subvert the model.
+- กฎการตรวจจับ**ข้อมูลส่วนบุคคล (PII)** เช่น ข้อมูลที่ละเอียดอ่อนอย่างอีเมล หมายเลขโทรศัพท์ หรือคีย์ต่าง ๆ หรือ
+- กฎการป้องกัน**การป้อนคำสั่งที่ไม่ปลอดภัย (prompt-injection)** ทั้งแบบอิงตามรูปแบบหรือแบบอิงตามความหมาย เพื่อป้องกันการหลอกล่อหรือแทรกแซงโมเดล
 
-A blocked request never reaches the provider, so it costs nothing against your budget.
+คำร้องขอที่ถูกบล็อกจะไม่มีวันส่งไปถึงผู้ให้บริการต้นทาง ดังนั้นจึงไม่มีการหักค่าใช้จ่ายใด ๆ ออกจากงบประมาณของคุณ
 
-## Review and report
+## การตรวจสอบและการรายงานข้อมูล
 
-1. Open **Blocked requests** in the console.
-2. Find the request — you'll see the time and the rule that matched.
-3. If it was wrongly blocked, click **Report** to flag it as a false positive. Your org admin can then tune the
-   guardrail.
+1. เปิดหน้า **Blocked requests** บน console
+2. ค้นหาคำร้องขอดังกล่าว ซึ่งคุณจะพบข้อมูลเวลาที่ใช้งานและกฎของ guardrail ที่ตรวจพบข้อผิดพลาด
+3. หากคำร้องขอนั้นถูกบล็อกอย่างไม่ถูกต้อง ให้คลิก **Report** เพื่อทำเครื่องหมายว่าเป็นรายงานเท็จ (false positive) จากนั้นผู้ดูแลระบบระดับองค์กร (org admin) จะสามารถนำข้อมูลนี้ไปปรับปรุงกฎของ guardrail ต่อไปได้
 
 ![Your blocked requests — the matched guardrail rule, the snippet, and a report action](/images/blocked-requests.png)
 
-::: tip Distinguish 403 from 429
-A **403** means a guardrail blocked the content. A **429** means you hit a budget or token limit — see
-[Usage & budget](/th/user/usage-and-budget). The [request lifecycle](/th/overview/request-lifecycle) table maps each
-status to its gate.
+::: tip วิธีแยกแยะความแตกต่างระหว่างสถานะ 403 และ 429
+สถานะ **403** หมายถึงระบบ guardrail บล็อกเนื้อหาของคำร้องขอ ส่วนสถานะ **429** หมายถึงยอดการใช้งานของคุณถึงเกณฑ์งบประมาณหรือขีดจำกัดจำนวน token แล้ว ดูรายละเอียดเพิ่มเติมได้ที่ [ปริมาณการใช้งานและงบประมาณ](/th/user/usage-and-budget) โดยสามารถดูตารางเปรียบเทียบในหน้า [วงจรชีวิตของการร้องขอ](/th/overview/request-lifecycle) เพื่อทำความเข้าใจว่าแต่ละสถานะมาจาก Gate ใด
 :::
 
-## Next steps
+## ขั้นตอนต่อไป
 
-- Administrators tune rules in [Guardrails](/th/admin/guardrails).
+- สำหรับผู้ดูแลระบบ สามารถเข้าไปปรับจูนกฎการทำงานได้ที่หน้า [ระบบป้องกัน (Guardrails)](/th/admin/guardrails)

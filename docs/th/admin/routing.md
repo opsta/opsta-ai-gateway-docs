@@ -1,37 +1,30 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# การจัดเส้นทาง (Routing)
 
-# Routing
+**การจัดเส้นทาง (Routing)** คือการจับคู่**โมเดลเชิงตรรกะ (logical model)** ที่ฝั่งไคลเอนต์เรียกใช้งาน เช่น `coding-default` เข้ากับ**ผู้ให้บริการ**และ**โมเดลต้นทาง** การอ้างอิงทางอ้อมในลักษณะนี้เป็นเสมือนข้อกำหนดข้อตกลงที่เสถียร โดยทางไคลเอนต์จะเรียกใช้งานผ่านชื่อเชิงตรรกะ และคุณสามารถปรับการเชื่อมโยงเส้นทางใหม่ได้ตลอดเวลาโดยไม่ต้องแก้ไขโค้ดฝั่งไคลเอนต์เลย
 
-Routing maps the **logical model** a client requests (e.g. `coding-default`) to a **provider** and an
-**upstream model**. This indirection is the stable contract: clients use logical names, and you re-point them
-without changing any client code.
-
-::: info Who can do this
-**Org admins** (for their organization) and **platform admins**, on **Projects → Routing**.
+::: info ผู้ที่มีสิทธิ์ในการดำเนินการนี้
+**Org admin** (สิทธิ์เฉพาะในองค์กรของตนเอง) และ **Platform admin** โดยดำเนินการผ่านหน้าจอ **Projects → Routing**
 :::
 
-## Add a route
+## การเพิ่มเส้นทาง (Route)
 
-1. Open **Projects → Routing**.
-2. Click **Add route**.
-3. Set the **logical model** (the name clients send, e.g. `coding-default` or `bulk`).
-4. Choose the **provider** ([added here](/th/admin/providers)) and the **upstream model** that provider serves.
-5. Save. Requests for that logical model now flow to the chosen provider and model.
+1. เปิดหน้า **Projects → Routing**
+2. คลิก **Add route**
+3. กำหนดชื่อ **logical model** ซึ่งเป็นชื่อเชิงตรรกะที่ฝั่งไคลเอนต์จะส่งเข้ามา เช่น `coding-default` หรือ `bulk` เป็นต้น
+4. เลือก **provider** ที่ [ได้เพิ่มไว้ที่นี่](/th/admin/providers) และระบุ **upstream model** ที่ผู้ให้บริการรายนั้นเปิดให้ใช้งาน
+5. คลิกบันทึก ซึ่งคำร้องขอสำหรับการเรียกโมเดลเชิงตรรกะนี้จะถูกจัดเส้นทางไปยังผู้ให้บริการและโมเดลที่เลือกโดยอัตโนมัติ
 
 ![The Routing tab — logical model names mapped to providers](/images/routing.png)
 
-## How it's enforced
+## แนวทางการบังคับใช้งานระบบจัดเส้นทาง
 
-When a request arrives, the gateway resolves its `model` field through these routes before applying budgets and
-calling the provider — see [Request lifecycle](/th/overview/request-lifecycle). Because the logical name is the
-contract, you can switch a route's provider or model and clients see no change.
+เมื่อคำร้องขอส่งมาถึง gateway ระบบจะทำการแปลงฟิลด์ `model` ผ่านเส้นทางเหล่านี้ก่อนที่จะทำการตรวจสอบงบประมาณและส่งไปยังผู้ให้บริการต้นทาง โดยสามารถดูรายละเอียดเพิ่มเติมได้ที่ [วงจรชีวิตของการร้องขอ](/th/overview/request-lifecycle) และเนื่องจากชื่อโมเดลเชิงตรรกะทำหน้าที่เป็นข้อตกลงที่เสถียร คุณจึงสามารถสลับผู้ให้บริการหรือโมเดลต้นทางของการจัดเส้นทางได้โดยที่ฝั่งไคลเอนต์จะไม่ได้รับผลกระทบใด ๆ ทั้งสิ้น
 
-::: tip Keep logical names stable
-Agree on logical names with your developers (e.g. `coding-default`, `bulk`) and keep them stable. Swap the
-provider behind them as your cost or quality needs change.
+::: tip รักษาชื่อเชิงตรรกะให้คงที่เสมอ
+โปรดตกลงเรื่องการใช้งานชื่อเชิงตรรกะร่วมกับทีมพัฒนาของคุณ เช่น `coding-default` หรือ `bulk` และดูแลให้ชื่อเหล่านั้นคงที่เสมอ จากนั้นคุณสามารถสลับเปลี่ยนผู้ให้บริการต้นทางที่อยู่เบื้องหลังได้ตามความต้องการด้านค่าใช้จ่ายหรือระดับคุณภาพที่เปลี่ยนแปลงไป
 :::
 
-## Next steps
+## ขั้นตอนต่อไป
 
-- [Budgets & limits](/th/admin/budgets-and-limits) — cap spend on these routes.
-- [Pricing](/th/admin/pricing) — set the cost basis used for budgets.
+- [งบประมาณและขีดจำกัด](/th/admin/budgets-and-limits) เพื่อควบคุมและกำหนดเพดานค่าใช้จ่ายสำหรับเส้นทางเหล่านี้
+- [การกำหนดราคาโมเดล](/th/admin/pricing) เพื่อกำหนดเกณฑ์การคำนวณค่าใช้จ่ายสำหรับระบบงบประมาณ

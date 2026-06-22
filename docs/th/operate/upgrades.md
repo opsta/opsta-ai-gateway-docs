@@ -1,73 +1,54 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# การอัปเกรดระบบ
 
-# Upgrades
+เวอร์ชันของผลิตภัณฑ์จะระบุเวอร์ชันของ**คอมโพเนนต์เมทริกซ์ (component matrix) ที่ผ่านการทดสอบร่วมกัน**เรียบร้อยแล้ว การอัปเกรดระบบจะหมายถึงการเปลี่ยนผ่านแพลตฟอร์มทั้งหมดไปยังเวอร์ชันที่เผยแพร่ใหม่พร้อมกันทั้งชุด โดยไม่มีการแยกอัปเกรดส่วนประกอบใดส่วนประกอบหนึ่งแยกต่างหาก ซึ่งอิมเมจจริงที่ได้รับการทดสอบในเวอร์ชันที่เผยแพร่นั้นจะเป็นชุดอิมเมจเดียวกับที่จะถูกส่งมอบให้คุณใช้งาน
 
-The product version pins a **tested component matrix**. Upgrading means moving the whole platform to a new
-released version as one set — not drifting individual components. The exact images tested for a release are the
-ones that ship to you.
-
-::: info Who this is for
-Platform engineers upgrading an existing installation to a newer product version.
+::: info เอกสารนี้เหมาะสำหรับใคร
+วิศวกรแพลตฟอร์ม (platform engineer) ที่ทำหน้าที่อัปเกรดระบบติดตั้งเดิมที่มีอยู่แล้วให้เป็นเวอร์ชันที่ใหม่ขึ้น
 :::
 
-## One version, one tested set
+## หนึ่งเวอร์ชันต่อชุดทดสอบหนึ่งชุด
 
-Each product version (e.g. `v1.8.0`) pins the versions of every component beside it — Kubernetes baseline, the
-gateway, control plane, console, databases, identity, observability, and the built-in plugins. That set is tested
-together. Bumping the product version moves the whole set; you don't upgrade one plugin or one database in
-isolation.
+ในแต่ละเวอร์ชันผลิตภัณฑ์ เช่น `v1.8.0` จะระบุเวอร์ชันของทุก ๆ ส่วนประกอบที่เกี่ยวข้องไว้ ได้แก่ Kubernetes baseline, gateway, control plane, console, ฐานข้อมูล, ระบบระบุตัวตน, ระบบตรวจสอบสถานะการทำงาน และปลั๊กอินในตัว ซึ่งทั้งหมดนี้ผ่านการทดสอบการทำงานร่วมกันเป็นชุดระบบเดียว การปรับเพิ่มเวอร์ชันผลิตภัณฑ์จะส่งผลเปลี่ยนผ่านเวอร์ชันของทั้งชุดพร้อมกัน โดยคุณไม่จำเป็นต้องอัปเกรดปลั๊กอินตัวใดตัวหนึ่งหรือฐานข้อมูลระบบตัวใดตัวหนึ่งแยกกันโดยเดี่ยว
 
-You select the version through the chart and its image tags. See the
-[Configuration reference](/th/reference/configuration#images) for the image value structure and
-[Release notes](/th/releases/) for what each version delivers.
+คุณสามารถเลือกตั้งค่าเวอร์ชันที่ต้องการผ่าน Helm chart และแท็กอิมเมจของส่วนประกอบได้ โดยสามารถดูรายละเอียดโครงสร้างค่ากำหนดอิมเมจได้ที่ [เอกสารอ้างอิงการกำหนดค่า](/th/reference/configuration#images) และตรวจสอบฟีเจอร์ของแต่ละเวอร์ชันได้ที่ [บันทึกการเผยแพร่ (Release notes)](/th/releases/)
 
-## Build-once, promote-by-retag
+## รูปแบบ Build-once และ Promote-by-retag
 
-Behind a release, the **exact image digest** that was tested is the one that ships — images are promoted by
-retagging, not rebuilt between environments. So the artifact you run in production is bit-for-bit the one that
-passed testing. You don't need to reproduce a build; you pull the released tag.
+ในขั้นตอนการเผยแพร่เวอร์ชัน **ค่าอิมเมจไดเจสต์ (image digest) จริง** ที่ผ่านการทดสอบแล้วจะเป็นตัวที่ถูกส่งมอบออกไป โดยอิมเมจจะได้รับการเปลี่ยนผ่านโดยการเปลี่ยนป้ายกำกับ (retagging) และไม่มีการบิลด์อิมเมจใหม่ระหว่างแต่ละสภาพแวดล้อม ดังนั้นอิมเมจจริงที่คุณเรียกใช้งานบนสภาพแวดล้อมจริงจึงมีความถูกต้องแบบบิตต่อบิตตรงกับตัวที่ผ่านการทดสอบความถูกต้องมาแล้ว โดยคุณไม่จำเป็นต้องทำกระบวนการบิลด์ระบบใหม่เอง เพียงแค่ดาวน์โหลดผ่านแท็กอิมเมจที่เผยแพร่อย่างเป็นทางการเท่านั้น
 
-## Upgrade procedure
+## ขั้นตอนการอัปเกรดระบบ
 
-1. **Read the [release notes](/th/releases/)** for the target version — note any new required values or behavior
-   changes.
-2. **Back up** the control-plane PostgreSQL first — see [Backup & DR](/th/operate/backup-and-dr).
-3. **Update your image tags / chart version** to the target release in your values.
-4. **Apply** with `helm upgrade`:
+1. **อ่าน [บันทึกการเผยแพร่ (Release notes)](/th/releases/)** สำหรับเวอร์ชันเป้าหมาย โดยตรวจสอบความต้องการค่ากำหนดใหม่หรือการเปลี่ยนแปลงพฤติกรรมการทำงานของระบบ
+2. **สำรองข้อมูล** PostgreSQL ของระบบ control plane ไว้ล่วงหน้า ดูรายละเอียดเพิ่มเติมได้ที่ [การสำรองข้อมูลและการกู้คืน (Backup & DR)](/th/operate/backup-and-dr)
+3. **ปรับปรุงค่าแท็กอิมเมจหรือเวอร์ชันของ chart** ในไฟล์ values ของคุณให้เป็นไปตามเวอร์ชันเป้าหมาย
+4. **ปรับใช้การกำหนดค่า** ด้วยคำสั่ง `helm upgrade` ดังนี้
 
    ```bash
    helm upgrade opsta-ai-gateway oci://ghcr.io/opsta/charts/opsta-ai-gateway \
      -n opsta-ai-gateway -f values.yaml -f secrets-values.yaml
    ```
 
-5. **Watch readiness.** The control plane runs any new database migrations and a reconcile before reporting
-   ready, so the gateway is never serving against a half-migrated state.
+5. **ตรวจสอบความพร้อมทำงาน** control plane จะจัดการย้ายฐานข้อมูล (database migrations) และดำเนินการปรับประสานสถานะครั้งใหม่ก่อนที่จะเปลี่ยนสถานะเป็นพร้อมทำงาน ซึ่งช่วยให้มั่นใจได้ว่าเกตเวย์จะไม่มีวันให้บริการข้อมูลในสถานะที่การย้ายข้อมูลยังดำเนินการไม่เสร็จสิ้นเด็ดขาด
 
    ```bash
    kubectl -n opsta-ai-gateway rollout status deploy/control-plane
    ```
 
-6. **Smoke-test** a request through the gateway and a console sign-in.
+6. **ทดสอบระบบเบื้องต้น (Smoke-test)** โดยการส่งคำร้องขอผ่านเกตเวย์และทดลองลงชื่อเข้าใช้งานหน้าจอ console
 
-## Rolling upgrades in HA
+## การทยอยอัปเกรดระบบในโหมด HA
 
-In [high-availability](/th/operate/high-availability) mode, PodDisruptionBudgets and anti-affinity keep a quorum of
-each component up during the rollout, so the upgrade is non-disruptive to live traffic. Database failover is
-handled by CloudNativePG.
+ใน [โหมดความพร้อมใช้งานสูง (High availability)](/th/operate/high-availability) ระบบจะเปิดใช้งาน PodDisruptionBudget และกฎ anti-affinity เพื่อคอยควบคุมให้มี replica ขั้นต่ำของแต่ละส่วนประกอบสแตนด์บายทำงานอยู่ในระหว่างขั้นตอนการทยอยติดตั้ง ส่งผลให้การอัปเกรดไม่ส่งผลกระทบหยุดชะงักต่อการรับส่งทราฟฟิกจริงในขณะนั้น สำหรับระบบสลับการทำงานอัตโนมัติของฐานข้อมูลจะจัดการโดย CloudNativePG
 
-::: tip Config you changed by hand will be reconciled
-Tenant data (consumers, budgets, providers, guardrails) is owned by the control plane and survives upgrades. The
-chart owns product-level config — anything you changed outside the chart can be reset on upgrade, so make changes
-through values, not by editing live resources.
+::: tip ค่ากำหนดที่คุณแก้ไขด้วยตนเองจะถูกปรับประสานใหม่
+ข้อมูลผู้เช่า เช่น ผู้บริโภค งบประมาณ ผู้ให้บริการ และ guardrail จะถูกดูแลโดย control plane และไม่ได้รับผลกระทบจากการอัปเกรดระบบ ส่วนตัว Helm chart จะคอยดูแลค่ากำหนดในระดับผลิตภัณฑ์ ดังนั้นการแก้ไขใด ๆ ด้วยตนเองภายนอก chart อาจถูกลบและเขียนทับใหม่ในระหว่างการอัปเกรดระบบ โปรดปรับเปลี่ยนค่าต่าง ๆ ผ่านไฟล์ values เท่านั้น และหลีกเลี่ยงการเข้าไปแก้ไขทรัพยากรในคลัสเตอร์โดยตรง
 :::
 
-## Rolling back
+## การย้อนกลับเวอร์ชัน (Rolling back)
 
-`helm rollback` returns the chart to the previous release. Because PostgreSQL holds the source of truth, restore a
-database backup taken before the upgrade if a migration needs to be reversed. Test upgrades in a staging
-environment first.
+คำสั่ง `helm rollback` จะช่วยย้อนกลับการตั้งค่าใน chart ไปเป็นเวอร์ชันก่อนหน้า เนื่องจากฐานข้อมูล PostgreSQL ทำหน้าที่เป็นแหล่งข้อมูลความจริงของระบบ หากจำเป็นต้องยกเลิกผลการย้ายฐานข้อมูล คุณต้องกู้คืนข้อมูลจากไฟล์สำรองฐานข้อมูลที่ได้จัดทำไว้ล่วงหน้าก่อนการอัปเกรด และโปรดทดสอบการอัปเกรดระบบบนสภาพแวดล้อม staging ทุกครั้งก่อนเริ่มดำเนินการจริง
 
-## Next steps
+## ขั้นตอนต่อไป
 
-- [Backup & DR](/th/operate/backup-and-dr) — take a backup before every upgrade.
-- [Release notes](/th/releases/) — what changed between versions.
+- [การสำรองข้อมูลและการกู้คืน (Backup & DR)](/th/operate/backup-and-dr) — วิธีสำรองข้อมูลก่อนเริ่มขั้นตอนการอัปเกรด
+- [บันทึกการเผยแพร่ (Release notes)](/th/releases/) — รายละเอียดการเปลี่ยนแปลงในแต่ละเวอร์ชัน

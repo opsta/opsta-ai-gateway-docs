@@ -1,16 +1,12 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# เซิร์ฟเวอร์ MCP (MCP servers)
 
-# MCP servers
+MCP gateway ช่วยให้คุณสามารถมอบสิทธิ์**การเข้าถึงเครื่องมือภายใต้การควบคุม**ให้แก่ AI agent ของคุณได้ โดยคุณสามารถลงทะเบียนเซิร์ฟเวอร์ Model Context Protocol (MCP) ระยะไกลแยกตามแต่ละโปรเจกต์ ซึ่งระบบ gateway จะทำหน้าที่ช่วยคัดกรองการเข้าถึงโดยอ้างอิงสิทธิ์การยืนยันตัวตน การแยกส่วนข้อมูล และระบบตรวจสอบประวัติการใช้งานแบบเดียวกันกับการรับส่งข้อมูลของ LLM
 
-The MCP gateway lets you give AI agents **governed access to tools**. You register remote Model Context Protocol
-(MCP) servers per project; the gateway then fronts them with the same identity, isolation, and audit you use for
-LLM traffic.
-
-::: info Who can do this
-**Org admins** (for their organization) and **platform admins**, on **Projects → MCP Servers**.
+::: info ผู้ที่มีสิทธิ์ในการดำเนินการนี้
+**Org admin** (สิทธิ์เฉพาะในองค์กรของตนเอง) และ **Platform admin** โดยดำเนินการผ่านหน้าจอ **Projects → MCP Servers**
 :::
 
-## How a governed MCP request flows
+## ขั้นตอนการรับส่งข้อมูลการร้องขอของ MCP ภายใต้การควบคุม
 
 ```mermaid
 flowchart LR
@@ -21,31 +17,28 @@ flowchart LR
   PX --> B[Your backend MCP server]
 ```
 
-A request must carry a valid **project API key** (key-auth) and may only reach **its own project's** path
-(tenant guard) — a key from another project gets `403`.
+คำร้องขอจะต้องมี **API key ของโปรเจกต์**ที่ถูกต้องสำหรับการยืนยันตัวตน (key-auth) และจะสามารถเข้าถึงได้เฉพาะเส้นทางที่กำหนดไว้ใน**โปรเจกต์ของตนเองเท่านั้น**สำหรับการป้องกันระดับผู้เช่า (tenant guard) โดยการใช้คีย์จากโปรเจกต์อื่นจะได้รับสถานะ `403` กลับไป
 
-## Register a server
+## การลงทะเบียนเซิร์ฟเวอร์
 
-1. Open **Projects → MCP Servers** and click **Add server**.
-2. Enter a **name**, the backend **MCP server URL**, a **timeout**, and (if the backend needs one) an upstream
-   **credential**.
-3. Toggle **enabled** and save. The control plane provisions the route and isolation rules.
-4. Share the generated **connect URL** with your developers:
-   `https://mcp.<your-domain>/<organization>.<project>/<server-name>`.
+1. เปิดหน้า **Projects → MCP Servers** และคลิก **Add server**
+2. กำหนด **ชื่อ (name)** ระบุ **URL ของเซิร์ฟเวอร์ MCP ต้นทาง (backend MCP server URL)** ตั้งค่า **เวลาหมดอายุ (timeout)** และข้อมูลรับรองสิทธิ์ของระบบต้นทางหากระบบต้นทางต้องการ
+3. สลับสวิตช์ **enabled** เพื่อเปิดใช้งานและทำการบันทึก โดยฝั่ง control plane จะสร้างเส้นทางจัดส่งข้อมูลและกฎการแยกส่วนข้อมูลให้โดยอัตโนมัติ
+4. คัดลอก **connect URL** ที่ระบบสร้างขึ้นเพื่อส่งต่อให้นักพัฒนาของคุณนำไปใช้เชื่อมต่อดังนี้
+   `https://mcp.<your-domain>/<organization>.<project>/<server-name>`
 
 ![The MCP Servers tab](/images/mcp-servers.png)
 
-## What's governed (Stage 1)
+## สิ่งที่อยู่ภายใต้การกำกับดูแล (สำหรับระยะที่ 1)
 
-- **Access** — agents authenticate with the project API key (one key for chat and tools).
-- **Isolation** — strict per-project: a key cannot reach another project's servers.
-- **Activity** — tool-call activity is recorded per organization.
+- **การเข้าถึง:** agent จะยืนยันตัวตนด้วย API key ของโปรเจกต์ ซึ่งสามารถใช้งานได้ตัวเดียวครอบคลุมทั้งบริการแชทและเครื่องมือต่าง ๆ
+- **การแยกส่วนข้อมูล:** ระบบจะแยกสิทธิ์ใช้งานตามแต่ละโปรเจกต์อย่างเคร่งครัด โดยคีย์ของโปรเจกต์หนึ่งจะไม่สามารถเข้าถึงเซิร์ฟเวอร์ของอีกโปรเจกต์หนึ่งได้
+- **กิจกรรมการใช้งาน:** ทุกกิจกรรมการเรียกใช้งานเครื่องมือ (tool call) จะถูกบันทึกไว้แยกตามรายองค์กร
 
-::: info Scope
-This first stage covers **governed access + a catalog** of remote MCP servers. Per-tool budgets/guardrails and
-auto-generating MCP servers from REST APIs are future capabilities.
+::: info ขอบเขตการทำงาน
+การทำงานในระยะแรกนี้จะครอบคลุมในส่วนของระบบกำกับดูแลการเข้าถึงและแคตตาล็อกของเซิร์ฟเวอร์ MCP ระยะไกล สำหรับความสามารถในการกำหนดงบประมาณหรือ guardrail แยกตามรายเครื่องมือ รวมถึงการสร้างเซิร์ฟเวอร์ MCP จาก REST API โดยอัตโนมัติ จะเป็นความสามารถที่จะเปิดให้ใช้งานในอนาคต
 :::
 
-## Next steps
+## ขั้นตอนต่อไป
 
-Developers connect to these servers via [Use MCP servers](/th/user/use-mcp-servers).
+นักพัฒนาสามารถเชื่อมต่อไปยังเซิร์ฟเวอร์เหล่านี้ได้โดยศึกษาคู่มือ [การใช้งาน MCP server](/th/user/use-mcp-servers)

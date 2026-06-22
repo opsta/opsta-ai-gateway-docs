@@ -1,97 +1,83 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# TLS และโดเมน
 
-# TLS & domains
+gateway จะจัดการสิ้นสุดการเชื่อมต่อ TLS (terminate TLS) **ภายในคลัสเตอร์ของคุณ** โดยใช้ใบรับรอง wildcard certificate เพียงใบเดียวครอบคลุมทุกโดเมนย่อย ซึ่งคุณสามารถเลือกวิธีการออกใบรับรองดังกล่าวได้ ไม่ว่าจะเป็นแบบออกใบรับรองอัตโนมัติจาก Let's Encrypt, การระบุใบรับรองของคุณเอง หรือการใช้งานใบรับรองที่ลงนามด้วยตนเอง (self-signed) สำหรับการติดตั้งในระบบปิด (air-gapped)
 
-The gateway terminates TLS **in your cluster**, with a single wildcard certificate covering every subdomain.
-You choose how that certificate is issued — automatically from Let's Encrypt, supplied by you, or self-signed for
-air-gapped sites.
-
-::: info Who this is for
-Platform engineers. TLS and DNS are set at install time and rarely change afterward.
+::: info เอกสารนี้เหมาะสำหรับใคร
+วิศวกรแพลตฟอร์ม (platform engineer) เนื่องจากระบบ TLS และ DNS จะถูกตั้งค่าเฉพาะในช่วงเวลาการติดตั้งระบบครั้งแรกและมักไม่มีการแก้ไขหลังจากนั้น
 :::
 
-## Subdomains
+## โดเมนย่อย
 
-All services live under your `global.baseDomain`:
+บริการทั้งหมดจะทำงานอยู่ภายใต้ `global.baseDomain` ของคุณ ดังนี้
 
-| Subdomain | Service | Value |
+| โดเมนย่อย | บริการ | ค่ากำหนด |
 |---|---|---|
-| `api.` | The OpenAI-compatible gateway endpoint | `global.subdomains.api` |
-| `console.` | The web console | `global.subdomains.console` |
-| `grafana.` | Observability dashboards | `global.subdomains.grafana` |
-| `auth.` | Keycloak (identity) | `global.subdomains.auth` |
-| `mcp.` | The MCP gateway (when enabled) | `global.subdomains.mcp` |
+| `api.` | Endpoint ของ gateway ที่เข้ากันได้กับ OpenAI | `global.subdomains.api` |
+| `console.` | หน้าจอ web console | `global.subdomains.console` |
+| `grafana.` | แดชบอร์ดระบบตรวจสอบสถานะการทำงาน | `global.subdomains.grafana` |
+| `auth.` | Keycloak สำหรับระบบยืนยันตัวตน | `global.subdomains.auth` |
+| `mcp.` | ระบบ MCP gateway ในกรณีเปิดใช้งาน | `global.subdomains.mcp` |
 
-The **separator** between the label and the base domain is `global.subdomainSeparator`:
+ตัวคั่นระหว่างชื่อและโดเมนหลักจะกำหนดในคีย์ `global.subdomainSeparator` ดังนี้
 
-- `"."` (default) → `api.ai-gateway.example.com`. Needs a certificate for `*.ai-gateway.example.com`.
-- `"-"` → `api-ai-gateway.example.com`. Fits under a single parent wildcard like `*.example.com`, which is handy
-  when you already have one.
+- `"."` (ค่าเริ่มต้น) → `api.ai-gateway.example.com` ซึ่งจำเป็นต้องใช้งานใบรับรองที่ครอบคลุม `*.ai-gateway.example.com`
+- `"-"` → `api-ai-gateway.example.com` ซึ่งจะอยู่ภายใต้ wildcard หลักอันเดียว เช่น `*.example.com` สะดวกอย่างยิ่งในกรณีที่คุณมีใบรับรองแบบดังกล่าวอยู่แล้ว
 
-## TLS modes
+## โหมดการทำงานของ TLS
 
-Set `tls.mode` to one of:
+กำหนดค่าในคีย์ `tls.mode` เป็นค่าใดค่าหนึ่งดังต่อไปนี้
 
-### `letsencrypt` (default)
+### letsencrypt (ค่าเริ่มต้น)
 
-cert-manager requests a wildcard certificate from Let's Encrypt using a **DNS-01** challenge, so no inbound HTTP
-is required during issuance.
+cert-manager จะร้องขอใบรับรอง wildcard certificate จาก Let's Encrypt โดยใช้วิธีทดสอบ **DNS-01** ทำให้ไม่จำเป็นต้องเปิดสิทธิ์การเข้าถึง HTTP ขาเข้าในระหว่างการออกใบรับรอง
 
 ```yaml
 tls:
   mode: letsencrypt
   letsencrypt:
-    issuer: letsencrypt-prod        # or letsencrypt-staging while testing
+    issuer: letsencrypt-prod        # หรือ letsencrypt-staging ในระหว่างขั้นตอนการทดสอบ
     email: platform@example.com
     dns01:
       provider: cloudflare
-      dnsZone: example.com          # the zone your DNS token can manage
+      dnsZone: example.com          # โซนโดเมนที่โทเค็น DNS ของคุณมีสิทธิ์จัดการ
 ```
 
-::: tip Test against staging first
-Let's Encrypt rate-limits production issuance. Use `issuer: letsencrypt-staging` until DNS and the challenge work
-end to end, then switch to `letsencrypt-prod`.
+::: tip แนะนำให้ทดสอบกับสภาพแวดล้อม staging ก่อน
+Let's Encrypt จะมีการจำกัดปริมาณการออกใบรับรองในระบบใช้งานจริง โปรดระบุค่า `issuer: letsencrypt-staging` ไว้ก่อนจนกว่าการตั้งค่า DNS และระบบตรวจสอบความถูกต้องจะทำงานผ่านได้สำเร็จเรียบร้อยดีทั้งหมด จากนั้นจึงสลับมาใช้ค่า `letsencrypt-prod` สำหรับใช้งานจริง
 :::
 
-### `provided`
+### โหมด provided
 
-You supply your own wildcard certificate as a Kubernetes Secret and point the platform at it. Use this when your
-organization issues certificates from an internal CA or a commercial provider.
+คุณเป็นผู้จัดเตรียมใบรับรอง wildcard certificate ของตนเองในรูปแบบ Kubernetes Secret และกำหนดค่าให้แพลตฟอร์มอ้างอิงมายัง Secret ดังกล่าว โปรดเลือกใช้โหมดนี้เมื่อองค์กรของคุณออกใบรับรองผ่าน CA ภายในองค์กรหรือใช้บริการจากผู้ให้บริการเชิงพาณิชย์
 
 ```yaml
 tls:
   mode: provided
-  wildcardSecretName: ai-gateway-wildcard-tls   # a Secret you create containing tls.crt / tls.key
+  wildcardSecretName: ai-gateway-wildcard-tls   # Secret ที่คุณสร้างขึ้นซึ่งเก็บข้อมูล tls.crt และ tls.key
 ```
 
-### `selfsigned`
+### โหมด selfsigned
 
-cert-manager issues a self-signed wildcard certificate. Intended for **air-gapped** or internal environments
-where a public CA isn't reachable and clients trust your internal root.
+cert-manager จะทำหน้าที่ออกใบรับรอง wildcard แบบลงนามด้วยตนเอง (self-signed) โดยมีวัตถุประสงค์หลักสำหรับใช้ใน**ระบบปิด (air-gapped)** หรือสภาพแวดล้อมระบบเครือข่ายภายในองค์กรซึ่งไม่สามารถเข้าถึงหน่วยงาน CA สาธารณะได้ และฝั่งไคลเอนต์ปลายทางจะยอมรับความน่าเชื่อถือผ่านระบบ root CA ภายในของคุณเอง
 
 ```yaml
 tls:
   mode: selfsigned
 ```
 
-## The front door
+## ช่องทางการเข้าถึงจากภายนอก
 
-The certificate covers the in-cluster listener regardless of how traffic reaches it. Two common patterns:
+ใบรับรองจะทำหน้าที่ครอบคลุมพอร์ตเชื่อมต่อ (listener) ภายในคลัสเตอร์โดยไม่ขึ้นอยู่กับช่องทางที่ข้อมูลจะส่งมาถึง โดยมีรูปแบบที่นิยมใช้ 2 รูปแบบดังนี้
 
-- **Your own ingress / load balancer** — point a wildcard DNS record at it.
-- **Cloudflare Tunnel** (`ingress.tunnel.enabled: true`) — for environments without a public inbound IP. The
-  tunnel relays bytes to the in-cluster listener; your in-cluster certificate still serves the connection
-  end to end.
+- **Ingress หรือ Load Balancer ของคุณเอง:** ดำเนินการชี้ระเบียน DNS wildcard มายังส่วนประกอบนี้
+- **Cloudflare Tunnel (`ingress.tunnel.enabled: true`):** สำหรับสภาพแวดล้อมที่ไม่มีไอพีสาธารณะขาเข้า โดยระบบอุโมงค์ข้อมูล (tunnel) จะทำหน้าที่ส่งต่อทราฟฟิกมายัง listener ภายในคลัสเตอร์ ซึ่งใบรับรองภายในคลัสเตอร์ของคุณจะยังคงทำหน้าที่ดูแลความปลอดภัยของการเชื่อมต่อตั้งแต่ต้นจนจบกระบวนการเช่นเดิม
 
+## ระบบ DNS
 
-## DNS
+สร้าง **ระเบียน wildcard (wildcard record)** เช่น `*.your-domain` ชี้มายังที่อยู่ภายนอกของ gateway หรือในกรณีใช้งาน Cloudflare Tunnel จะปล่อยให้ระบบ tunnel เป็นตัวจัดการชื่อโฮสต์สาธารณะแทน สำหรับการออกใบรับรองด้วยวิธี DNS-01 โทเค็นผู้ให้บริการ DNS สำหรับออกใบรับรองจะต้องมีสิทธิ์ในการบริหารจัดการ `dnsZone` ที่คุณตั้งค่าไว้ด้วย
 
-Create a **wildcard record** — `*.your-domain` — pointing at the gateway's external address (or, with Cloudflare
-Tunnel, let the tunnel manage the public hostnames). For DNS-01 issuance, the certificate's DNS provider token
-must be able to manage the `dnsZone` you configured.
+## ขั้นตอนต่อไป
 
-## Next steps
-
-- [High availability](/th/operate/high-availability) — production replicas and disruption budgets.
-- [Air-gapped install](/th/operate/air-gap) — self-signed TLS and mirrored images.
-- [Hardening](/th/security/hardening) — TLS, secrets, and network posture.
+- [ระบบความพร้อมใช้งานสูง (High availability)](/th/operate/high-availability) — โครงสร้าง replica และนโยบายการขัดข้องที่ยอมรับได้
+- [การติดตั้งในระบบปิด (Air-gapped install)](/th/operate/air-gap) — รายละเอียดระบบ TLS แบบ self-signed และการคัดลอกรูปคอนเทนเนอร์
+- [การเสริมสร้างความปลอดภัย (Hardening)](/th/security/hardening) — ความปลอดภัยของระบบ TLS ข้อมูลที่เป็นความลับ และระบบเครือข่าย

@@ -1,16 +1,12 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# SSO และระบบเชื่อมต่อ IdP (SSO & IdP brokering)
 
-# SSO & IdP brokering
+แต่ละองค์กรสามารถเชื่อมต่อกับผู้ให้บริการระบุตัวตน (identity provider) **ของตนเอง** ได้ โดยผู้ใช้งานจะลงชื่อเข้าใช้งานด้วยบัญชีของบริษัท และจะเข้าสู่ระบบในองค์กร กลุ่ม และบทบาทสิทธิ์การใช้งานที่ถูกต้องโดยอัตโนมัติ ทำให้ไม่ต้องเสียเวลาตั้งค่าสำหรับผู้ใช้งานเป็นรายคน
 
-Each organization connects **its own** identity provider. Your users sign in with their corporate account and
-land in the right organization, group, and role automatically — no per-user setup.
-
-::: info Who can do this
-**Org admins** configure their organization's identity provider on **Organization → SSO**. Platform admins
-configure global login methods.
+::: info ผู้ที่มีสิทธิ์ในการดำเนินการนี้
+**Org admin** สามารถกำหนดค่าผู้ให้บริการระบุตัวตนขององค์กรตนเองได้ที่หน้า **Organization → SSO** ส่วน Platform admin จะสามารถกำหนดค่าวิธีการเข้าสู่ระบบในระดับโกลบอล
 :::
 
-## How brokering works
+## แนวทางการทำงานของระบบเชื่อมต่อ IdP
 
 ```mermaid
 flowchart LR
@@ -19,27 +15,22 @@ flowchart LR
   KC -->|claims → org · group · role| GW["Console & gateway access"]
 ```
 
-The broker reads the claims your identity provider sends (email, name, groups) and maps them to the right
-**organization**, **group**, and **role**. On first login, a matching user is **provisioned just-in-time** — no
-manual account creation.
+ระบบเชื่อมต่อ (broker) จะทำหน้าที่อ่านข้อมูลคุณลักษณะ (claims) ที่ผู้ให้บริการระบุตัวตนของคุณส่งมา เช่น อีเมล ชื่อ กลุ่ม และนำข้อมูลเหล่านั้นไปจับคู่กับ**องค์กร กลุ่ม และบทบาท**ที่ถูกต้อง เมื่อผู้ใช้งานลงชื่อเข้าใช้งานเป็นครั้งแรก ระบบจะทำการสร้างบัญชีให้แบบทันทีทันใด (just-in-time provisioning) โดยไม่ต้องสร้างบัญชีผู้ใช้ล่วงหน้าด้วยตัวเอง
 
-## Connect your identity provider
+## วิธีการเชื่อมต่อผู้ให้บริการระบุตัวตนของคุณ
 
-1. Open **Organization → SSO**.
-2. Add a connection — **OIDC** or **SAML** — with the endpoint/metadata from your IdP.
-3. Configure **claim mappings**: which claim carries the email, the name, and the groups.
-4. Map **groups to roles** (e.g. your `ai-admins` group → `org_admin`).
-5. Optionally restrict to verified **email domains**.
-6. Save and test. Your users can now sign in with their corporate account.
+1. เปิดหน้า **Organization → SSO**
+2. เพิ่มการเชื่อมต่อแบบ **OIDC** หรือ **SAML** โดยระบุ endpoint หรือข้อมูลเมทาดาตาที่ดึงมาจาก IdP ของคุณ
+3. กำหนดค่า **การจับคู่คุณลักษณะ (claim mappings)** เพื่อระบุว่าข้อมูลชุดใดที่ระบุอีเมล ชื่อ และกลุ่มผู้ใช้งาน
+4. จับคู่ **กลุ่มผู้ใช้กับบทบาทสิทธิ์ (groups to roles)** เช่น จับคู่กลุ่ม `ai-admins` ของคุณไปยังบทบาท `org_admin` เป็นต้น
+5. คุณสามารถเลือกจำกัดการเข้าใช้งานเฉพาะ **โดเมนอีเมล (email domains)** ที่ได้รับการตรวจสอบความถูกต้องแล้วได้ตามต้องการ
+6. คลิกบันทึกและทำการทดสอบ ซึ่งหลังจากนี้ผู้ใช้งานของคุณจะสามารถลงชื่อเข้าใช้งานระบบด้วยบัญชีของบริษัทได้ทันที
 
-![The organization SSO configuration — connection and claim mappings](/images/org-sso.png)
-
-::: tip One mechanism for all login
-All brokered login flows through this per-organization path, so you manage identity in one place and users get a
-consistent corporate sign-in.
+::: tip ใช้กลไกเดียวสำหรับการเข้าสู่ระบบทั้งหมด
+ทุกกระบวนการลงชื่อเข้าใช้งานผ่านระบบเชื่อมต่อจะทำงานผ่านเส้นทางประจำองค์กรนี้ ช่วยให้คุณสามารถจัดการข้อมูลตัวตนทั้งหมดได้จากศูนย์กลางเพียงจุดเดียว และผู้ใช้งานจะได้รับประสบการณ์ลงชื่อเข้าใช้งานขององค์กรที่สม่ำเสมอ
 :::
 
-## Next steps
+## ขั้นตอนต่อไป
 
-- [Organizations & members](/th/admin/organizations-and-members) — roles and groups the mappings target.
-- [Hardening](/th/security/hardening) — identity and token security.
+- [องค์กรและสมาชิก](/th/admin/organizations-and-members) เพื่อศึกษาเพิ่มเติมเกี่ยวกับบทบาทและกลุ่มที่จะนำมาใช้จับคู่ข้อมูล
+- [การเสริมสร้างความปลอดภัย (Hardening)](/th/security/hardening) เพื่อศึกษาความปลอดภัยของข้อมูลตัวตนและ token

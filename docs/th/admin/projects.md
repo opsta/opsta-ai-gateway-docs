@@ -1,47 +1,42 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# โปรเจกต์
 
-# Projects
+**โปรเจกต์ (Project)** คือหน่วยงานย่อยที่เป็นเจ้าของโครงสร้างการจัดเส้นทาง (routing) ผู้ให้บริการ (provider) guardrail งบประมาณ และ API key โดยองค์กรสามารถมีโปรเจกต์ได้หลายโปรเจกต์ เช่น สร้างแยกเป็นรายผลิตภัณฑ์ ทีม หรือสภาพแวดล้อมการทำงาน
 
-A **project** is the unit that owns a routing configuration, providers, guardrails, budgets, and API keys. An
-organization has many projects — for example, one per product, team, or environment.
-
-::: info Who can do this
-**Org admins** (for their organization) and **platform admins**.
+::: info ผู้ที่มีสิทธิ์ในการดำเนินการนี้
+**Org admin** (สิทธิ์เฉพาะในองค์กรของตนเอง) และ **Platform admin**
 :::
 
-## Create and manage a project
+## การสร้างและการจัดการโปรเจกต์
 
-On **Projects**, use the project dropdown to switch projects or **create** a new one. Each project is edited
-through a **tabbed configuration editor**:
+ที่หน้า **Projects** ให้ใช้เมนูดรอปดาวน์สำหรับสลับโปรเจกต์หรือ**สร้าง**โปรเจกต์ใหม่ โดยแต่ละโปรเจกต์จะสามารถปรับแต่งค่าผ่านหน้าจอแก้ไขในรูปแบบแท็บเมนู ดังนี้
 
-| Tab | What you configure | Guide |
+| แท็บ | สิ่งที่ต้องกำหนดค่า | คู่มือ |
 |---|---|---|
-| **Users** | Per-project consumers (team access) and their keys | below |
-| **LLM Providers** | Provider credentials and connections | [Providers](/th/admin/providers) |
-| **Routing** | Logical model → provider → upstream model | [Routing](/th/admin/routing) |
-| **Guardrails** | PII + prompt-injection rules | [Guardrails](/th/admin/guardrails) |
-| **Semantic Cache** | Vector-similarity caching | [Semantic cache](/th/admin/semantic-cache) |
-| **Semantic Guard** | Embedding-based injection blocking | [Semantic guard](/th/admin/semantic-guard) |
-| **MCP Servers** | Governed remote MCP servers | [MCP servers](/th/admin/mcp-servers) |
-| **Budgets & Limits** | Per-consumer / per-group caps | [Budgets & limits](/th/admin/budgets-and-limits) |
-| **Review** | Read-only view of the effective merged config | below |
-| **Settings** | Rename, describe, or delete the project | below |
+| **Users** | ข้อมูลผู้บริโภคระดับโปรเจกต์ (สิทธิ์เข้าใช้งานของทีม) และคีย์ต่าง ๆ | ด้านล่าง |
+| **LLM Providers** | ข้อมูลรับรองการเข้าใช้งานผู้ให้บริการและการเชื่อมต่อ | [ผู้ให้บริการ (Providers)](/th/admin/providers) |
+| **Routing** | โมเดลเชิงตรรกะ → ผู้ให้บริการ → โมเดลต้นทาง | [การจัดเส้นทาง (Routing)](/th/admin/routing) |
+| **Guardrails** | กฎการตรวจจับข้อมูล PII และ prompt-injection | [ระบบป้องกัน (Guardrails)](/th/admin/guardrails) |
+| **Semantic Cache** | ระบบแคชจากความคล้ายคลึงของเวกเตอร์ | [ระบบแคชตามความหมาย (Semantic cache)](/th/admin/semantic-cache) |
+| **Semantic Guard** | ระบบบล็อก prompt injection โดยอิงตามการฝังข้อมูล (embedding) | [ระบบตรวจสอบคำสั่งที่ไม่ปลอดภัย (Semantic guard)](/th/admin/semantic-guard) |
+| **MCP Servers** | เซิร์ฟเวอร์ MCP ระยะไกลภายใต้การกำกับดูแล | [เซิร์ฟเวอร์ MCP (MCP servers)](/th/admin/mcp-servers) |
+| **Budgets & Limits** | เพดานงบประมาณรายผู้บริโภคหรือรายกลุ่ม | [งบประมาณและขีดจำกัด](/th/admin/budgets-and-limits) |
+| **Review** | หน้าจอแสดงผลค่ากำหนดปัจจุบันที่ผ่านการรวมค่าแล้ว | ด้านล่าง |
+| **Settings** | เปลี่ยนชื่อ อธิบายรายละเอียด หรือลบโปรเจกต์ | ด้านล่าง |
 
 ![The project editor and its tab bar](/images/project-tabs.png)
 
-## Review the effective configuration
+## การตรวจสอบสถานะการทำงานปัจจุบัน
 
-The **Review** tab shows the **effective** configuration the gateway actually enforces — merged routes,
-guardrails, and limits — so you can confirm what's live before clients depend on it.
+แท็บ **Review** จะแสดงค่ากำหนดที่มี**ผลบังคับใช้จริง**บน gateway ได้แก่ เส้นทางที่รวมสิทธิ์แล้ว guardrail และขีดจำกัดต่าง ๆ เพื่อให้คุณสามารถตรวจสอบความถูกต้องของระบบก่อนที่ฝั่งไคลเอนต์จะเริ่มต้นเรียกใช้งานจริง
 
-## Settings
+## การตั้งค่าโปรเจกต์
 
-The **Settings** tab renames or describes a project, or deletes it.
+แท็บ **Settings** ใช้สำหรับเปลี่ยนชื่อ อธิบายรายละเอียด หรือลบโปรเจกต์
 
-::: warning Deleting a project
-Deleting a project removes its configuration and keys. Existing client keys for that project stop working.
+::: warning การลบโปรเจกต์
+การลบโปรเจกต์จะทำให้โครงสร้างค่ากำหนดและคีย์ทั้งหมดถูกลบออก ส่งผลให้ API key ของฝั่งไคลเอนต์ที่เคยใช้งานกับโปรเจกต์ดังกล่าวใช้งานไม่ได้อีกต่อไป
 :::
 
-## Next steps
+## ขั้นตอนต่อไป
 
-Start with [Providers](/th/admin/providers), then [Routing](/th/admin/routing).
+เริ่มต้นใช้งานที่คู่มือ [ผู้ให้บริการ (Providers)](/th/admin/providers) จากนั้นไปยัง [การจัดเส้นทาง (Routing)](/th/admin/routing)

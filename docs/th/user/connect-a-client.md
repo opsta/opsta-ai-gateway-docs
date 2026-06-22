@@ -1,24 +1,21 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# เชื่อมต่อฝั่งไคลเอนต์
 
-# Connect a client
+gateway ให้บริการ **API ที่เข้ากันได้กับมาตรฐาน OpenAI** ส่งผลให้ไคลเอนต์หรือ SDK ใด ๆ ที่รองรับมาตรฐาน OpenAI สามารถเรียกใช้งานร่วมกันได้ทันที โดยตั้งค่าเพียง 2 ส่วน ได้แก่ **base URL** และ **API key** ของคุณ
 
-The gateway exposes an **OpenAI-compatible API**, so any OpenAI-compatible client or SDK works with two
-settings: the **base URL** and your **API key**.
-
-::: info Prerequisites
-- You're signed in to the console ([Get access](/th/user/get-access)).
-- You have an API key ([Manage API keys](/th/user/api-keys)).
+::: info สิ่งที่ต้องเตรียมความพร้อม
+- เข้าสู่ระบบ console เรียบร้อยแล้ว ([วิธีการเข้าใช้งาน](/th/user/get-access))
+- มี API key พร้อมใช้งาน ([การจัดการ API key](/th/user/api-keys))
 :::
 
-## Your endpoint
+## Endpoint ของคุณ
 
-| Setting | Value |
+| ค่ากำหนด | ค่าที่ตั้ง |
 |---|---|
 | Base URL | `https://api.<your-domain>/v1` |
-| Auth | `Authorization: Bearer <your-api-key>` |
-| Model | a **logical model** your group is allowed, e.g. `coding-default` or `bulk` (see [Models & routing](/th/user/models-and-routing)) |
+| การยืนยันตัวตน | `Authorization: Bearer <your-api-key>` |
+| โมเดล | โมเดลเชิงตรรกะ (logical model) ที่กลุ่มของคุณได้รับอนุญาต เช่น `coding-default` หรือ `bulk` ดูรายละเอียดได้ที่ [โมเดลและการจัดเส้นทาง](/th/user/models-and-routing) |
 
-The console's **Connect a client** page shows your exact base URL, your allowed models, and copy-paste snippets.
+หน้า **เชื่อมต่อฝั่งไคลเอนต์ (Connect a client)** บน console จะแสดงข้อมูล base URL โมเดลที่คุณสามารถใช้งานได้ และตัวอย่างโค้ดที่สามารถคัดลอกไปใช้งานได้ทันที
 
 ![The Connect-a-client page — generated config for your client](/images/connect-a-client.png)
 
@@ -52,12 +49,10 @@ print(resp.choices[0].message.content)
 
 ## opencode / Crush
 
-Point the tool at the gateway as an OpenAI-compatible provider — set the base URL to
-`https://api.<your-domain>/v1`, the API key to your issued key, and the model to one of your allowed logical
-models. The **Connect a client** page generates the exact config block for your tool.
+กำหนดค่าเครื่องมือของคุณให้ชี้มายัง gateway ในฐานะผู้ให้บริการที่เข้ากันได้กับมาตรฐาน OpenAI โดยกำหนดค่า base URL เป็น `https://api.<your-domain>/v1` กำหนด API key ด้วยคีย์ที่คุณได้รับ และระบุชื่อโมเดลเป็นโมเดลเชิงตรรกะรายการที่คุณสามารถใช้งานได้ ซึ่งหน้า **เชื่อมต่อฝั่งไคลเอนต์ (Connect a client)** จะมีบล็อกค่ากำหนดสำเร็จรูปที่สร้างขึ้นเพื่อนำไปใช้กับเครื่องมือของคุณได้ทันที
 
-## Next steps
+## ขั้นตอนต่อไป
 
-- [Models & routing](/th/user/models-and-routing) — which models you can use and how routing works.
-- [Use MCP servers](/th/user/use-mcp-servers) — connect AI agents to governed tools.
-- [Usage & budget](/th/user/usage-and-budget) — track your spend.
+- [โมเดลและการจัดเส้นทาง](/th/user/models-and-routing) — โมเดลใดบ้างที่คุณสามารถใช้งานได้และระบบจัดเส้นทางทำงานอย่างไร
+- [การใช้งาน MCP server](/th/user/use-mcp-servers) — เชื่อมต่อ AI agent เข้ากับเครื่องมือที่อยู่ภายใต้การควบคุม
+- [ปริมาณการใช้งานและงบประมาณ](/th/user/usage-and-budget) — ติดตามค่าใช้จ่ายของคุณ

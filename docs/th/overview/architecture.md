@@ -1,9 +1,6 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# สถาปัตยกรรมระบบ
 
-# Architecture
-
-Opsta AI Gateway separates **management** from **traffic**. A control plane you own holds the configuration and
-projects it onto a data plane you run. Both live in your Kubernetes cluster.
+Opsta AI Gateway แยก**ระบบควบคุมการจัดการ**ออกจาก**ระบบประมวลผลข้อมูลการร้องขอ** โดยระบบควบคุมที่คุณเป็นเจ้าของจะคอยดูแลระบบกำหนดค่าและส่งต่อไปยังระบบประมวลผลข้อมูล ซึ่งทั้งสองระบบนี้ทำงานอยู่ภายในคลัสเตอร์ Kubernetes ของคุณ
 
 ```mermaid
 flowchart LR
@@ -31,33 +28,21 @@ flowchart LR
   GW --> M
 ```
 
-## The two planes
+## ระบบควบคุมและระบบประมวลผลข้อมูล
 
-**Control plane.** A service backed by PostgreSQL that is the single source of truth for every organization,
-project, provider, route, budget, guardrail, key, and MCP server. Administrators change configuration through
-the [web console](/th/admin/console-tour) (or its API); the control plane validates it and writes it to the
-database.
+**ระบบควบคุม (Control plane):** บริการส่วนการจัดการที่ทำงานร่วมกับฐานข้อมูล PostgreSQL ซึ่งเป็นแหล่งข้อมูลความจริงหนึ่งเดียว (single source of truth) สำหรับข้อมูลทุกอย่าง ไม่ว่าจะเป็นองค์กร โปรเจกต์ ผู้ให้บริการ เส้นทาง งบประมาณ guardrail คีย์ และเซิร์ฟเวอร์ MCP ผู้ดูแลระบบจะปรับแต่งค่ากำหนดต่าง ๆ ผ่าน [web console](/th/admin/console-tour) หรือใช้ API ของระบบ โดยระบบควบคุมจะตรวจสอบความถูกต้องของค่ากำหนดนั้น ๆ แล้วบันทึกลงในฐานข้อมูล
 
-**Data plane.** The gateway that handles live traffic. It authenticates each request, enforces budgets and
-limits, applies guardrails, routes to the right provider, serves cache hits, and records usage and audit
-events. It never holds configuration of its own.
+**ระบบประมวลผลข้อมูล (Data plane):** ตัว gateway ที่ทำหน้าที่คอยประมวลผลการรับส่งข้อมูลการร้องขอจริง โดยจะตรวจสอบความถูกต้องของ request บังคับใช้งานงบประมาณและขีดจำกัดต่าง ๆ เรียกใช้งานระบบป้องกัน (guardrail) จัดเส้นทางไปยังผู้ให้บริการที่เหมาะสม ส่งคืนข้อมูลจากแคช และบันทึกข้อมูลการใช้งานรวมถึงประวัติการทำงาน (audit) ระบบประมวลผลข้อมูลจะไม่จัดเก็บข้อมูลการกำหนดค่าใด ๆ ไว้ที่ตัวมันเอง
 
-## Reconcile — no hand-edited config, no drift
+## การปรับประสานสถานะเพื่อป้องกันความคลาดเคลื่อนของข้อมูล
 
-The control plane continuously **reconciles** the desired state in PostgreSQL onto the data plane. When an
-admin adds a provider or changes a budget, the reconcile loop applies it to the gateway automatically. This is
-why deployments are consistent and auditable: there is no YAML to hand-edit and no configuration drift to
-chase. See [How it works](/th/admin/console-tour) and [Reconcile in the request lifecycle](/th/overview/request-lifecycle).
+ระบบควบคุมจะทำการปรับประสานสถานะ (reconcile) จากสถานะที่บันทึกไว้ใน PostgreSQL ไปยังระบบประมวลผลข้อมูลอย่างต่อเนื่อง เมื่อผู้ดูแลระบบเพิ่มผู้ให้บริการหรือเปลี่ยนแปลงงบประมาณ กระบวนการปรับประสานสถานะจะนำการเปลี่ยนแปลงนั้นไปใช้กับ gateway โดยอัตโนมัติ ส่งผลให้การทำงานของระบบมีความสม่ำเสมอและตรวจสอบได้เสมอ โดยผู้ดูแลระบบไม่จำเป็นต้องเข้าไปแก้ไขไฟล์ YAML ด้วยตัวเอง และไม่มีปัญหาเรื่องการกำหนดค่าคลาดเคลื่อน (configuration drift) ให้ต้องกังวลใจ โดยสามารถดูข้อมูลเพิ่มเติมได้ที่ [แนวทางการทำงาน](/th/admin/console-tour) และ [กระบวนการปรับประสานสถานะในวงจรชีวิตของการร้องขอ](/th/overview/request-lifecycle)
 
-## Supporting components
+## ส่วนประกอบอื่น ๆ ของระบบ
 
-- **Web console** — the SSO-gated portal and admin UI (see the [User](/th/user/get-access) and
-  [Administrator](/th/admin/console-tour) guides).
-- **Identity** — single sign-on and per-organization identity-provider brokering
-  ([SSO & IdP](/th/admin/sso-and-idp)).
-- **Observability** — a self-hosted metrics, logs, and traces stack with per-organization isolation
-  ([Observability](/th/admin/observability)).
-- **State stores** — PostgreSQL (configuration, usage, audit) and Redis (rate-limit and quota state).
+- **Web console:** พอร์ทัลที่รักษาความปลอดภัยด้วยระบบ SSO และมีหน้าจอสำหรับผู้ดูแลระบบ โดยดูข้อมูลเพิ่มเติมได้ที่คู่มือ [การใช้งาน](/th/user/get-access) และ [การบริหารจัดการ](/th/admin/console-tour)
+- **ระบบยืนยันตัวตน (Identity):** ระบบ Single Sign-On (SSO) และระบบเชื่อมต่อกับผู้ให้บริการระบุตัวตนแบบแยกรายองค์กร (IdP brokering) โดยดูข้อมูลเพิ่มเติมได้ที่ [SSO และ IdP](/th/admin/sso-and-idp)
+- **ระบบตรวจสอบสถานะการทำงาน (Observability):** ชุดซอฟต์แวร์สำหรับเก็บข้อมูลชี้วัด (metrics) ล็อก (logs) และประวัติการร้องขอ (traces) ที่ติดตั้งภายในระบบตัวเอง โดยรองรับการแยกข้อมูลเป็นรายองค์กรอย่างชัดเจน ดูข้อมูลเพิ่มเติมได้ที่ [ระบบตรวจสอบสถานะการทำงาน](/th/admin/observability)
+- **ระบบจัดเก็บสถานะ (State stores):** PostgreSQL สำหรับเก็บค่ากำหนด การใช้งาน และประวัติงาน ส่วน Redis ใช้สำหรับเก็บสถานะจำกัดปริมาณการร้องขอ (rate-limit) และโควตา
 
-Everything runs inside your environment. Nothing about your prompts or data leaves the cluster. For how a
-single request flows through these pieces, continue to the [Request lifecycle](/th/overview/request-lifecycle).
+ทุกส่วนประกอบทำงานอยู่ภายในสภาพแวดล้อมของคุณทั้งหมด จึงไม่มีข้อมูล prompt หรือข้อมูลใด ๆ ของคุณหลุดออกนอกคลัสเตอร์อย่างเด็ดขาด โดยสามารถศึกษาเส้นทางการเดินทางของการร้องขอหนึ่งรายการผ่านส่วนประกอบเหล่านี้ได้ที่ [วงจรชีวิตของการร้องขอ](/th/overview/request-lifecycle)

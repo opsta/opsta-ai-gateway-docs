@@ -1,49 +1,42 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# ระบบป้องกัน (Guardrails)
 
-# Guardrails
+**ระบบป้องกัน (Guardrails)** ทำหน้าที่คัดกรองข้อมูลในทุก ๆ คำร้องขอ**ก่อนที่จะส่งไปถึงโมเดล** โดยจะทำงานอยู่ภายในคลัสเตอร์ของคุณเอง ระบบนี้ช่วยบล็อกการรั่วไหลของข้อมูลที่ละเอียดอ่อนและความพยายามในการส่งคำสั่งที่ไม่ปลอดภัย (prompt-injection) โดยคำร้องขอที่ถูกบล็อกจะไม่นำไปคิดค่าใช้จ่ายกับผู้ให้บริการต้นทาง
 
-Guardrails screen every request **before it reaches a model**, in your cluster. They block sensitive-data
-leakage and prompt-injection attempts, and a blocked request never incurs provider cost.
-
-::: info Who can do this
-**Org admins** (for their organization) and **platform admins**, on **Projects → Guardrails**.
+::: info ผู้ที่มีสิทธิ์ในการดำเนินการนี้
+**Org admin** (สิทธิ์เฉพาะในองค์กรของตนเอง) และ **Platform admin** โดยดำเนินการผ่านหน้าจอ **Projects → Guardrails**
 :::
 
-## Types of guardrail
+## ประเภทของระบบป้องกัน (Guardrail)
 
-| Guardrail | What it does | Configured on |
+| ระบบป้องกัน | สิ่งที่ดำเนินการ | การกำหนดค่าที่ |
 |---|---|---|
-| **PII masking** | Redacts sensitive data (email, phone, IP, keys) in requests | Platform/operator config (opt-in) |
-| **Prompt-injection (pattern)** | Blocks requests matching jailbreak / system-prompt-leak patterns | **Guardrails** tab |
-| **Semantic prompt-injection** | Blocks requests by *meaning*, not just keywords | [Semantic guard](/th/admin/semantic-guard) |
+| **PII masking** | ปิดบังข้อมูลที่ละเอียดอ่อน เช่น อีเมล หมายเลขโทรศัพท์ ไอพีแอดเดรส คีย์ต่าง ๆ ในคำร้องขอ | ค่ากำหนดระดับแพลตฟอร์มหรือวิศวกรระบบ (แบบ opt-in) |
+| **Prompt-injection (pattern)** | บล็อกการร้องขอที่ตรงกับรูปแบบการทำ jailbreak หรือการดึงข้อมูลคำสั่งระบบ (system prompt leak) | แท็บ **Guardrails** |
+| **Semantic prompt-injection** | บล็อกการร้องขอตามความหมายของคำสั่ง ไม่ใช่แค่การตรวจพบคีย์เวิร์ด | [ระบบตรวจสอบคำสั่งที่ไม่ปลอดภัย (Semantic guard)](/th/admin/semantic-guard) |
 
-::: info PII masking is opt-in
-PII masking is an opt-in capability enabled by the platform operator (it can interact with streaming responses).
-Ask your platform engineer to enable it where required — see [Hardening](/th/security/hardening).
+::: info ระบบ PII masking ต้องเลือกเปิดใช้งานเอง
+ระบบปิดบังข้อมูลส่วนบุคคล (PII masking) เป็นความสามารถที่ต้องเลือกเปิดใช้งานเอง (opt-in) โดยวิศวกรแพลตฟอร์ม เนื่องจากจะส่งผลกระทบต่อระบบรับส่งข้อมูลแบบสตรีมมิ่ง คุณสามารถแจ้งให้ platform engineer เปิดใช้งานระบบดังกล่าวในส่วนที่จำเป็น โดยดูข้อมูลเพิ่มเติมได้ที่ [การเสริมสร้างความปลอดภัย (Hardening)](/th/security/hardening)
 :::
 
-## Add a prompt-injection rule
+## วิธีการเพิ่มกฎป้องกัน Prompt-injection
 
-1. Open **Projects → Guardrails**.
-2. Click **Add pattern** — choose one from the curated **library**, or enter a **custom** regular expression.
-3. Save. The control plane validates the pattern (rejecting unsafe ones) and reconciles it to the gateway.
+1. เปิดหน้า **Projects → Guardrails**
+2. คลิก **Add pattern** เพื่อเลือกรูปแบบจาก**คลังรูปแบบสำเร็จรูป (curated library)** หรือกรอกรูปแบบนิพจน์ทั่วไป (regular expression) ที่กำหนดเอง
+3. คลิกบันทึก ซึ่ง control plane จะตรวจสอบความปลอดภัยของรูปแบบดังกล่าว โดยจะปฏิเสธรูปแบบที่ไม่ปลอดภัย จากนั้นจะทำการปรับประสานกฎนี้ไปยัง gateway
 
 ![The Guardrails tab — per-project prompt-injection patterns](/images/guardrails.png)
 
-::: tip Safe patterns only
-The control plane rejects regular expressions that could be unsafe (e.g. catastrophic backtracking) so a bad
-rule can never destabilize the data plane.
+::: tip ใช้เฉพาะรูปแบบที่ปลอดภัยเท่านั้น
+control plane จะคอยตรวจจับและปฏิเสธนิพจน์ทั่วไปที่อาจไม่ปลอดภัย เช่น รูปแบบที่ทำให้เกิดกระบวนการประมวลผลวนซ้ำไม่สิ้นสุด (catastrophic backtracking) เพื่อให้มั่นใจได้ว่ากฎที่ทำงานบกพร่องจะไม่มีวันส่งผลกระทบต่อเสถียรภาพการทำงานของ data plane อย่างเด็ดขาด
 :::
 
-## Review what's being blocked
+## การตรวจสอบข้อมูลคำร้องขอที่ถูกบล็อก
 
-The **Guardrail blocks** screen (Organization section) lists every blocked request across the org — the
-consumer, the project, and the rule that matched — and flags those a member reported as a false positive, so
-you can tune the rules.
+หน้าจอ **การบล็อกของ Guardrail (Guardrail blocks)** ภายใต้ส่วนข้อมูลองค์กร (Organization) จะเก็บบันทึกประวัติคำร้องขอที่ถูกบล็อกทั้งหมดภายในองค์กร ไม่ว่าจะเป็นข้อมูลผู้บริโภค โปรเจกต์ และกฎของ guardrail ที่ตรวจจับพบ พร้อมทั้งแสดงสถานะรายการที่สมาชิกรายงานว่าเป็นข้อผิดพลาด (false positive) เพื่อช่วยให้คุณสามารถเข้าไปปรับปรุงกฎการทำงานให้เหมาะสมยิ่งขึ้นได้
 
 ![Organization guardrail blocks — who was blocked, the matched rule, and the snippet](/images/org-guardrail-blocks.png)
 
-## Next steps
+## ขั้นตอนต่อไป
 
-- [Semantic guard](/th/admin/semantic-guard) — block injection by meaning.
-- Members see their own blocks under [Blocked requests](/th/user/blocked-requests).
+- [ระบบตรวจสอบคำสั่งที่ไม่ปลอดภัย (Semantic guard)](/th/admin/semantic-guard) เพื่อบล็อกคำสั่งที่ไม่ปลอดภัยตามความหมายของคำ
+- สำหรับสมาชิกทั่วไป สามารถตรวจสอบรายการที่ตนเองถูกบล็อกได้ที่ [การร้องขอที่ถูกบล็อก](/th/user/blocked-requests)

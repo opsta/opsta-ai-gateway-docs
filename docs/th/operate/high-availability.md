@@ -1,75 +1,59 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# ระบบความพร้อมใช้งานสูง (High availability)
 
-# High availability
+สวิตช์ควบคุมเพียงปุ่มเดียวจะช่วยสลับการทำงานของแพลตฟอร์มทั้งหมดระหว่าง **โหมด Standalone** ที่ใช้งาน 1 replica ต่อส่วนประกอบ และ **โหมด High Availability** ที่ทำงานร่วมกับหลาย replica, กำหนดการขัดข้องที่ยอมรับได้ (disruption budget) และการใช้ฐานข้อมูลแบบคลัสเตอร์ โดยคุณไม่จำเป็นต้องเข้าไปตั้งค่าทรัพยากรของแต่ละส่วนประกอบด้วยตัวเอง เนื่องจากตัว chart จะคำนวณจำนวน replica ที่เหมาะสมให้โดยอัตโนมัติจากการตัดสินใจจุดเดียวนี้
 
-A single toggle switches the whole platform between **standalone** (one replica per component) and **high
-availability** (multiple replicas, disruption budgets, and clustered databases). You don't tune each component by
-hand — the chart derives sensible replica counts from one decision.
-
-::: info Who this is for
-Platform engineers sizing the platform for production. Standalone is fine for pilots and single teams; HA is for
-production traffic and many teams.
+::: info เอกสารนี้เหมาะสำหรับใคร
+วิศวกรแพลตฟอร์ม (platform engineer) ที่ต้องการประเมินขนาดทรัพยากรของแพลตฟอร์มสำหรับการใช้งานจริง โหมด Standalone จะมีความเพียงพอสำหรับการทดสอบนำร่องหรือการใช้งานภายในทีมเดี่ยว ส่วนโหมด HA จะมีไว้เพื่อประมวลผลทราฟฟิกจริงในระดับองค์กรและรองรับการทำงานของหลายทีม
 :::
 
-## The single toggle
+## สวิตช์ควบคุมแบบจุดเดียว
 
 ```yaml
 global:
   highAvailability: true
 ```
 
-- `false` (default) → **standalone**: one replica per component, no PodDisruptionBudgets, no anti-affinity.
-  Lowest footprint; suitable for pilots and non-critical use.
-- `true` → **high availability**: multiple replicas, PodDisruptionBudgets, and soft pod anti-affinity so replicas
-  spread across nodes.
+- `false` (ค่าเริ่มต้น) → **โหมด standalone:** 1 replica ต่อส่วนประกอบ, ไม่สร้าง PodDisruptionBudget และไม่กำหนดเงื่อนไข anti-affinity ทำให้ใช้ทรัพยากรระบบต่ำที่สุด เหมาะสำหรับการใช้งานนำร่องหรืองานทั่วไปที่ไม่วิกฤต
+- `true` → **โหมด high availability:** ใช้งานหลาย replica, สร้าง PodDisruptionBudget และกำหนดเงื่อนไข soft pod anti-affinity เพื่อกระจายการทำงานของ replica ไปยังโหนดต่าง ๆ
 
-## What HA changes
+## การเปลี่ยนแปลงหลักในโหมด HA
 
-When `global.highAvailability` is `true`, each component's replica count derives automatically:
+เมื่อกำหนดค่า `global.highAvailability` เป็น `true` จำนวน replica ของแต่ละส่วนประกอบจะถูกคำนวณโดยอัตโนมัติ ดังนี้
 
-| Component | Standalone | High availability |
+| ส่วนประกอบ | โหมด Standalone | โหมด High availability |
 |---|---|---|
-| Gateway (data plane) | 1 | 2+ |
-| Control plane | 1 | 2 (leader-elected for background jobs) |
+| Gateway (data plane) | 1 | 2 ขึ้นไป |
+| Control plane | 1 | 2 (มีการเลือกผู้นำสำหรับงานเบื้องหลัง) |
 | Web console | 1 | 2 |
 | SSO (oauth2-proxy) | 1 | 2 |
 | Keycloak | 1 | 2 |
-| PostgreSQL (control plane) | 1 instance | 3-instance cluster with failover |
-| Keycloak PostgreSQL | 1 instance | 3-instance cluster |
-| Redis | 1 | 3 (replication + Sentinel) |
-| Observability | 1 | 2+ (object storage backend) |
+| PostgreSQL (control plane) | 1 instance | คลัสเตอร์แบบ 3 instances พร้อมระบบสลับการทำงานอัตโนมัติ (failover) |
+| Keycloak PostgreSQL | 1 instance | คลัสเตอร์แบบ 3 instances |
+| Redis | 1 | 3 (ทำงานแบบ replication ร่วมกับ Sentinel) |
+| Observability | 1 | 2 ขึ้นไป (จัดเก็บข้อมูลบนระบบ object storage) |
 
-You can still override any single component's count by setting its `replicas` value explicitly (e.g.
-`gateway.replicas: 3`); leave it unset to follow the global toggle.
+ทั้งนี้คุณยังคงสามารถกำหนดค่าจำนวน replica ทับ (override) ของแต่ละส่วนประกอบได้โดยการระบุตัวเลขในคีย์ `replicas` โดยตรง เช่น `gateway.replicas: 3` หรือหากปล่อยว่างไว้ระบบจะทำงานตามสวิตช์ควบคุมหลักโดยอัตโนมัติ
 
-## Disruption budgets and spreading
+## การกำหนดค่าขัดข้องที่ยอมรับได้และการกระจายโหนด
 
-In HA mode the chart renders **PodDisruptionBudgets** for the disruption-sensitive components and applies **soft
-anti-affinity** by hostname, so a node drain or rolling upgrade won't take all replicas of a component down at
-once.
+ในโหมด HA ตัว chart จะสร้างทรัพยากร **PodDisruptionBudget** สำหรับส่วนประกอบที่ละเอียดอ่อนต่อการหยุดชะงัก และใช้เงื่อนไข **soft anti-affinity** โดยอิงตามชื่อโฮสต์ เพื่อให้มั่นใจได้ว่าการกวาดโหนด (node drain) หรือการทยอยอัปเกรดระบบ (rolling upgrade) จะไม่ทำลายการทำงานของทุก replica ในส่วนประกอบนั้นพร้อมกันในคราวเดียว
 
-::: tip Background jobs are leader-elected
-The control plane runs periodic tasks — reconcile, price sync, audit pruning. With multiple replicas these are
-guarded by a single-holder lock in PostgreSQL, so they run once cluster-wide. Write-driven reconciles are
-idempotent and need no lock.
+::: tip งานเบื้องหลังจะทำงานผ่านระบบการเลือกผู้นำ
+control plane จะรันงานตามรอบเวลา ได้แก่ การปรับประสานสถานะ, การซิงก์ราคา และการทำความสะอาดประวัติการใช้งาน เมื่อมี replica หลายตัว งานเหล่านี้จะถูกป้องกันไม่ให้ทำงานซ้ำซ้อนโดยใช้ระบบล็อกใน PostgreSQL เพื่อจำกัดให้ประมวลผลเพียงงานเดียวทั่วทั้งคลัสเตอร์ สำหรับการปรับประสานสถานะแบบเขียนข้อมูล (write-driven reconcile) จะมีคุณสมบัติ idempotent และไม่จำเป็นต้องใช้ระบบล็อกนี้
 :::
 
-## Stateful components in HA
+## ส่วนประกอบจัดเก็บสถานะในโหมด HA
 
-- **PostgreSQL** runs as a 3-instance CloudNativePG cluster with streaming replication and automatic failover.
-  Pair this with [Backup & DR](/th/operate/backup-and-dr).
-- **Redis** runs with replication and Sentinel for automatic master failover.
-- **Observability** uses an **object-storage** backend (`observability.storage: object`) in HA rather than local
-  volumes — see [Platform observability](/th/operate/observability-platform).
+- **PostgreSQL:** ทำงานในรูปแบบคลัสเตอร์ CloudNativePG ขนาด 3 instances พร้อมระบบ replication แบบสตรีมมิ่งและระบบ failover อัตโนมัติ ควรใช้งานฟีเจอร์นี้ควบคู่กับแผน [การสำรองข้อมูลและการกู้คืน (Backup & DR)](/th/operate/backup-and-dr)
+- **Redis:** ทำงานร่วมกับระบบ replication และ Sentinel เพื่อช่วยสลับสิทธิ์การเขียนอ่านหลัก (master failover) โดยอัตโนมัติ
+- **Observability:** จะเปลี่ยนมาใช้งานที่จัดเก็บข้อมูลบนระบบ **object-storage** ด้วยการระบุ `observability.storage: object` ในโหมด HA แทนการใช้งาน local volume ปกติ ดูรายละเอียดเพิ่มเติมได้ที่ [ระบบตรวจสอบสถานะการทำงานของแพลตฟอร์ม](/th/operate/observability-platform)
 
-## Sizing
+## การประเมินขนาดทรัพยากร
 
-HA roughly doubles to triples the standalone footprint. Confirm your cluster has the headroom from
-[Requirements](/th/operate/requirements) before enabling it, and remember that turning on the semantic features adds
-Qdrant and Ollama on top.
+โหมด HA จะใช้ทรัพยากรเพิ่มขึ้นประมาณ 2 ถึง 3 เท่าตัวเมื่อเทียบกับโหมด Standalone โปรดตรวจสอบให้แน่ใจว่าคลัสเตอร์ของคุณมีทรัพยากรว่างเพียงพอตามที่ระบุใน [ข้อกำหนดของระบบ](/th/operate/requirements) ก่อนทำการเปิดใช้งาน และอย่าลืมว่าการเปิดใช้งานฟีเจอร์ด้านความหมาย (semantic) จะมีการติดตั้ง Qdrant และ Ollama เพิ่มเติมด้วย
 
-## Next steps
+## ขั้นตอนต่อไป
 
-- [Backup & DR](/th/operate/backup-and-dr) — protect the PostgreSQL source of truth.
-- [Platform observability](/th/operate/observability-platform) — storage backend and retention in HA.
-- [Upgrades](/th/operate/upgrades) — rolling upgrades with disruption budgets.
+- [การสำรองข้อมูลและการกู้คืน (Backup & DR)](/th/operate/backup-and-dr) — วิธีปกป้องฐานข้อมูลที่เป็นแหล่งข้อมูลความจริงของ control plane
+- [ระบบตรวจสอบสถานะการทำงานของแพลตฟอร์ม](/th/operate/observability-platform) — โครงสร้างที่จัดเก็บข้อมูลและนโยบายการจัดเก็บในโหมด HA
+- [การอัปเกรดระบบ](/th/operate/upgrades) — ขั้นตอนการทยอยอัปเกรดระบบร่วมกับการบังคับใช้ PodDisruptionBudget

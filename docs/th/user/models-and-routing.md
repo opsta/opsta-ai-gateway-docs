@@ -1,35 +1,27 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# โมเดลและการจัดเส้นทาง
 
-# Models & routing
+คุณสามารถเรียกใช้งาน gateway โดยใช้**ชื่อโมเดลเชิงตรรกะ (logical model name)** แทนการใช้รหัสโมเดลตรง ๆ (raw model ID) ของผู้ให้บริการ โดย gateway จะทำการแปลงชื่อดังกล่าวไปยังผู้ให้บริการและโมเดลจริงที่ตั้งค่าไว้ต้นทาง วิธีการนี้ช่วยให้โค้ดฝั่งไคลเอนต์ของคุณทำงานได้อย่างราบรื่นและมีเสถียรภาพ แม้ว่าผู้ดูแลระบบจะเปลี่ยนการเชื่อมโยงโมเดลต้นทางอยู่เบื้องหลังก็ตาม
 
-You call the gateway with a **logical model name**, not a provider's raw model ID. The gateway resolves that
-name to a configured provider and upstream model. This keeps your client stable even when an administrator
-re-points a model behind the scenes.
+## โมเดลเชิงตรรกะ (Logical models)
 
-## Logical models
+โมเดลเชิงตรรกะคือชื่อนามแฝง (alias) ที่เสถียรซึ่งผู้ดูแลระบบของคุณกำหนดไว้ในระดับโปรเจกต์ ได้แก่
 
-A logical model is a stable alias your administrator defines per project — for example:
-
-| Logical model | Typical use |
+| โมเดลเชิงตรรกะ | การใช้งานทั่วไป |
 |---|---|
-| `coding-default` | Day-to-day coding and reasoning |
-| `bulk` | High-volume, lower-cost tasks |
+| `coding-default` | การเขียนโค้ดและการประมวลผลให้เหตุผลทั่วไปในแต่ละวัน |
+| `bulk` | งานที่มีปริมาณมากและต้องการค่าใช้จ่ายต่ำ |
 
-Send the logical name in the `model` field; the gateway routes it to the right provider and real model. If the
-administrator later swaps the underlying provider or model, **your code does not change**.
+เพียงส่งชื่อเชิงตรรกะในฟิลด์ `model` ทาง gateway จะจัดการส่งคำร้องขอไปยังผู้ให้บริการและโมเดลจริงให้โดยอัตนัย หากผู้ดูแลระบบเปลี่ยนผู้ให้บริการหรือโมเดลต้นทางในภายหลัง **โค้ดของคุณจะไม่ต้องแก้ไขเลย**
 
-## Which models can I use?
+## ฉันสามารถใช้งานโมเดลใดได้บ้าง
 
-Your **group** determines the models you're allowed to call. You can see your allowed models on your **Profile**
-and on the **Connect a client** page. If you request a model your group isn't allowed, the gateway rejects the
-request.
+กลุ่มที่คุณสังกัดอยู่จะเป็นตัวกำหนดว่าคุณสามารถเรียกใช้งานโมเดลใดได้บ้าง คุณสามารถตรวจสอบรายการโมเดลที่ได้รับอนุญาตได้ที่หน้า **โปรไฟล์ (Profile)** และหน้า **เชื่อมต่อฝั่งไคลเอนต์ (Connect a client)** หากคุณพยายามร้องขอไปยังโมเดลที่กลุ่มของคุณไม่ได้รับสิทธิ์ ระบบ gateway จะปฏิเสธคำร้องขอนั้นทันที
 
 ::: tip
-Use the logical names your team agreed on (e.g. `coding-default`) rather than provider-specific IDs — it's the
-stable contract and lets the platform optimize cost and routing without breaking your client.
+โปรดเลือกใช้ชื่อเชิงตรรกะตามที่ตกลงกันไว้ภายในทีม เช่น `coding-default` แทนการระบุรหัสเฉพาะของโมเดลผู้ให้บริการโดยตรง เนื่องจากเป็นข้อกำหนดที่เสถียรและช่วยให้แพลตฟอร์มสามารถปรับเปลี่ยนค่าใช้จ่ายและการจัดเส้นทางได้อย่างเหมาะสมที่สุดโดยไม่ส่งผลกระทบต่อโค้ดฝั่งไคลเอนต์ของคุณ
 :::
 
-## Next steps
+## ขั้นตอนต่อไป
 
-- [Connect a client](/th/user/connect-a-client) — send a request with a logical model.
-- Administrators configure these in [Routing](/th/admin/routing).
+- [เชื่อมต่อฝั่งไคลเอนต์](/th/user/connect-a-client) เพื่อส่งคำร้องขอผ่านโมเดลเชิงตรรกะ
+- ผู้ดูแลระบบสามารถกำหนดค่าโมเดลเหล่านี้ได้ที่หน้า [การจัดเส้นทาง (Routing)](/th/admin/routing)

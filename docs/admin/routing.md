@@ -14,7 +14,11 @@ without changing any client code.
 2. Click **Add route**.
 3. Set the **logical model** (the name clients send, e.g. `coding-default` or `bulk`).
 4. Choose the **provider** ([added here](/admin/providers)) and the **upstream model** that provider serves.
-5. Save. Requests for that logical model now flow to the chosen provider and model.
+5. (Optional) Set a **Reasoning effort** (none / low / medium / high). When set, the gateway adds a
+   default `reasoning_effort` to requests for this logical model — a request that sets the field
+   itself always overrides it. Applies to OpenAI-compatible providers (DeepSeek, etc.); native
+   Claude/Gemini support is planned.
+6. Save. Requests for that logical model now flow to the chosen provider and model.
 
 ![The Routing tab — logical model names mapped to providers](/images/routing.png)
 

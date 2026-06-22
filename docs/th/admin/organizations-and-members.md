@@ -1,50 +1,44 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# องค์กรและสมาชิก
 
-# Organizations & members
+**องค์กร (Organization)** คือขอบเขตการทำงานในระดับบนสุด ซึ่งออกแบบมาสำหรับลูกค้าระดับองค์กรรายหนึ่งให้มีความแยกส่วนเป็นเอกเทศอย่างสมบูรณ์ หน้านี้จะครอบคลุมถึงขั้นตอนการสร้างองค์กร การจัดการสมาชิกและบทบาทสิทธิ์การใช้งาน รวมถึงการจัดกลุ่มผู้ใช้งาน
 
-An **organization** is the top-level boundary — one enterprise customer, fully isolated. This page covers
-creating organizations, managing members and roles, and grouping users.
-
-::: info Who can do this
-**Platform admins** create organizations and appoint org admins. **Org admins** manage members, roles, and
-groups within their own organization.
+::: info ผู้ที่มีสิทธิ์ในการดำเนินการนี้
+**Platform admin** สามารถสร้างองค์กรและแต่งตั้งผู้ดูแลระบบระดับองค์กร (org admin) ได้ ส่วน **Org admin** จะสามารถจัดการสมาชิก บทบาทสิทธิ์การใช้งาน และกลุ่มต่าง ๆ ภายในองค์กรของตนเอง
 :::
 
-## Create an organization (platform admin)
+## การสร้างองค์กร (สำหรับ Platform admin)
 
-1. Open **Organizations** under the Platform section.
-2. Click **Create organization** and give it a name and slug.
-3. Appoint one or more **org admins** by email — they receive admin rights scoped to this organization.
+1. เปิดหน้า **Organizations** ภายใต้ส่วน Platform
+2. คลิก **Create organization** จากนั้นกำหนดชื่อองค์กรและ slug
+3. ระบุผู้ดูแลระบบระดับองค์กร (org admin) ตั้งแต่หนึ่งคนขึ้นไปผ่านอีเมล โดยพวกเขาจะได้รับสิทธิ์การดูแลระบบตามขอบเขตขององค์กรนี้
 
 ![The Organizations list with the create-organization form](/images/orgs-list.png)
 
-## Manage members (org admin)
+## การจัดการสมาชิก (สำหรับ Org admin)
 
-On **Organization → Members** you can:
+ที่หน้า **Organization → Members** คุณสามารถดำเนินการต่าง ๆ ได้ดังนี้
 
-- **Invite** a member by email.
-- **Set a role** — `member` or `org_admin` (only a platform admin can grant `org_admin`).
-- **Remove** a member.
+- **เชิญ (Invite)** สมาชิกผ่านอีเมล
+- **กำหนดบทบาท (Set a role)** เป็น `member` หรือ `org_admin` (ทั้งนี้มีเพียง platform admin เท่านั้นที่จะสามารถมอบสิทธิ์ `org_admin` ได้)
+- **ลบ (Remove)** สมาชิกออก
 
-Members are global identities; a person can belong to more than one organization, each with its own role.
+สมาชิกแต่ละรายเป็นบัญชีตัวตนระดับโกลบอล ดังนั้นบุคคลหนึ่งคนสามารถเป็นสมาชิกขององค์กรมากกว่าหนึ่งแห่งได้ โดยจะแยกบทบาทหน้าที่เป็นอิสระในแต่ละองค์กร
 
 ![An organization's Members tab](/images/members.png)
 
-## Roles
+## บทบาทและสิทธิ์การเข้าใช้งาน
 
-| Role | Scope |
+| บทบาท | ขอบเขตการทำงาน |
 |---|---|
-| **Platform admin** | All organizations; pricing; platform login methods; cross-org audit |
-| **Org admin** | One organization — members, projects, providers, budgets, guardrails, MCP, IdP |
-| **Member** | Personal portal — own keys, usage, blocked requests |
+| **Platform admin** | ทุกองค์กร การกำหนดราคาโมเดล วิธีการเข้าสู่ระบบของแพลตฟอร์ม และบันทึกประวัติการใช้งานข้ามองค์กร |
+| **Org admin** | องค์กรเดียว ได้แก่ สมาชิก โปรเจกต์ ผู้ให้บริการ งบประมาณ guardrail MCP และ IdP ขององค์กรนั้น ๆ |
+| **Member** | พอร์ทัลส่วนตัว ได้แก่ จัดการคีย์ของตนเอง ดูปริมาณการใช้งาน และตรวจสอบคำร้องขอที่ถูกบล็อก |
 
-## Groups
+## กลุ่มผู้ใช้งาน (Groups)
 
-On **Organization → Groups** you create groups (teams) that map from your identity provider. Groups are used
-for **model access** and **budget aggregation**, and are assigned to projects. When you connect an identity
-provider ([SSO & IdP](/th/admin/sso-and-idp)), users land in the right group automatically on first login.
+ที่หน้า **Organization → Groups** คุณสามารถสร้างกลุ่มผู้ใช้งาน หรือทีมการทำงานที่จะแมปมาจากผู้ให้บริการระบุตัวตนของคุณ โดยกลุ่มเหล่านี้จะถูกนำไปใช้ในเรื่อง**การเข้าถึงโมเดล**และ**การรวมงบประมาณ**เข้าด้วยกัน รวมถึงการมอบหมายให้ทำงานในแต่ละโปรเจกต์ เมื่อคุณเชื่อมต่อระบบผู้ให้บริการระบุตัวตน ([SSO และ IdP](/th/admin/sso-and-idp)) ผู้ใช้งานจะเข้ามาอยู่ในกลุ่มที่ถูกต้องโดยอัตโนมัติเมื่อลงชื่อเข้าใช้งานเป็นครั้งแรก
 
-## Next steps
+## ขั้นตอนต่อไป
 
-- [Projects](/th/admin/projects) — configure what each team can do.
-- [SSO & IdP brokering](/th/admin/sso-and-idp) — connect your corporate login.
+- [โปรเจกต์](/th/admin/projects) — กำหนดค่าสิ่งที่แต่ละทีมสามารถดำเนินการได้
+- [SSO และ IdP](/th/admin/sso-and-idp) — เชื่อมต่อระบบลงชื่อเข้าใช้งานขององค์กรคุณ

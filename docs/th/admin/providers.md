@@ -1,35 +1,29 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# ผู้ให้บริการ (Providers)
 
-# Providers
+**ผู้ให้บริการ (Provider)** คือบริการ AI ต้นทางที่คุณเชื่อมต่อเข้ากับโปรเจกต์ โดย gateway รองรับผู้ให้บริการต้นทางที่เข้ากันได้กับมาตรฐาน OpenAI, DeepSeek, Anthropic รวมถึง endpoint ทั่วไป ข้อมูลรับรองการใช้งานของผู้ให้บริการจะถูกจัดเก็บเป็น**ความลับเฉพาะองค์กร (organization secret)** โดยจะไม่มีวันจัดเก็บในรูปแบบข้อความธรรมดา (plaintext) และจะไม่มีการเปิดเผยกลับมาทาง API อีก
 
-A **provider** is an upstream AI service you connect to a project. The gateway supports OpenAI-compatible
-providers, DeepSeek, Anthropic, and generic endpoints. Provider credentials are stored as **per-organization
-secrets** — never in plaintext config and never exposed back through the API.
-
-::: info Who can do this
-**Org admins** (for their organization) and **platform admins**, on **Projects → LLM Providers**.
+::: info ผู้ที่มีสิทธิ์ในการดำเนินการนี้
+**Org admin** (สิทธิ์เฉพาะในองค์กรของตนเอง) และ **Platform admin** โดยดำเนินการผ่านหน้าจอ **Projects → LLM Providers**
 :::
 
-## Add a provider
+## การเพิ่มผู้ให้บริการ
 
-1. Open **Projects**, select the project, and go to the **LLM Providers** tab.
-2. Click **Add provider** and choose a **type** (OpenAI-compatible, DeepSeek, Anthropic, or generic).
-3. Enter the **base URL** and the **API key** for that provider.
-4. Click **Test connection** to verify the credentials before saving.
-5. Save. The provider is now available to [routing](/th/admin/routing).
+1. เปิดหน้า **Projects** เลือกโปรเจกต์ที่ต้องการ และไปที่แท็บ **LLM Providers**
+2. คลิก **Add provider** จากนั้นเลือก**ประเภท** ได้แก่ OpenAI-compatible, DeepSeek, Anthropic หรือ generic
+3. ระบุ **base URL** และ **API key** สำหรับผู้ให้บริการรายนั้น
+4. คลิก **Test connection** เพื่อทดสอบความถูกต้องของสิทธิ์การเชื่อมต่อก่อนทำการบันทึกข้อมูล
+5. คลิกบันทึก ซึ่งผู้ให้บริการรายนี้จะพร้อมใช้งานในขั้นตอน [การจัดเส้นทาง (Routing)](/th/admin/routing) ต่อไป
 
 ![The LLM Providers tab — add-provider form](/images/providers.png)
 
-::: tip Credentials are secrets
-Provider API keys are written to a per-organization Kubernetes Secret by the control plane. They are never
-returned in any API response and never leave your cluster.
+::: tip ข้อมูลสิทธิ์การใช้งานจะถูกเก็บเป็นความลับ
+API key ของผู้ให้บริการจะถูกบันทึกไว้ใน Kubernetes Secret แยกเป็นรายองค์กรโดยฝั่ง control plane ข้อมูลเหล่านี้จะไม่ถูกส่งกลับมาในการตอบกลับของ API ใด ๆ และไม่มีวันหลุดออกนอกคลัสเตอร์ของคุณ
 :::
 
-## Manage providers
+## การจัดการผู้ให้บริการ
 
-The Providers tab lists the project's providers. You can **test** a provider's connection again at any time or
-**delete** one (after removing routes that point to it).
+แท็บ Providers จะแสดงรายชื่อผู้ให้บริการทั้งหมดของโปรเจกต์ คุณสามารถคลิกทดสอบ (**test**) ความเชื่อมต่อของผู้ให้บริการใหม่ได้ตลอดเวลา หรือสามารถ**ลบ**ผู้ให้บริการออกได้หลังจากที่ทำการยกเลิกเส้นทางที่ชี้มายังผู้ให้บริการรายนี้ออกแล้ว
 
-## Next steps
+## ขั้นตอนต่อไป
 
-[Routing](/th/admin/routing) — map logical models to this provider.
+ดูข้อมูลคู่มือ [การจัดเส้นทาง (Routing)](/th/admin/routing) เพื่อแมปโมเดลเชิงตรรกะเข้ากับผู้ให้บริการรายนี้

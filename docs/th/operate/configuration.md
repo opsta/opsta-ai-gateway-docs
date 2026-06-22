@@ -1,92 +1,77 @@
-> 🌐 **เอกสารภาษาไทยกำลังจัดทำ** — เนื้อหาด้านล่างเป็นภาษาอังกฤษชั่วคราว จนกว่าจะมีการแปล. _This page is not yet translated; English content is shown temporarily._
+# การกำหนดค่า
 
-# Configuration
+แพลตฟอร์มนี้มี**ศูนย์กลางการกำหนดค่าเพียงจุดเดียว** คือไฟล์ values ของ Helm chart สำหรับความแตกต่างในแต่ละสภาพแวดล้อม เช่น โดเมน, แบบเดี่ยวหรือแบบ HA, แหล่งที่มาของ TLS หรือการเลือกระบบย่อยที่จะเปิดใช้งาน ทั้งหมดนี้เป็นค่ากำหนดในระดับบนสุดที่มีค่าเริ่มต้นที่เหมาะสมมาให้ในตัว คุณไม่จำเป็นต้องเข้าไปแก้ไข manifest ด้วยตนเอง และไม่ต้องจัดการค่ากำหนดในหลาย ๆ ที่พร้อมกัน
 
-The platform has **one configuration surface**: the Helm chart's values. Every environment difference — domain,
-standalone vs. HA, TLS source, which subsystems are on — is a high-level value with a sane default. You don't
-hand-edit manifests, and you don't manage config in several places.
-
-::: tip One surface, few knobs
-Prefer changing a value and re-running `helm upgrade` over editing live cluster state. Anything you change by hand
-outside the chart will drift and can be overwritten on the next upgrade or reconcile.
+::: tip จุดกำหนดค่าเพียงหนึ่งเดียว ปรับปุ่มควบคุมเพียงไม่กี่จุด
+โปรดหลีกเลี่ยงการแก้ไขสถานะในคลัสเตอร์โดยตรง และใช้วิธีการปรับเปลี่ยนค่าในไฟล์ค่ากำหนดแล้วสั่งรัน `helm upgrade` ใหม่แทน เนื่องจากการกำหนดค่าด้วยตนเองภายนอก chart จะเกิดปัญหาความคลาดเคลื่อนของข้อมูล (drift) และอาจถูกบันทึกทับในขั้นตอนการอัปเกรดหรือการปรับประสานสถานะครั้งถัดไป
 :::
 
-## How values are organized
+## โครงสร้างการจัดหมวดหมู่ค่ากำหนด
 
-Values are grouped by concern. The most important groups:
+ค่ากำหนดต่าง ๆ จะถูกจัดกลุ่มตามวัตถุประสงค์การใช้งาน โดยมีกลุ่มสำคัญดังนี้
 
-| Group | Controls | Where to read more |
+| กลุ่ม | รายละเอียดการควบคุม | เอกสารเพิ่มเติม |
 |---|---|---|
-| `global` | Base domain, subdomains, separator, HA toggle, registry/mirror, storage class, namespace prefix | [TLS & domains](/th/operate/tls-and-domains), [High availability](/th/operate/high-availability) |
-| `tls` | Certificate mode and issuer | [TLS & domains](/th/operate/tls-and-domains) |
-| `certManager`, `redisOperator`, `cnpg` | Whether to install each operator or reuse an existing one | [Reuse existing operators](/th/operate/byo-operators) |
-| `postgres`, `redis`, `keycloak`, `controlPlane`, `console` | The core stateful and application components | this page |
-| `observability` | The bundled metrics/logs/traces stack and retention | [Platform observability](/th/operate/observability-platform) |
-| `sso` | OIDC sign-in for console and dashboards | [SSO & IdP brokering](/th/admin/sso-and-idp) |
-| `budgets`, `rateLimits`, `guardrails`, `modelAllowlist`, `modelRouter` | Policy defaults for the data plane | [Budgets & limits](/th/admin/budgets-and-limits), [Guardrails](/th/admin/guardrails) |
-| `semantic`, `semanticCache`, `semanticGuard` | Vector DB + embeddings and the features that use them | [Semantic cache](/th/admin/semantic-cache), [Semantic guard](/th/admin/semantic-guard) |
-| `mcp` | The MCP gateway | [MCP servers](/th/admin/mcp-servers) |
-| `audit` | Audit-log retention | [Audit & compliance](/th/security/audit-and-compliance) |
-| `images` | Registry references and the tested component versions | [Upgrades](/th/operate/upgrades) |
-| `secrets` | How credentials are supplied | [§ Secrets](#secrets) below |
-| `dev` | Test-only helpers — **never enable in production** | this page |
+| `global` | โดเมนหลัก โดเมนย่อย ตัวคั่นโดเมน สวิตช์เปิดใช้งาน HA ระบบ registry/mirror ค่า Storage class และ namespace prefix | [TLS และโดเมน](/th/operate/tls-and-domains), [ระบบความพร้อมใช้งานสูง (High availability)](/th/operate/high-availability) |
+| `tls` | โหมดของใบรับรองและระบบออกใบรับรอง | [TLS และโดเมน](/th/operate/tls-and-domains) |
+| `certManager`, `redisOperator`, `cnpg` | เลือกว่าจะติดตั้ง operator เหล่านี้ใหม่หรือใช้งานระบบเดิมที่มีอยู่แล้ว | [การใช้งาน operator เดิมบนคลัสเตอร์](/th/operate/byo-operators) |
+| `postgres`, `redis`, `keycloak`, `controlPlane`, `console` | ส่วนประกอบหลักในส่วนจัดเก็บสถานะและแอปพลิเคชัน | หน้านี้ |
+| `observability` | ชุดซอฟต์แวร์ระบบตรวจสอบสถานะการทำงานและระยะเวลาจัดเก็บข้อมูล | [ระบบตรวจสอบสถานะการทำงานของแพลตฟอร์ม](/th/operate/observability-platform) |
+| `sso` | การเข้าสู่ระบบด้วย OIDC สำหรับ console และแดชบอร์ด | [SSO และ IdP](/th/admin/sso-and-idp) |
+| `budgets`, `rateLimits`, `guardrails`, `modelAllowlist`, `modelRouter` | กำหนดค่าเริ่มต้นนโยบายความปลอดภัยสำหรับ data plane | [งบประมาณและขีดจำกัด](/th/admin/budgets-and-limits), [ระบบป้องกัน (Guardrails)](/th/admin/guardrails) |
+| `semantic`, `semanticCache`, `semanticGuard` | ฐานข้อมูลเวกเตอร์ ข้อมูลฝังตัว และฟีเจอร์ที่เกี่ยวข้อง | [ระบบแคชตามความหมาย (Semantic cache)](/th/admin/semantic-cache), [ระบบตรวจสอบคำสั่งที่ไม่ปลอดภัย (Semantic guard)](/th/admin/semantic-guard) |
+| `mcp` | ระบบ MCP gateway | [เซิร์ฟเวอร์ MCP](/th/admin/mcp-servers) |
+| `audit` | ระยะเวลาเก็บรักษาประวัติการใช้งาน (Audit log) | [การตรวจสอบประวัติและการปฏิบัติตามข้อกำหนด](/th/security/audit-and-compliance) |
+| `images` | ลิงก์อ้างอิง registry และเวอร์ชันของแต่ละส่วนประกอบที่ผ่านการทดสอบแล้ว | [การอัปเกรดระบบ](/th/operate/upgrades) |
+| `secrets` | วิธีการระบุข้อมูลรับรองสิทธิ์และรหัสผ่าน | [ส่วนข้อมูลที่เป็นความลับ (Secrets)](#secrets) ด้านล่าง |
+| `dev` | ตัวช่วยสำหรับทดสอบเท่านั้น ห้ามเปิดใช้งานในสภาพแวดล้อมจริงเด็ดขาด | หน้านี้ |
 
-The complete key-by-key list with defaults is in the [Configuration reference](/th/reference/configuration).
+คุณสามารถตรวจสอบรายการคีย์ทั้งหมดพร้อมค่าเริ่มต้นได้ที่ [เอกสารอ้างอิงการกำหนดค่า](/th/reference/configuration)
 
-## Domains and the identity separator
+## โดเมนและตัวคั่นตัวตน
 
-`global.baseDomain` is the root; each subdomain is `<label><separator><baseDomain>`. The
-`global.subdomainSeparator` is `"."` by default (e.g. `api.ai-gateway.example.com`), or `"-"` to fit everything
-under a single parent wildcard (e.g. `api-ai-gateway.example.com`, covered by `*.example.com`).
+`global.baseDomain` ทำหน้าที่เป็นโดเมนหลัก โดยโดเมนย่อยแต่ละรายการจะอยู่ในรูปแบบ `<label><separator><baseDomain>` ตัวคั่นใน `global.subdomainSeparator` จะมีค่าเริ่มต้นเป็น `"."` เช่น `api.ai-gateway.example.com` หรือเลือกใช้เป็น `"-"` เพื่อให้ทุกบริการทำงานอยู่ภายใต้ wildcard หลักตัวเดียวได้ เช่น `api-ai-gateway.example.com` ซึ่งจะอยู่ภายใต้ความครอบคลุมของ `*.example.com`
 
-Tenant identity uses a three-part tuple — `organization.project.user` — as the consumer name. This is the model
-behind keys, budgets, and isolation; see the [Multi-tenancy model](/th/overview/multi-tenancy).
+ตัวตนผู้เช่า (Tenant identity) จะใช้งานข้อมูล tuple แบบ 3 ส่วน คือ `organization.project.user` เป็นชื่อผู้บริโภค ซึ่งเป็นรูปแบบโครงสร้างหลักที่อยู่เบื้องหลังคีย์ งบประมาณ และการแยกส่วนข้อมูล ดูรายละเอียดเพิ่มเติมได้ที่ [ระบบหลายผู้เช่า (Multi-tenancy)](/th/overview/multi-tenancy)
 
-## Enabling optional subsystems
+## การเปิดใช้งานระบบย่อยเพิ่มเติม
 
-Most subsystems are a single `enabled` toggle plus a few settings. For example:
+ระบบย่อยส่วนใหญ่จะเปิดใช้งานได้ผ่านสวิตช์ `enabled` พร้อมกับการกำหนดค่าเพิ่มเติมอีกเล็กน้อย ตัวอย่างเช่น
 
 ```yaml
 controlPlane:
-  enabled: true     # required for the console, budgets, and per-project config
+  enabled: true     # จำเป็นต้องเปิดใช้งานสำหรับใช้งาน console, งบประมาณ และค่ากำหนดประจำโปรเจกต์
 postgres:
-  enabled: true     # the control plane's source of truth
+  enabled: true     # แหล่งข้อมูลความจริงหนึ่งเดียวสำหรับ control plane
 keycloak:
-  enabled: true     # enterprise identity broker (per-org SSO)
+  enabled: true     # ระบบเชื่อมต่อตัวตนระดับองค์กร (per-org SSO)
 semanticCache:
-  enabled: true     # needs semantic.qdrant + semantic.ollama, rendered automatically
+  enabled: true     # จำเป็นต้องใช้ semantic.qdrant และ semantic.ollama โดยระบบจะตั้งค่าให้โดยอัตโนมัติ
 mcp:
   enabled: true     # MCP gateway
 ```
 
-Dependencies are enforced sensibly — for instance, the control plane requires PostgreSQL, and the semantic
-features automatically render the shared Qdrant + Ollama infrastructure when any of them is on.
+การขึ้นต่อกันของระบบ (dependency) จะถูกควบคุมอย่างเหมาะสม ตัวอย่างเช่น control plane จำเป็นต้องใช้งาน PostgreSQL และฟีเจอร์ด้านความหมาย (semantic) จะช่วยเปิดใช้งานโครงสร้าง Qdrant และ Ollama ร่วมกันโดยอัตโนมัติเมื่อมีการเปิดใช้งานฟีเจอร์ตัวใดตัวหนึ่งขึ้นมา
 
-## Secrets
+## ข้อมูลที่เป็นความลับ (Secrets)
 
-Credentials are **never** part of your committed values. Two supported modes:
+ข้อมูลสิทธิ์การใช้งานและรหัสผ่านจะ**ไม่มีวัน**ถูกจัดเก็บในไฟล์ values ที่คุณคอมมิต โดยระบบรองรับการทำงาน 2 รูปแบบดังนี้
 
-- `secrets.createFromValues: true` — the chart creates Kubernetes Secrets from a **separate, git-ignored** values
-  file. Good for getting started.
-- `secrets.createFromValues: false` — the chart references **pre-existing Secrets** you manage with Vault,
-  sealed-secrets, or another external system. Recommended for production.
+- `secrets.createFromValues: true` — ตัว chart จะสร้าง Kubernetes Secrets ขึ้นมาจาก**ไฟล์ values อีกไฟล์หนึ่งที่ถูกแยกส่วนและถูกระบุในไฟล์ `.gitignore`** ซึ่งเป็นวิธีที่สะดวกสำหรับขั้นตอนเริ่มต้นใช้งาน
+- `secrets.createFromValues: false` — ตัว chart จะอ้างอิงไปยัง **Secrets เดิมที่มีอยู่แล้วในระบบ** ซึ่งคุณดูแลจัดการผ่าน Vault, sealed-secrets หรือระบบภายนอกอื่น ๆ ซึ่งเป็นวิธีแนะนำสำหรับสภาพแวดล้อมที่ใช้งานจริง
 
-See [Hardening](/th/security/hardening) for the full secret-handling guidance.
+ดูรายละเอียดเพิ่มเติมได้ที่คู่มือ [การเสริมสร้างความปลอดภัย (Hardening)](/th/security/hardening) สำหรับแนวทางการจัดการข้อมูลที่เป็นความลับทั้งหมด
 
-## Applying changes
+## การปรับใช้การเปลี่ยนแปลง
 
 ```bash
 helm upgrade opsta-ai-gateway oci://ghcr.io/opsta/charts/opsta-ai-gateway \
   -n opsta-ai-gateway -f values.yaml -f secrets-values.yaml
 ```
 
-Policy and tenant data (consumers, budgets, providers, guardrail patterns) are managed by the control plane at
-runtime and reconciled onto the gateway continuously — those don't require a chart upgrade. The chart owns
-**product-level** config; the control plane owns **tenant** config. See
-[Architecture](/th/overview/architecture).
+ข้อมูลนโยบายความปลอดภัยและข้อมูลผู้เช่า เช่น ผู้บริโภค งบประมาณ ผู้ให้บริการ รูปแบบกฎป้องกัน (guardrail patterns) จะถูกจัดการผ่านทาง control plane ในขณะระบบกำลังทำงาน และจะถูกปรับประสานสถานะไปยัง gateway อย่างต่อเนื่อง โดยการเปลี่ยนแปลงเหล่านี้ไม่จำเป็นต้องทำการอัปเกรด Helm chart เนื่องจากตัว chart จะเป็นเจ้าของค่ากำหนดใน**ระดับผลิตภัณฑ์ (product-level)** ส่วน control plane จะเป็นเจ้าของค่ากำหนดใน**ระดับผู้เช่า (tenant-level)** ดูรายละเอียดเพิ่มเติมได้ที่ [สถาปัตยกรรมระบบ](/th/overview/architecture)
 
-## Next steps
+## ขั้นตอนต่อไป
 
-- [Configuration reference](/th/reference/configuration) — every value with its default.
-- [TLS & domains](/th/operate/tls-and-domains) · [High availability](/th/operate/high-availability) ·
-  [Air-gapped install](/th/operate/air-gap)
+- [เอกสารอ้างอิงการกำหนดค่า](/th/reference/configuration) — รายการคีย์กำหนดค่าทั้งหมดพร้อมระบุค่าเริ่มต้น
+- [TLS และโดเมน](/th/operate/tls-and-domains) · [ระบบความพร้อมใช้งานสูง (High availability)](/th/operate/high-availability) · [การติดตั้งในระบบปิด (Air-gapped install)](/th/operate/air-gap)
