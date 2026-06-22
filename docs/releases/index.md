@@ -8,7 +8,13 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.20.15 — Name your API keys _(latest)_
+## v1.20.16 — Pick an exact key expiry date _(latest)_
+
+- **Expire a key on a specific date.** The **Expires** control on your API keys page now has an
+  **On a date…** option with a date picker, alongside the quick presets (30/90/180/365 days) — so
+  you can set a key to expire on an exact day, not just a rolling window.
+
+## v1.20.15 — Name your API keys
 
 - **Give each API key a name.** When you issue a key on your **API keys** page you can add an
   optional label (e.g. `laptop`, `CI`, `opencode`), shown in a new **Name** column — so a
