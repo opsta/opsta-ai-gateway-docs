@@ -14,15 +14,19 @@ config and never exposed back through the API.
 ## Add a provider
 
 1. Open **Projects**, select the project, and go to the **LLM Providers** tab.
-2. Click **Add provider** and choose a **type**:
+2. Click **+ Add provider**. A dialog opens with a gallery of **provider templates** —
+   DeepSeek, OpenAI, Anthropic, Fireworks, Together, Groq, Self-hosted/vLLM, or **Custom**.
+   Click a template to **prefill** the id, type, and base URL (every field stays editable),
+   or pick **Custom** to start from scratch. Then complete the **type**:
    - **OpenAI-compatible / DeepSeek / generic** — enter the **base URL** and **API key**.
    - **Native** — **Bedrock, Vertex, Claude, or Gemini** — enter that provider's **own credentials**
      (no base URL needed; the gateway knows the endpoints):
      - **Bedrock:** AWS access key ID + secret access key + region.
      - **Vertex:** service-account JSON key + GCP project ID + region + auth service name.
      - **Claude / Gemini:** API key(s) — comma-separate several to enable key **failover**.
-3. (OpenAI-compatible) Click **Test connection** to verify before saving.
-4. Save. The provider is now available to [routing](/admin/routing).
+3. Save. The provider is now available to [routing](/admin/routing).
+4. Back on the tab, click **Test** on the provider's row to verify the connection — you'll get
+   a clear **✓ Connection OK** or a readable reason if it fails.
 
 ![The LLM Providers tab — add-provider form](/images/providers.png)
 

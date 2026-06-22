@@ -8,7 +8,24 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.20.6 — MCP usability: real connect URL + modal forms _(latest)_
+## v1.20.7 — Budget delete, provider templates & clearer errors _(latest)_
+
+- **Remove a budget or limit.** The **Budgets & Limits** table now has a **Delete** on every
+  row — project ceiling, group default, or individual override. Deleting a limit falls back
+  to the next level up (member → group → project → organization).
+- **Provider connection test now works.** Testing an LLM provider could fail with a confusing
+  `certificate signed by unknown authority` even for a valid provider. That's fixed — the test
+  now verifies the upstream's certificate correctly and reports a clean **Connection OK** (or a
+  readable reason if it genuinely fails).
+- **Friendlier errors, everywhere.** Error messages across the console no longer dump raw
+  server JSON. You get a clear, plain-language message (and a dismissible red banner), on the
+  project pages and beyond.
+- **Add a provider from a template gallery.** The provider **Add** form is now a focused dialog
+  with a gallery of **branded templates** — DeepSeek, OpenAI, Anthropic, Fireworks, Together,
+  Groq, Self-hosted/vLLM, or **Custom** — click one to prefill the connection, then edit any
+  field. The old cramped search box is gone.
+
+## v1.20.6 — MCP usability: real connect URL + modal forms
 
 - **MCP "Copy URL" now copies the real address.** Each MCP server's connect URL shows and
   copies your actual gateway domain (e.g. `https://mcp.your-domain/<org>.<project>/<name>`)

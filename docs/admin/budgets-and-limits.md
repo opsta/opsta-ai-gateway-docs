@@ -26,6 +26,13 @@ flowchart LR
 
 ![The Budgets & Limits tab — project ceiling, group defaults, and per-user overrides](/images/budgets.png)
 
+## Remove a budget
+
+Every row in the limits table has a **Delete** — the project ceiling, a group default, or an
+individual override. Deleting a limit doesn't leave a consumer unbounded: enforcement simply
+**falls back to the next level up** (a user override → the group default → the project ceiling →
+the organization). Use this to undo a one-off override once it's no longer needed.
+
 ## What happens at the cap
 
 When a consumer reaches the tightest applicable budget or token limit, further requests are rejected with
