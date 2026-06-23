@@ -8,7 +8,16 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.20.19 — Release-pipeline hardening _(latest)_
+## v1.20.20 — Connect page: reasoning-effort ready _(latest)_
+
+The **Connect a client** page now emits an opencode config with `reasoning: true` on the model, so
+opencode shows its **reasoning-effort selector** (Default / Low / Medium / High) for your gateway
+model — the gateway forwards the chosen effort upstream. Previously opencode hid the selector
+because it didn't recognise the custom model name. Existing users: add `"reasoning": true` to your
+model block, or just re-copy the config from the Connect page. Per-route default effort (set in
+**Projects → Routing**) still applies when a client sends nothing.
+
+## v1.20.19 — Release-pipeline hardening
 
 A maintenance release — **no user-facing changes**. The release promotion now copies the exact
 **commit-pinned image** built for the merged change (instead of a floating `:dev` tag), so a
