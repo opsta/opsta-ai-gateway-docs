@@ -8,7 +8,14 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.20.18 — Reasoning effort for Claude (experimental) _(latest)_
+## v1.20.19 — Release-pipeline hardening _(latest)_
+
+A maintenance release — **no user-facing changes**. The release promotion now copies the exact
+**commit-pinned image** built for the merged change (instead of a floating `:dev` tag), so a
+concurrent push can never race the promotion and ship a stale image under a release tag. All
+v1.20.18 capabilities are unchanged.
+
+## v1.20.18 — Reasoning effort for Claude (experimental)
 
 - **Reasoning effort now reaches Claude — experimentally.** Setting a route's **Reasoning
   effort** on a Claude provider injects a `thinking` budget (low/med/high → 2k/8k/16k tokens) at
