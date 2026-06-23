@@ -8,7 +8,15 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.20.21 — Overview shows your organization; cleaner error messages _(latest)_
+## v1.20.22 — Fix: budget showed $0 for some users _(latest)_
+
+Users whose email local-part contains a dot or other non-letter (e.g. `parame.s@…`, `chakrit.p@…`)
+saw **$0 budget and no usage** on their Overview, even though their project budget was set. Their
+gateway username is slugified (`parame.s` → `parame-s`), and the console wasn't matching the email
+back to that username. The Overview now resolves the user correctly and shows the real budget and
+spend. Users with simple emails (no dots) were unaffected.
+
+## v1.20.21 — Overview shows your organization; cleaner error messages
 
 - The **Overview** page now shows your **Organization** alongside Project and team, so it's clear
   which org you're working in.
