@@ -8,7 +8,16 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.20.22 — Fix: budget showed $0 for some users _(latest)_
+## v1.20.23 — New-project dialog + correct per-project settings _(latest)_
+
+- **Creating a project** is now a dialog with a clear **"Project created"** confirmation, and it
+  closes on create instead of leaving the form on screen.
+- **Switching projects** now always shows the selected project's own settings. Previously the
+  configuration tabs (notably **Semantic Cache**) could still display the *previous* project's
+  values — so a brand-new project looked like it already had caching enabled. New projects start
+  with semantic cache **off** (unchanged default — it just now displays correctly).
+
+## v1.20.22 — Fix: budget showed $0 for some users
 
 Users whose email local-part contains a dot or other non-letter (e.g. `parame.s@…`, `chakrit.p@…`)
 saw **$0 budget and no usage** on their Overview, even though their project budget was set. Their
