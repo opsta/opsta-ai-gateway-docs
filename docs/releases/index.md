@@ -8,7 +8,14 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.20.28 — Add Agent & Service-account in a dialog _(latest)_
+## v1.20.29 — More create forms open in a dialog _(latest)_
+
+Completes the move to dialogs for create forms: **Create organization** (Organizations), **Create
+local user** (Identity), **Invite by email** (project Users tab) and **Invite member** (organization
+Members tab) now open in a modal that closes on success. Forms that are edit/publish editors,
+URL-driven (identity providers), single-field, or per-row inline actions stay inline by design.
+
+## v1.20.28 — Add Agent & Service-account in a dialog
 
 Continuing the move to dialogs for create/edit forms: **Register AI agent** (Agents tab) and
 **New service account** (Users tab) now open in a modal that closes on success — consistent with the
