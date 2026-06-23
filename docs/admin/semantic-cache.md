@@ -3,6 +3,13 @@
 The semantic cache returns a stored answer when a new prompt is **similar in meaning** to a previous one,
 skipping the model call entirely and saving the full token spend. It's per-project, opt-in, and tenant-isolated.
 
+::: warning Not for coding or agent traffic
+Do **not** enable semantic cache for projects used by coding/agent clients (opencode, Cursor, or anything that
+streams responses and uses tool calls). Semantic caching truncates streaming tool-call responses and can serve a
+similar-but-wrong answer to a different agent step — which makes agents hang or misbehave. Use it **only** for
+non-streaming, FAQ-style chat, and keep it **off** for coding/agent projects.
+:::
+
 ::: info Who can do this
 **Org admins** (for their organization) and **platform admins**, on **Projects → Semantic Cache**.
 :::
