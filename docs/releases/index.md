@@ -8,7 +8,15 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.20.29 — More create forms open in a dialog _(latest)_
+## v1.20.30 — API-keys page polish _(latest)_
+
+- **Issue new key** sits next to the Name/Expires fields instead of pushed to the far right.
+- Clearer wording on **Consumer activity**: it shows "Active this month" when any of your keys made a
+  metered request this month — which can be true even while the per-key **Last used** column still
+  shows "—" (that column only records usage from when the feature went live, filling in on your next
+  request).
+
+## v1.20.29 — More create forms open in a dialog
 
 Completes the move to dialogs for create forms: **Create organization** (Organizations), **Create
 local user** (Identity), **Invite by email** (project Users tab) and **Invite member** (organization
