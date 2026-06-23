@@ -8,7 +8,17 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.20.25 — Cleaner Overview & API-keys header _(latest)_
+## v1.20.26 — API keys: search, filter, sort, paginate & purge _(latest)_
+
+The **API keys** page is now manageable at scale:
+- **"Issue new key"** moved to the right of the Name/Expires fields (reads left-to-right).
+- A controls bar: **search** by name/ID, **filter** by status (defaults to **Active**, so revoked/
+  expired keys no longer clutter the view) and by project, plus **sortable** columns.
+- **Pagination** (10/page) once the list is long.
+- **Purge revoked** — one click to permanently delete all your revoked keys (active keys untouched;
+  spend history is preserved).
+
+## v1.20.25 — Cleaner Overview & API-keys header
 
 The identity line on the **Overview** and **API keys** pages is now a tidy row of labelled chips
 (Organization · Project · Team), and the project switcher sits neatly inside its chip. Fixes a
