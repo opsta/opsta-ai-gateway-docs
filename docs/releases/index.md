@@ -8,7 +8,22 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.20.16 — Pick an exact key expiry date _(latest)_
+## v1.20.17 — Reasoning effort for Gemini _(latest)_
+
+- **Reasoning effort now reaches Gemini.** Setting a route's **Reasoning effort** on a Gemini
+  provider now applies a matching **thinking budget** (low/med/high → 2k/8k/16k tokens) at the
+  gateway. Because Gemini's thinking budget is a per-provider setting, a provider with several
+  routes uses the **strongest** effort among them. (OpenAI-compatible providers like DeepSeek
+  already got `reasoning_effort` in v1.20.14.)
+- **Claude/Bedrock/Vertex** reasoning effort is still **planned** — the upstream proxy exposes no
+  thinking-budget control for those yet, so we won't ship an unverifiable guess.
+
+::: info Note
+The Gemini thinking-budget config is rendered and tested, but its live effect hasn't been
+verified end-to-end against a real Gemini key yet — set it and confirm in your own environment.
+:::
+
+## v1.20.16 — Pick an exact key expiry date
 
 - **Expire a key on a specific date.** The **Expires** control on your API keys page now has an
   **On a date…** option with a date picker, alongside the quick presets (30/90/180/365 days) — so
