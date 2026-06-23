@@ -8,7 +8,18 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.20.26 — API keys: search, filter, sort, paginate & purge _(latest)_
+## v1.20.27 — See when each API key was last used _(latest)_
+
+The **API keys** table now has a **Last used** column, so you can spot stale keys and revoke them
+with confidence. The gateway records (best-effort, ~5-minute granularity) when a key last
+authenticated a request.
+
+::: info Coverage
+Last-used is recorded for **OpenAI-compatible** providers (DeepSeek, OpenAI, etc.). Keys used only
+through **native** providers (Claude, Gemini, Bedrock, Vertex) show **"—"** for now.
+:::
+
+## v1.20.26 — API keys: search, filter, sort, paginate & purge
 
 The **API keys** page is now manageable at scale:
 - **"Issue new key"** moved to the right of the Name/Expires fields (reads left-to-right).
