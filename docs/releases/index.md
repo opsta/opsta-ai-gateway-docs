@@ -8,7 +8,21 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.20.17 — Reasoning effort for Gemini _(latest)_
+## v1.20.18 — Reasoning effort for Claude (experimental) _(latest)_
+
+- **Reasoning effort now reaches Claude — experimentally.** Setting a route's **Reasoning
+  effort** on a Claude provider injects a `thinking` budget (low/med/high → 2k/8k/16k tokens) at
+  the gateway. It's **default-off** and clearly marked experimental in the UI.
+
+::: warning Experimental
+Anthropic exposes no documented thinking control through the upstream proxy, so this uses a
+raw passthrough that is **rendered and tested but not verified end-to-end** against a live Claude
+key — and it may not take effect (Anthropic also requires `max_tokens` > the thinking budget).
+Treat it as best-effort and confirm in your own environment. **Bedrock/Vertex** are still
+unsupported.
+:::
+
+## v1.20.17 — Reasoning effort for Gemini
 
 - **Reasoning effort now reaches Gemini.** Setting a route's **Reasoning effort** on a Gemini
   provider now applies a matching **thinking budget** (low/med/high → 2k/8k/16k tokens) at the
