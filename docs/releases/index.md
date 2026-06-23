@@ -8,7 +8,14 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.20.27 — See when each API key was last used _(latest)_
+## v1.20.28 — Add Agent & Service-account in a dialog _(latest)_
+
+Continuing the move to dialogs for create/edit forms: **Register AI agent** (Agents tab) and
+**New service account** (Users tab) now open in a modal that closes on success — consistent with the
+provider, MCP, and new-project dialogs. (Inline settings panels and primary list actions stay inline
+by design.)
+
+## v1.20.27 — See when each API key was last used
 
 The **API keys** table now has a **Last used** column, so you can spot stale keys and revoke them
 with confidence. The gateway records (best-effort, ~5-minute granularity) when a key last
