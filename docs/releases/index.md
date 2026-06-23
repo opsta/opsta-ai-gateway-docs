@@ -8,7 +8,13 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.20.24 — Switch between your projects _(latest)_
+## v1.20.25 — Cleaner Overview & API-keys header _(latest)_
+
+The identity line on the **Overview** and **API keys** pages is now a tidy row of labelled chips
+(Organization · Project · Team), and the project switcher sits neatly inside its chip. Fixes a
+duplicated "Project" label that appeared next to the switcher.
+
+## v1.20.24 — Switch between your projects
 
 Members who belong to **more than one project** now get a **Project switcher** in the Overview and
 API-keys pages (next to your organization). Pick a project to see its own budget, usage and keys,
