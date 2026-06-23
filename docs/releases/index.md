@@ -8,7 +8,15 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.20.20 — Connect page: reasoning-effort ready _(latest)_
+## v1.20.21 — Overview shows your organization; cleaner error messages _(latest)_
+
+- The **Overview** page now shows your **Organization** alongside Project and team, so it's clear
+  which org you're working in.
+- Error banners no longer dump a raw proxy/CDN error page (e.g. a Cloudflare "502 Bad gateway"
+  HTML blob) into the console. When the gateway is briefly unreachable you now get a short
+  "service is temporarily unavailable — please retry" message instead.
+
+## v1.20.20 — Connect page: reasoning-effort ready
 
 The **Connect a client** page now emits an opencode config with `reasoning: true` on the model, so
 opencode shows its **reasoning-effort selector** (Default / Low / Medium / High) for your gateway
