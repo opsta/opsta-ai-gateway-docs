@@ -8,7 +8,15 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.20.23 — New-project dialog + correct per-project settings _(latest)_
+## v1.20.24 — Switch between your projects _(latest)_
+
+Members who belong to **more than one project** now get a **Project switcher** in the Overview and
+API-keys pages (next to your organization). Pick a project to see its own budget, usage and keys,
+and — on the API-keys page — **issue a key for the selected project**. The keys table shows a
+**Project** column when your keys span multiple projects. If you're in a single project, nothing
+changes.
+
+## v1.20.23 — New-project dialog + correct per-project settings
 
 - **Creating a project** is now a dialog with a clear **"Project created"** confirmation, and it
   closes on create instead of leaving the form on screen.
