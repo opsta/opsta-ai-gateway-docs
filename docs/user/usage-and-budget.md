@@ -24,6 +24,14 @@ an administrator raises the limit.
 Semantic caching can stretch your budget: repeated or similar prompts may be served from cache, which costs
 nothing against your budget.
 
+## Switching between projects
+
+If you belong to **more than one project**, a **Project** switcher appears next to your organization
+on the **Overview** and **API keys** pages. Pick a project to see its own budget, usage and keys.
+On the API keys page, the selected project is the one a **new key is issued for**, and the keys table
+shows a **Project** column so you can tell which key belongs where. If you're in a single project,
+there's nothing to switch and the switcher is hidden.
+
 ## If you hit your limit
 
 - Wait for the monthly reset, or
