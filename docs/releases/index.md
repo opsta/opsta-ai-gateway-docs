@@ -8,7 +8,24 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.20.30 — API-keys page polish _(latest)_
+## v1.20.32 — Automated model routing _(latest)_
+
+Send the special model **`auto`** and the gateway picks the right model **from the prompt itself** —
+so clients stop hard-coding a model and casual traffic stops paying premium rates.
+
+- **How it works:** an admin defines named **routes** on **Projects → Auto Routing** — each route is a
+  model plus a few example prompts (e.g. a `code` route → your strong coding model, a `chat` route → a
+  cheap model). When a request arrives as `{"model":"auto", …}`, the gateway matches the prompt to the
+  nearest route by **meaning** (embeddings) and rewrites the model before all the usual routing,
+  allow-listing and metering run. Below a confidence threshold it uses a **fallback** model.
+- **See why:** a built-in **prompt tester** shows which route + score a sample prompt would pick, with
+  no live LLM call.
+- **The benefit:** with cost-tiered models, casual prompts auto-route to the cheap model and only the
+  work that needs it hits the premium one — visible in your **FinOps** cost split. Default **off**;
+  opt in per project.
+- Under the hood, reconcile now skips no-op plugin updates, cutting gateway churn for a steadier data plane.
+
+## v1.20.30 — API-keys page polish
 
 - **Issue new key** sits next to the Name/Expires fields instead of pushed to the far right.
 - Clearer wording on **Consumer activity**: it shows "Active this month" when any of your keys made a

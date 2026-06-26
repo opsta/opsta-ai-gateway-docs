@@ -35,6 +35,8 @@ Opsta AI Gateway puts a single, governed control point in front of all of it.
   per-provider key **failover** — your apps keep speaking one OpenAI-style API.
 - **Roll out models safely** — split a model's traffic across two providers by weight to
   A/B test or canary a new model, ramping with no client changes ([rollouts](/admin/canary-rollouts)).
+- **Route automatically** — let clients send the model `auto` and have the gateway pick the right model
+  from the prompt, so casual traffic avoids premium rates ([automated routing](/admin/auto-routing)).
 - **Govern AI agents** — give each autonomous agent a **trusted, first-class identity**
   ([AI Agents](/admin/agents)): a verifiable, revocable credential carried through every LLM and tool
   call, so spend, access, and audit attribute to the *agent*. Register and govern remote
