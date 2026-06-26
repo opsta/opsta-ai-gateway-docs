@@ -8,7 +8,21 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.20.32 — Automated model routing _(latest)_
+## v1.21.0 — Cost routing _(latest)_
+
+Cut model spend without hurting quality: send `model:"auto"` and the gateway routes **easy prompts to a
+cheap model and hard ones to a strong model**, at a quality you choose.
+
+- **How it works:** on **Projects → Cost Routing**, pick a cheap and a strong model, set a **quality dial**,
+  and label a few prompts hard/easy (or click **Calibrate from samples** to auto-label them via a judge — it
+  runs your cheap + strong models and grades whether the cheap answer was good enough). Each `auto` request
+  is matched to the nearest labelled prompts by meaning and routed accordingly. It **fails toward the strong
+  model**, so quality is never silently downgraded.
+- **Decide with numbers, not faith:** **Evaluate** shows held-out routing **accuracy**, the **% of traffic
+  routed cheap**, and **estimated savings** vs. always using the strong model — before you enable it.
+- Default **off**, opt-in per project. (Uses the same `auto` trigger as Auto Routing — enable one.)
+
+## v1.20.32 — Automated model routing
 
 Send the special model **`auto`** and the gateway picks the right model **from the prompt itself** —
 so clients stop hard-coding a model and casual traffic stops paying premium rates.

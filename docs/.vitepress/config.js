@@ -40,6 +40,7 @@ const sidebar = {
       { text: "Providers", link: "/admin/providers" },
       { text: "Routing", link: "/admin/routing" },
       { text: "Automated model routing", link: "/admin/auto-routing" },
+      { text: "Cost routing", link: "/admin/cost-routing" },
       { text: "Canary / A-B rollouts", link: "/admin/canary-rollouts" },
       { text: "Budgets & limits", link: "/admin/budgets-and-limits" },
       { text: "FinOps — chargeback & forecast", link: "/admin/finops" },

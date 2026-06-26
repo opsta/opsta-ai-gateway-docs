@@ -37,6 +37,8 @@ Opsta AI Gateway puts a single, governed control point in front of all of it.
   A/B test or canary a new model, ramping with no client changes ([rollouts](/admin/canary-rollouts)).
 - **Route automatically** — let clients send the model `auto` and have the gateway pick the right model
   from the prompt, so casual traffic avoids premium rates ([automated routing](/admin/auto-routing)).
+- **Cut model spend** — route easy prompts to a cheap model and only the hard ones to a strong model, at a
+  quality you set, with the savings measured before you enable it ([cost routing](/admin/cost-routing)).
 - **Govern AI agents** — give each autonomous agent a **trusted, first-class identity**
   ([AI Agents](/admin/agents)): a verifiable, revocable credential carried through every LLM and tool
   call, so spend, access, and audit attribute to the *agent*. Register and govern remote
