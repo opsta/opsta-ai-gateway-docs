@@ -10,6 +10,8 @@ casual traffic stops paying premium rates.
 Requires the semantic add-on (the gateway's embedding service) to be deployed; default **off** per project.
 :::
 
+![The Auto Routing tab — named routes (model + example prompts), threshold, fallback, and a prompt tester](/images/auto-routing.png)
+
 ## How it works
 
 When a request arrives as `{"model":"auto", …}`, the gateway:
