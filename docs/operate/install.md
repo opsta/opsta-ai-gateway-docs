@@ -9,6 +9,25 @@ Make sure your cluster meets the [Requirements](/operate/requirements) first —
 StorageClass, a base domain, and a way to issue a wildcard certificate.
 :::
 
+## Install modes
+
+The platform supports **two install modes** — both deploy the *same* Helm chart; they differ only in *how*
+releases are applied and reconciled, not in what runs:
+
+- **Helmfile (default, recommended).** The tested production path documented on this page: one chart, one
+  values file, `helmfile sync`. This is what [Requirements](/operate/requirements),
+  [Production deployment (HA)](/operate/deploy/ha), and the deployment runbook target.
+- **ArgoCD GitOps (alternative).** A continuously-reconciled, drift-correcting, audited deploy via an ArgoCD
+  **app-of-apps**, with secrets sourced from **Vault → External Secrets Operator** (kept out of git
+  entirely). It is currently **validated for dev / single-node (k3d)**; production-grade GitOps — HA Vault,
+  a customer Git repo + TLS, CI-driven promotion, and multi-cluster topologies — is on the roadmap.
+
+::: tip Which to use
+For production installs today, use **helmfile** (the rest of this page). GitOps is a good fit when you want
+drift detection and an audit trail and are comfortable on the dev-validated path; track the roadmap for the
+production-hardened GitOps mode.
+:::
+
 ## Deployment topology
 
 ```mermaid

@@ -538,7 +538,13 @@ any component version means re-testing the full set — see `version.yaml` and C
 
 ## Installation & Day-2
 
-See the [Install](./install.md) guide for the step-by-step `helmfile sync` flow.
+The platform installs in one of **two modes** (same chart, different apply/reconcile mechanism):
+
+- **Helmfile** — the default, tested production path (`helmfile sync`); see the [Install](./install.md) guide.
+- **ArgoCD GitOps** — an app-of-apps deploy with continuous reconcile + drift correction and **Vault →
+  External Secrets Operator** secrets (out of git). Currently validated for dev / single-node; production
+  GitOps (HA Vault, customer Git repo + CI promotion, multi-cluster) is on the roadmap. See
+  [Install § modes](./install.md#install-modes).
 
 ::: info Deployment runbook — coming in M-runbook
 A complete, copy-paste HA deployment runbook targeting **RKE2 on Linux VMs** (the reference
