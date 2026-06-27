@@ -46,3 +46,12 @@ h1, h2, h3, h4,
   .VPHero .name,
   .VPHero .text { letter-spacing: -0.02em; }
 }
+
+/* Image lightbox (medium-zoom): VitePress's nav (z-index 50) + sidebar sat ABOVE the
+   zoom overlay's default z-index (100 is fine, but the sidebar's stacking context
+   "bordered" the zoomed image). Force the overlay + opened image above all chrome so
+   click-to-zoom is truly full-screen. */
+.medium-zoom-overlay { z-index: 2147483646 !important; }
+.medium-zoom-image--opened { z-index: 2147483647 !important; }
+/* Screenshots get a subtle frame + zoom affordance in the doc flow. */
+.vp-doc img { border-radius: 8px; cursor: zoom-in; }
