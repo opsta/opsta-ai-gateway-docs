@@ -8,7 +8,26 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.21.0 — Cost routing _(latest)_
+## v1.23.0 — A refreshed, accessible console _(latest)_
+
+The admin & user console gets a ground-up **consistency pass**. Every button, status message, dialog, and
+form now comes from one shared component set, so the whole product looks and behaves the same on every
+screen — and meets accessibility contrast standards.
+
+- **Consistent and predictable:** one visual language across all screens — the same buttons, status banners,
+  dialogs, and tables, and the same feel whenever you save, delete, or hit an error.
+- **Accessible by default:** text and controls meet **WCAG AA** colour-contrast in both light and dark
+  themes; icons are crisp SVGs (no emoji); figures line up in tables.
+- **Same features, better surface:** nothing about your workflows changed — everything you already do simply
+  looks and reads cleaner. Focus-trapping dialogs, clearer loading states, and dismissible notices throughout.
+
+## v1.22.0 — Cost Routing, redesigned
+
+The **Projects → Cost Routing** screen was rebuilt around a clear flow: a gated **Enable** toggle, a
+structured list of labelled example prompts with per-row hard/easy toggles, and stat-card results — so the
+accuracy and savings numbers (and which examples the router would misjudge) are obvious before you turn it on.
+
+## v1.21.0 — Cost routing
 
 Cut model spend without hurting quality: send `model:"auto"` and the gateway routes **easy prompts to a
 cheap model and hard ones to a strong model**, at a quality you choose.
