@@ -30,6 +30,12 @@ Once signed in, the **Overview** is your dashboard. From the portal you can:
   OpenAI-compatible SDK).
 - Review your **[blocked requests](/user/blocked-requests)** if a guardrail rejected something.
 
+::: info Your prompts may be logged
+An organization admin can enable **prompt logging** for a project, which records the prompts and model
+output of its requests for audit and debugging. It's off by default and access is limited to admins (and
+your own records); ask your admin about their policy if you handle sensitive data.
+:::
+
 ![The Profile page](/images/profile.png)
 
 ## Next steps

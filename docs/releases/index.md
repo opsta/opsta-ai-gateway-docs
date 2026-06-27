@@ -8,7 +8,25 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.23.0 — A refreshed, accessible console _(latest)_
+## v1.24.0 — Prompt logging _(latest)_
+
+See exactly what was asked and answered. Turn on **prompt logging** for a project and the gateway captures
+each request's **prompt and model output** for review, search, and audit — for debugging, abuse
+investigation, and prompt iteration.
+
+- **Privacy-first:** **off by default and opt-in per project** — nothing is captured until an admin enables
+  it. Choose whether to include the **system prompt** and the **model output**, set a **retention** window
+  (auto-pruned), and content is truncated so logs stay bounded.
+- **Review & search:** a **Prompt logs** viewer (org admins) lists captured requests by consumer, project,
+  model, and time, with an expandable prompt/output detail; each user can see their own. Blocked requests are
+  flagged with the gate that denied them.
+- **Out of band:** capture never blocks, delays, or alters a request, and it's the only store of prompt/response
+  *content* (usage stays token-counts; guardrail blocks stay short snippets). Pair it with **data masking** to
+  redact PII before it's stored.
+
+Turn it on at **Projects → Settings → Prompt logging**; see [Prompt logging](/admin/prompt-logging).
+
+## v1.23.0 — A refreshed, accessible console
 
 The admin & user console gets a ground-up **consistency pass**. Every button, status message, dialog, and
 form now comes from one shared component set, so the whole product looks and behaves the same on every

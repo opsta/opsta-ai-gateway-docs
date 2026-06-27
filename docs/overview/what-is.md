@@ -30,6 +30,9 @@ Opsta AI Gateway puts a single, governed control point in front of all of it.
 - **Govern the prompt** — enforce a project-wide system prompt that clients can't strip
   ([prompt management](/admin/prompt-management)), and publish reusable, versioned
   [prompt templates](/admin/prompt-templates) apps invoke by name.
+- **Audit what was asked** — optionally capture the prompt and model output per project for debugging
+  and abuse investigation, with opt-in-per-project, bounded retention, and admin-only access
+  ([prompt logging](/admin/prompt-logging)).
 - **Connect any provider** — OpenAI-compatible endpoints *and* native [providers](/admin/providers)
   (AWS Bedrock, Google Vertex, Anthropic Claude, Google Gemini) via automatic protocol translation, with
   per-provider key **failover** — your apps keep speaking one OpenAI-style API.
