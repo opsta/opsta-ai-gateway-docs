@@ -8,7 +8,27 @@ These notes describe capabilities in product terms. For upgrade mechanics see [U
 the full configuration surface see the [Configuration reference](/reference/configuration).
 :::
 
-## v1.24.0 — Prompt logging _(latest)_
+## v1.25.0 — Self-hosted backup & disaster recovery _(latest)_
+
+The platform now protects its own data with **built-in, self-hosted backup** — no external cloud
+dependency. It takes point-in-time backups of the databases and snapshots of your Kubernetes
+resources to an in-cluster object store, and gives admins a web console to run and restore them.
+
+- **Two layers, one switch.** Turning on `backup.enabled` provisions an in-cluster S3 store
+  (SeaweedFS), continuous **point-in-time recovery** for both the control-plane and Keycloak
+  PostgreSQL databases (CloudNativePG's Barman Cloud Plugin), and **Velero** for Kubernetes
+  resources and Secrets — with no external bucket or cloud credentials to manage.
+- **Manage backups from the web.** A new **Velero UI** at `backup.<your-domain>` — single sign-on
+  via Keycloak, restricted to admin groups (restores are destructive) — lets admins browse, run,
+  and restore backups without `kubectl`.
+- **Verified recovery.** A documented DR drill: a Velero namespace restore in ~15s and a Postgres
+  point-in-time recovery into a fresh cluster in ~70s.
+- **Yours, single-site.** Everything runs in your cluster and protects against data and application
+  loss; off-site replication is a future add.
+
+See [Backup & disaster recovery](/operate/backup-and-dr).
+
+## v1.24.0 — Prompt logging
 
 See exactly what was asked and answered. Turn on **prompt logging** for a project and the gateway captures
 each request's **prompt and model output** for review, search, and audit — for debugging, abuse
