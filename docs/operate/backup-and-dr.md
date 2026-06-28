@@ -10,14 +10,14 @@ Platform engineers responsible for data protection and recovery.
 
 ## What to back up
 
-| Data | Store | Why it matters |
+| Data | Layer | Why it matters |
 |---|---|---|
-| Tenant & policy config | Control-plane PostgreSQL | Recreates all orgs, projects, budgets, providers, guardrails |
-| API keys | Control-plane PostgreSQL | Keys keep working after restore |
-| Usage ledger | Control-plane PostgreSQL | Month-to-date spend and history |
-| Audit log | Control-plane PostgreSQL | Compliance trail |
-| Identity | Keycloak PostgreSQL | Users, brokered-IdP config, group mappings |
-| Kubernetes Secrets | Your secret store / Secrets backup | Provider keys, OIDC secrets, DB passwords |
+| Tenant & policy config | Control-plane PostgreSQL → PITR | Recreates all orgs, projects, budgets, providers, guardrails |
+| API keys | Control-plane PostgreSQL → PITR | Keys keep working after restore |
+| Usage ledger | Control-plane PostgreSQL → PITR | Month-to-date spend and history |
+| Audit log | Control-plane PostgreSQL → PITR | Compliance trail |
+| Identity | Keycloak PostgreSQL → PITR | Users, brokered-IdP config, group mappings |
+| Kubernetes resources & Secrets | Velero | Manifests + Secrets (provider keys, OIDC, TLS) across all namespaces |
 
 Metrics, logs, and traces in the observability stack are operational telemetry — back them up only
 if your retention policy requires it. They can be reconstructed from live traffic; the config
@@ -29,175 +29,153 @@ resynchronises. Design your DR plan around this.
 
 ---
 
-## Enabling PostgreSQL backup
+## How backups work
 
-CloudNativePG supports base backups plus continuous WAL archiving to any S3-compatible object
-store. Set this in your Helm values before the first installation (or add it before the next
-upgrade):
+The platform ships **self-hosted, two-layer backup with no external cloud dependency**. One switch
+turns it on:
 
 ```yaml
-postgres:
-  backup:
-    enabled: true
-    retentionPolicy: "7d"
-    objectStore:
-      destinationPath: s3://your-bucket/opsta-ai-gateway/
-      endpointURL: https://s3.example.com      # omit for AWS S3
-      credentials:
-        accessKeyId:
-          name: pg-s3-credentials              # Kubernetes Secret name
-          key: ACCESS_KEY_ID
-        secretAccessKey:
-          name: pg-s3-credentials
-          key: ACCESS_SECRET_KEY
-      wal:
-        compression: gzip
-        maxParallel: 2
-      data:
-        compression: gzip
-        immediateCheckpoint: true
+backup:
+  enabled: true
 ```
 
-Create the credentials secret before applying the chart:
+That provisions, entirely inside your cluster:
+
+- **An in-cluster S3 store** — [SeaweedFS](https://github.com/seaweedfs/seaweedfs), the shared
+  backup target. There is no external bucket or cloud credential to manage: the platform creates the
+  buckets and wires the credentials internally (Vault → External Secrets).
+- **PostgreSQL point-in-time recovery** — CloudNativePG's **Barman Cloud Plugin** takes base backups
+  plus *continuous WAL archiving* for **both** the control-plane and Keycloak databases, to
+  `s3://cnpg-backups/` (each database sub-pathed by name). This is what makes PITR possible.
+- **Kubernetes-resource backup** — [Velero](https://velero.io) captures manifests and Secrets across
+  all namespaces to `s3://velero-backups/`. The Postgres data volumes are **excluded** — those are
+  owned by the PITR layer above; double-capturing a live `PGDATA` volume is unsafe. Persistent-volume
+  data is opt-in per volume.
+- **A web console** — [Velero UI](#velero-ui-managing-backups-from-the-web), single-sign-on and
+  admin-gated, to browse, run, and restore backups (see below).
+
+These components ship as part of the platform's GitOps deployment (delivered as ArgoCD
+applications), so enabling `backup.enabled` is all that's required — there is no object store to
+stand up or credentials to inject by hand.
+
+### Tuning
+
+| Value | Default | What it does |
+|---|---|---|
+| `backup.enabled` | `false` | Master switch (on in the production GitOps deployment) |
+| `backup.cnpgSchedule` | `"0 0 */12 * * *"` | CNPG base-backup cadence — a 6-field (seconds-first) cron; every 12h. WAL archives continuously between base backups. |
+| `backup.seaweedfs.storage` | `20Gi` | Size of the object-store volume |
+| `backup.cnpgBucket` / `backup.veleroBucket` | `cnpg-backups` / `velero-backups` | Bucket names |
+
+Confirm Postgres WAL archiving is healthy:
 
 ```bash
-kubectl -n opsta-ai-gateway create secret generic pg-s3-credentials \
-  --from-literal=ACCESS_KEY_ID='<your-key>' \
-  --from-literal=ACCESS_SECRET_KEY='<your-secret>'
-```
-
-Once applied, CloudNativePG archives WAL continuously. Check archiving health:
-
-```bash
-kubectl --context <your-context> get cluster -n opsta-ai-gateway opsta-pg \
+kubectl get cluster -n opsta-ai-gateway opsta-pg \
   -o jsonpath='{.status.conditions[*].message}'
 # Expected: "Cluster is Ready  Continuous archiving is working"
 ```
 
-Apply the same configuration to the Keycloak database cluster.
-
 ::: tip Back up before every upgrade
-Always take a fresh base backup immediately before an upgrade so you can roll back a schema
-migration if needed. See [Upgrades → Rollback](./upgrades.md#rollback-procedure).
+Take a fresh base backup immediately before an upgrade so you can roll back a schema migration if
+needed. See [Upgrades → Rollback](./upgrades.md#rollback-procedure).
 :::
 
 ---
 
 ## Taking an on-demand backup
 
-Trigger a base backup at any time with a `Backup` resource:
+Trigger a base backup at any time with a `Backup` resource (the plugin method):
 
 ```bash
-kubectl --context <your-context> apply -f - <<'EOF'
+kubectl apply -f - <<'EOF'
 apiVersion: postgresql.cnpg.io/v1
 kind: Backup
 metadata:
-  name: opsta-pg-pre-upgrade-$(date +%Y%m%d)
+  name: opsta-pg-pre-upgrade
   namespace: opsta-ai-gateway
 spec:
   cluster:
     name: opsta-pg
-  method: barmanObjectStore
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
 EOF
 ```
 
 Monitor progress:
 
 ```bash
-kubectl --context <your-context> get backup -n opsta-ai-gateway -w
+kubectl get backup -n opsta-ai-gateway -w
 ```
 
 Expected output when complete:
 
 ```
-NAME                        AGE   CLUSTER    METHOD              PHASE
-opsta-pg-pre-upgrade-...    30s   opsta-pg   barmanObjectStore   completed
+NAME                   AGE   CLUSTER    METHOD   PHASE
+opsta-pg-pre-upgrade   30s   opsta-pg   plugin   completed
 ```
 
-**Observed backup time (v1.11.1, PoC dataset, 4.2 MiB compressed):** ~3 seconds.
-Production datasets will be larger; allow 2–10 minutes for a database with months of audit log.
+Cluster-resource (Velero) backups can be triggered the same way, or with one click from the
+[Velero UI](#velero-ui-managing-backups-from-the-web).
 
 ---
 
 ## Restoring from backup
 
-This procedure restores a PostgreSQL cluster from a barman object-store backup into a new
-namespace. Use it after cluster loss, data corruption, or a failed upgrade.
-
 ::: warning Honesty note — this is restore-based DR
-This procedure recovers the **database** only. The full application recovery also requires:
-applying Kubernetes Secrets (provider keys, OIDC config), and `helmfile sync` to bring up the
-platform. Total wall-clock RTO depends on your IaC automation.
+A restore recovers the **databases** and **Kubernetes resources**. Bringing the platform fully back
+up also requires your GitOps/IaC pipeline to reconcile the cluster. Total wall-clock RTO depends on
+your automation.
 :::
 
-### 1 — Prepare credentials
+### Restore PostgreSQL (point-in-time)
 
-Create the S3 credentials secret in the target namespace:
-
-```bash
-kubectl --context <your-context> create namespace opsta-ai-gateway
-kubectl --context <your-context> -n opsta-ai-gateway create secret generic pg-s3-credentials \
-  --from-literal=ACCESS_KEY_ID='<your-key>' \
-  --from-literal=ACCESS_SECRET_KEY='<your-secret>'
-```
-
-### 2 — Create the recovery cluster
+Recover into a **new** cluster that bootstraps from the object store — never point a fresh cluster at
+the live `PGDATA`:
 
 ```yaml
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: opsta-pg                           # must match the original cluster name for the platform to connect
+  name: opsta-pg                  # match the original name so the platform reconnects
   namespace: opsta-ai-gateway
 spec:
-  instances: 1                             # scale up after verified restore
-  imageName: <your-registry>/cloudnative-pg/postgresql:18.3-system-trixie
+  instances: 1                    # scale up after a verified restore
+  imageName: <your-registry>/cloudnative-pg/postgresql:<same-as-running-cluster>
   bootstrap:
     recovery:
-      source: opsta-pg-backup-source
+      source: src
   externalClusters:
-  - name: opsta-pg-backup-source
-    barmanObjectStore:
-      destinationPath: s3://your-bucket/opsta-ai-gateway/
-      endpointURL: https://s3.example.com  # omit for AWS S3
-      serverName: opsta-pg                 # REQUIRED — must match the original cluster name
-      s3Credentials:
-        accessKeyId:
-          name: pg-s3-credentials
-          key: ACCESS_KEY_ID
-        secretAccessKey:
-          name: pg-s3-credentials
-          key: ACCESS_SECRET_KEY
-      wal:
-        maxParallel: 2
+    - name: src
+      plugin:
+        name: barman-cloud.cloudnative-pg.io
+        parameters:
+          barmanObjectName: opsta-pg-store   # the ObjectStore the chart created
+          serverName: opsta-pg               # original cluster name — its sub-path in the bucket
   storage:
     size: 5Gi
 ```
 
 ::: warning `serverName` is required
-Without `serverName: opsta-pg`, CNPG looks for backups named after the external cluster reference
-(`opsta-pg-backup-source`) and returns **"no target backup found"**. Always set `serverName` to
-the original cluster name.
+`serverName` must be the **original** cluster name (`opsta-pg`), or CNPG looks under the wrong
+sub-path and reports *"no target backup found"*.
 :::
 
-### 3 — Wait for ready
+For **point-in-time** recovery (not the latest state), add `spec.bootstrap.recovery.recoveryTarget`
+with a timestamp or LSN. Apply the same procedure to Keycloak — ObjectStore `keycloak-pg-store`,
+`serverName: keycloak-pg`.
+
+Wait for the restored cluster to come up:
 
 ```bash
-kubectl --context <your-context> wait --for=condition=Ready \
-  cluster -n opsta-ai-gateway opsta-pg --timeout=300s
+kubectl wait --for=condition=Ready \
+  cluster -n opsta-ai-gateway opsta-pg --timeout=600s
 ```
 
-**Observed restore time (v1.11.1, 4.2 MiB database, local object store):** ~51 seconds
-(from cluster resource creation to `Ready` — includes PVC provision, base backup download,
-WAL replay, and PostgreSQL startup).
-
-Production datasets with months of WAL archiving may take 5–20 minutes. PITR to a specific
-timestamp adds WAL replay time proportional to the replay window.
-
-### 4 — Verify data integrity
+Then verify the data is intact:
 
 ```bash
-kubectl --context <your-context> exec -n opsta-ai-gateway opsta-pg-1 \
+kubectl exec -n opsta-ai-gateway opsta-pg-1 \
   -- psql -U postgres -d opsta -c "
 SELECT (SELECT count(*) FROM organizations) AS orgs,
        (SELECT count(*) FROM projects)      AS projects,
@@ -207,89 +185,67 @@ SELECT (SELECT count(*) FROM organizations) AS orgs,
        (SELECT count(*) FROM audit_log)     AS audit_rows;"
 ```
 
-Compare the output with your pre-backup record. In the drill (2026-06-16, v1.11.1) the counts
-matched exactly: 2 orgs, 3 projects, 8 users, 3 providers, 12 API keys, 197 audit rows.
+Compare against your pre-loss record.
 
-### 5 — Restore Kubernetes Secrets and bring up the platform
+### Restore Kubernetes resources
+
+Cluster manifests and Secrets (provider keys, OIDC config, TLS) live in Velero — restore them from
+the [Velero UI](#velero-ui-managing-backups-from-the-web) or the CLI:
 
 ```bash
-# Restore provider keys, OIDC secrets, and TLS credentials from your secret store / Velero backup
-# Then sync the platform:
-helmfile -f helmfile.yaml sync
+kubectl -n velero get backups.velero.io          # FQ kind — a bare `backup` hits CloudNativePG's CRD
+velero restore create --from-backup <backup-name>
 ```
 
-The control plane reconnects to the restored database and reconciles the entire gateway
-configuration automatically — providers, budgets, guardrails, and API keys are projected onto the
-data plane without manual intervention.
+Once the database and Secrets are back, your GitOps pipeline reconciles the rest. The control plane
+reconnects to the restored database and **projects the entire gateway configuration** — providers,
+budgets, guardrails, and API keys — onto the data plane automatically, with no manual intervention.
 
 ---
 
 ## DR posture & observed RTO/RPO
 
-### Drill results (2026-06-16, v1.11.1, Standalone)
+### Drill results (2026-06-28, GitOps cluster)
 
-| Step | Time observed |
-|---|---|
-| On-demand base backup (4.2 MiB) | ~3 seconds |
-| Database restore to new cluster (local object store) | ~51 seconds |
-| **Total database RTO** (restore only, no IaC rebuild) | **~1 minute** |
-| **Full application RTO** (IaC + secret restore + helmfile sync) | Not measured — depends on IaC automation and cluster provisioning time |
-
-### DR objectives (honest baseline)
-
-| Metric | Standalone | HA |
+| Layer | Drill | Observed |
 |---|---|---|
-| **RPO** | Age of last backup (backups off by default) | Seconds (continuous WAL archiving) |
-| **RTO — database restore** | ~1 min (measured; local store) | ~1–5 min (distributed store + WAL replay) |
-| **RTO — full platform** | IaC rebuild + secret restore + DB restore + helmfile sync | Same steps; HA survives single-node loss without restore |
-| **Node loss** | Full outage | Absorbed by replicas; no restore needed |
-| **Site / cluster loss** | Restore from backup | Restore from backup onto fresh infrastructure |
+| **Velero** | namespace backup → delete → restore; a canary ConfigMap returned identical | **~15s** |
+| **CNPG PITR** | canary row written → base backup → recovered into a brand-new cluster | **~70s** to healthy |
+
+Objects confirmed in `s3://cnpg-backups/opsta-pg/{base,wals}` and `s3://velero-backups/backups/`.
+
+**RPO** — Postgres ≈ the WAL-archive lag (continuous → seconds–minutes) plus a base backup every 12h;
+cluster manifests ≈ the Velero schedule (daily), and they also live in git. **RTO** — minutes for
+these workloads; dominated by base-backup download + WAL replay for larger databases.
 
 ::: warning Single-site baseline
-Both topologies are **single-site, restore-based DR**. HA survives node loss within the cluster
-but does not survive a full site loss without a restore from off-site backup. Design backup
-retention and object-store replication accordingly.
+This is **self-hosted, single-site, restore-based DR** — the object store runs in your cluster. It
+protects against **data and application loss** (accidental delete, corruption, a bad rollout), **not**
+against loss of the whole cluster or site. Off-site protection (replicating SeaweedFS to a second
+location) is an additive future change; design retention accordingly.
 :::
 
 ---
 
 ## Scheduled backups
 
-Enable automatic base backups in addition to WAL archiving:
+Both layers are scheduled automatically when `backup.enabled` is set — there is no `ScheduledBackup`
+to write by hand:
 
-```yaml
-postgres:
-  scheduledBackup:
-    enabled: true
-    schedule: "0 2 * * *"     # nightly at 02:00 UTC
-    retentionPolicy: "7d"
-```
+- **PostgreSQL** — base backups on `backup.cnpgSchedule` (every 12h by default) plus continuous WAL
+  archiving, for both databases.
+- **Velero** — a daily cluster-resource backup at 02:00 UTC with a 7-day retention.
 
-Or create a `ScheduledBackup` resource directly:
-
-```yaml
-apiVersion: postgresql.cnpg.io/v1
-kind: ScheduledBackup
-metadata:
-  name: opsta-pg-nightly
-  namespace: opsta-ai-gateway
-spec:
-  schedule: "0 2 * * *"
-  cluster:
-    name: opsta-pg
-  method: barmanObjectStore
-  backupOwnerReference: self
-  immediate: false
-```
+To change the Postgres cadence, set `backup.cnpgSchedule` (a 6-field, seconds-first cron).
 
 ---
 
 ## Keycloak backup
 
-Keycloak uses a separate PostgreSQL cluster (`keycloak-pg`). Apply the same barman configuration
-to it. Restoring Keycloak without a backup requires reconfiguring all brokered-IdP connections,
-user groups, and role mappings from scratch. A break-glass local admin (`kcadmin`) lets you log
-into the console while KC is unavailable, but the brokered-IdP config must be re-entered.
+Keycloak's database (`keycloak-pg`) is protected by the **same** Barman Cloud Plugin automatically —
+no separate configuration. Restoring Keycloak from scratch (without a backup) means re-creating all
+brokered-IdP connections, user groups, and role mappings by hand; a break-glass local admin
+(`kcadmin`) lets you log into the console while Keycloak is being recovered.
 
 ---
 
@@ -299,6 +255,8 @@ Alongside the Postgres PITR above, the platform backs up **Kubernetes resources*
 persistent-volume data is opt-in) with [Velero](https://velero.io), and ships a web console —
 **Velero UI** — to browse and run those backups without `kubectl`. It's exposed at
 **`https://backup.<your-domain>`** (e.g. `backup.ai-gateway.example.com`):
+
+![The Velero UI dashboard — backups, schedules, restores, and storage locations, signed in with Keycloak SSO](/images/velero-ui.png)
 
 - **Single sign-on.** Log in with the same Keycloak identity as the console and Grafana — no separate
   credentials. The UI runs the OIDC authorization-code flow natively against Keycloak; an HTTP request
@@ -320,5 +278,4 @@ kind, since a bare `backup` resolves to CloudNativePG's CRD.
 - [High availability](./high-availability.md) — survive node failures without a restore.
 - [Upgrades](./upgrades.md) — back up first, every time.
 - [Reference architecture → DR objectives](./reference-architecture.md#reliabilityhaddr) —
-  topology comparison and RTO/RPO table.
-- [Data handling](./data-handling.md) — what's stored where and retention controls.
+  topologies, sizing, and the security/compliance posture.
