@@ -52,6 +52,9 @@ Opsta AI Gateway puts a single, governed control point in front of all of it.
   call** (a per-agent tool allow-list, enforced at the gateway).
 - **Keep it yours** — self-hosted and air-gap installable. The data plane runs in your cluster; sensitive
   prompts and data never leave your environment. See [Data sovereignty](/security/data-sovereignty).
+- **Back up & recover** — self-hosted [backup & disaster recovery](/operate/backup-and-dr): point-in-time
+  PostgreSQL recovery plus Kubernetes-resource backups to an in-cluster object store, with a single-sign-on
+  web console (gated to admin groups) to run and restore them — no external cloud dependency.
 - **Built for many teams** — true [multi-tenancy](/overview/multi-tenancy): one platform serves many
   organizations, projects, groups, and users, each with isolated config, budgets, and dashboards.
 

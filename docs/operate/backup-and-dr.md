@@ -293,6 +293,28 @@ into the console while KC is unavailable, but the brokered-IdP config must be re
 
 ---
 
+## Velero UI — managing backups from the web
+
+Alongside the Postgres PITR above, the platform backs up **Kubernetes resources** (all namespaces;
+persistent-volume data is opt-in) with [Velero](https://velero.io), and ships a web console —
+**Velero UI** — to browse and run those backups without `kubectl`. It's exposed at
+**`https://backup.<your-domain>`** (e.g. `backup.ai-gateway.example.com`):
+
+- **Single sign-on.** Log in with the same Keycloak identity as the console and Grafana — no separate
+  credentials. The UI runs the OIDC authorization-code flow natively against Keycloak; an HTTP request
+  redirects to HTTPS automatically.
+- **Admin-group access.** A built-in authorization policy grants full **manage** (view, create, restore)
+  only to members of the `opsta-admins` or `backup-admins` Keycloak groups; everyone else is denied.
+  Restores are destructive, so add a backup operator to **`backup-admins`** to grant backup rights without
+  full platform-admin.
+- **What you can do.** List and inspect backups and restores, trigger an on-demand backup or a restore, and
+  review schedules — a GUI over the same operations available from the `velero` CLI.
+
+From the CLI those same backups are at `kubectl -n velero get backups.velero.io` — use the fully qualified
+kind, since a bare `backup` resolves to CloudNativePG's CRD.
+
+---
+
 ## Next steps
 
 - [High availability](./high-availability.md) — survive node failures without a restore.
